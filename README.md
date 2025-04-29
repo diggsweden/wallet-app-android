@@ -5,3 +5,5 @@
 [![Tag](https://img.shields.io/github/v/tag/diggsweden/wallet-app-android?style=for-the-badge&color=green)](https://github.com/diggsweden/wallet-app-android/tags)
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/diggsweden/wallet-app-android/badge?style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/diggsweden/wallet-app-android)
+
+Hello world
