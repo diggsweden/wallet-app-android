@@ -1,0 +1,92 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "osvVulnerabilityAlerts": true,
+  "dependencyDashboardOSVVulnerabilitySummary": "all",
+  "extends": [
+    "config:best-practices",
+    "workarounds:all",
+    "security:openssf-scorecard",
+    ":configMigration",
+    ":dependencyDashboard",
+    ":gitSignOff",
+    ":maintainLockFilesWeekly",
+    ":automergeMinor",
+    ":semanticCommits",
+    ":rebaseStalePrs",
+    ":semanticCommitTypeAll(chore)",
+    "mergeConfidence:all-badges"
+  ],
+  "commitMessageLowerCase": "auto",
+  "minimumReleaseAge": "4 days",
+  "labels": [
+    "dependencies"
+  ],
+  "vulnerabilityAlerts": {
+    "labels": [
+      "security",
+      "dependencies"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "minimumReleaseAge": "5 days",
+      "automerge": true
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "addLabels": [
+        "actions"
+      ],
+      "pinDigests": true,
+      "groupName": "github actions"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchPackageNames": [
+        "slsa-framework/slsa-github-generator"
+      ],
+      "pinDigests": false
+    },
+    {
+      "description": "Android dependencies",
+      "groupName": "android",
+      "matchPackagePrefixes": [
+        "com.android",
+        "androidx."
+      ]
+    },
+    {
+      "description": "Kotlin dependencies",
+      "groupName": "kotlin",
+      "matchPackagePrefixes": [
+        "org.jetbrains.kotlin"
+      ]
+    },
+    {
+      "description": "Test dependencies",
+      "groupName": "test dependencies",
+      "matchPackagePrefixes": [
+        "junit",
+        "androidx.test"
+      ],
+      "labels": [
+        "test"
+      ]
+    }
+  ],
+  "gradle": {
+    "fileMatch": [
+      "(^|/)build\\.gradle(\\.kts)?$",
+      "(^|/)gradle/libs\\.versions\\.toml$",
+      "(^|/)gradle\\.properties$"
+    ]
+  }
+}
