@@ -58,35 +58,35 @@
     {
       "description": "Android dependencies",
       "groupName": "android",
-      "matchPackagePrefixes": [
-        "com.android",
-        "androidx."
+      "matchPackageNames": [
+        "com.android{/,}**",
+        "androidx.{/,}**"
       ]
     },
     {
       "description": "Kotlin dependencies",
       "groupName": "kotlin",
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlin"
+      "matchPackageNames": [
+        "org.jetbrains.kotlin{/,}**"
       ]
     },
     {
       "description": "Test dependencies",
       "groupName": "test dependencies",
-      "matchPackagePrefixes": [
-        "junit",
-        "androidx.test"
-      ],
       "labels": [
         "test"
+      ],
+      "matchPackageNames": [
+        "junit{/,}**",
+        "androidx.test{/,}**"
       ]
     }
   ],
   "gradle": {
-    "fileMatch": [
-      "(^|/)build\\.gradle(\\.kts)?$",
-      "(^|/)gradle/libs\\.versions\\.toml$",
-      "(^|/)gradle\\.properties$"
+    "managerFilePatterns": [
+      "/(^|/)build\\.gradle(\\.kts)?$/",
+      "/(^|/)gradle/libs\\.versions\\.toml$/",
+      "/(^|/)gradle\\.properties$/"
     ]
   }
 }
