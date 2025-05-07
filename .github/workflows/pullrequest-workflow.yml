@@ -21,8 +21,8 @@ jobs:
     uses: diggsweden/.github/.github/workflows/commit-lint.yml@main
   dependencyreviewlint:
     uses: diggsweden/.github/.github/workflows/dependency-review.yml@main
-  # licenselint:
-  #   uses: diggsweden/.github/.github/workflows/license-lint.yml@main
+  licenselint:
+    uses: diggsweden/.github/.github/workflows/license-lint.yml@main
   # misclint:
   #   permissions:
   #     contents: read

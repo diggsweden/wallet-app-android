@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2025 diggsweden/wallet-app-android
+#
+# SPDX-License-Identifier: CC0-1.0
+
+version = 1
+
+# Main project files
+[[annotations]]
+path = [
+    "**/*.md",
+    "**/*.toml",
+    "**/*.xml",
+    "**/*.yml",
+    "**/*.pro",
+    "**/*.properties",
+    "*.json",
+    ".gitignore",
+    "**/*.webp",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 diggsweden/wallet-app-android"
+SPDX-License-Identifier = "CC0-1.0"
+
+
+# Third party apps
+[[annotations]]
+path = [
+    "gradlew",
+    "gradle/**/*",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Gradle,Inc"
+SPDX-License-Identifier = "Apache-2.0"

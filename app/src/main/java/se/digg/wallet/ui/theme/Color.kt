@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 diggsweden/wallet-app-android
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 package se.digg.wallet.ui.theme
 
 import androidx.compose.ui.graphics.Color
