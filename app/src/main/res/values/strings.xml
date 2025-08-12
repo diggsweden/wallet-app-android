@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">Wallet</string>
+    <string name="app_name">ID-plånboken</string>
+    <string name="homescreen_welcome">Välkommen!</string>
+    <string name="homescreen_content">Detta är startskottet för den svenska statliga identitetsplånboken.\n</string>
+    <string name="homescreen_content2">Denna app kommer kontinuerligt att uppdateras så se till att hålla den uppdaterad för att ta del av de senaste funktioner som kommer läggas till.</string>
+    <string name="homescreen_more_info">"Mer info om projektet hittar du "</string>
+    <string name="homescreen_pid_info">"Hämta hem en PID "</string>
+    <string name="homescreen_more_info_url">https://ec.europa.eu/digital-building-blocks/sites/display/EUDIGITALIDENTITYWALLET/EU+Digital+Identity+Wallet+Home</string>
+    <string name="homescreen_pid_info_url">https://wallet.sandbox.digg.se/prepare-credential-offer</string>
+    <string name="homescreen_more_info_here">här</string>
 </resources>

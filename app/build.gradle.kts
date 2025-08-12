@@ -8,16 +8,19 @@ android {
     namespace = "se.digg.wallet"
     compileSdk = 35
 
+    //TODO this can be removed when eudi-libraries are removed.
+    packaging {
+        resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+    }
+
     defaultConfig {
         applicationId = "se.digg.wallet"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
+        versionCode = 3
         versionName = "0.0.1"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -56,6 +59,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,4 +67,16 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.retrofit)
+    implementation(libs.okHttp)
+    implementation(libs.okHttp.logger)
+    implementation(libs.timber)
+    implementation(libs.moshi)
+    implementation(libs.moshi.adapters)
+    implementation(libs.retrofit.moshiconverter)
+
+    implementation(libs.bundles.network)
+    implementation(libs.bundles.images)
+    implementation(libs.bundles.eudi)
 }

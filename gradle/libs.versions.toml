@@ -1,19 +1,37 @@
 [versions]
-agp = "8.9.1"
-kotlin = "2.0.21"
-coreKtx = "1.15.0"
+agp = "8.11.0"
+kotlin = "2.2.0"
+coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.7"
+lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2024.09.00"
+composeBom = "2025.07.00"
+appcompat = "1.7.1"
+material = "1.12.0"
+navigationCompose = "2.9.2"
+retrofit = "2.11.0"
+okHttp = "4.12.0"
+okhttp3Logger = "4.12.0"
+timber = "5.0.1"
+moshi = "1.15.2"
+eudi-openid4vci = "0.6.2"
+eudi-openid4vp = "0.8.0"
+ktor = "3.0.1"
+nimbus = "9.47"
+coil = "3.3.0"
 
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+#Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+
+#Android core
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -21,12 +39,46 @@ androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+#Network
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-moshiconverter = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
+okHttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp" }
+okHttp-logger = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3Logger" }
+moshi = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
+moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", version.ref = "moshi" }
+
+ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+#Logging
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+#Eudi
+eudi-openid4vci = { group = "eu.europa.ec.eudi", name = "eudi-lib-jvm-openid4vci-kt", version.ref = "eudi-openid4vci" }
+eudi-openid4vp = { group = "eu.europa.ec.eudi", name = "eudi-lib-jvm-siop-openid4vp-kt", version.ref = "eudi-openid4vp" }
+nimbus = { group = "com.nimbusds", name = "nimbus-jose-jwt", version.ref = "nimbus" }
+
+#Image
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+
+[bundles]
+network = ["ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-serialization", "ktor-logging"]
+network-retrofit = ["retrofit", "retrofit-moshiconverter", "okHttp", "okHttp-logger", "moshi", "moshi-adapters"]
+images = ["coil-compose", "coil-network"]
+eudi = ["eudi-openid4vci", "eudi-openid4vp", "nimbus"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 

@@ -1,4 +1,4 @@
-package se.digg.wallet.ui.theme
+package se.digg.wallet.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
