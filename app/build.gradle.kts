@@ -68,15 +68,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.retrofit)
-    implementation(libs.okHttp)
-    implementation(libs.okHttp.logger)
     implementation(libs.timber)
-    implementation(libs.moshi)
-    implementation(libs.moshi.adapters)
-    implementation(libs.retrofit.moshiconverter)
-
-    implementation(libs.bundles.network)
+    implementation(libs.bundles.network.retrofit)
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
 }

@@ -2,36 +2,54 @@
 
 package se.digg.wallet.feature.issuance
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
+import se.digg.wallet.R
 import se.digg.wallet.core.ui.theme.WalletTheme
+import timber.log.Timber
 
 @Composable
 fun IssuanceScreen(
@@ -39,29 +57,28 @@ fun IssuanceScreen(
     credentialOfferUri: String?,
     viewModel: IssuanceViewModel = viewModel()
 ) {
-    viewModel.initFetch(credentialOfferUri ?: "error")
-    val credential by viewModel.credential.collectAsState()
-    val issuer by viewModel.issuer.collectAsState()
-    val token by viewModel.token.collectAsState()
-    val grants by viewModel.decodedGrants.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val issuerMetadata by viewModel.issuerMetadata.collectAsState()
+    LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri ?: "error") }
+
+    //viewModel.fetchIssuer(credentialOfferUri ?: "error")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         {
             TopAppBar(title = {
                 Text(
-                    text = "Issuance"
+                    text = "Issue PID"
                 )
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = ""
                     )
                 }
             })
         }) { innerPadding ->
-
         Surface(modifier = Modifier.padding(innerPadding)) {
             Column(
                 modifier = Modifier
@@ -69,123 +86,37 @@ fun IssuanceScreen(
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp)
             ) {
+                Header(metadata = issuerMetadata)
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    SelectionContainer {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            val issuerDisplay = issuer?.credentialOffer?.credentialIssuerMetadata?.display?.firstOrNull()
-                            Text("Issuer:", fontWeight = FontWeight.Bold)
-                            Text(issuerDisplay?.name ?: "-")
-                            Text("Description", fontWeight = FontWeight.Bold)
-                            //Text(issuerDisplay?.description ?: "-")
-                            Text("Credential offer endpoint", fontWeight = FontWeight.Bold)
-                            Text(issuer?.credentialOffer?.credentialIssuerMetadata?.credentialEndpoint?.value?.toString() ?: "Error")
-                            Text("Credential offer uri", fontWeight = FontWeight.Bold)
-                            Text(credentialOfferUri ?: "Error")
-                        }
+                when (uiState) {
+                    IssuanceState.Initial -> {
+                        Timber.d("IssuanceState.Initial")
                     }
-                }
-                Spacer(Modifier.height(12.dp))
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    SelectionContainer {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Issuer", fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(12.dp))
-                            Text("Credential Issuer Identifier", fontWeight = FontWeight.Bold)
-                            Text(
-                                issuer?.credentialOffer?.credentialIssuerMetadata?.credentialIssuerIdentifier?.toString()
-                                    ?: ""
+
+                    is IssuanceState.IssuerFetched -> {
+                        Timber.d("IssuanceState.IssuerFetched")
+                        PreAuthInput(onSubmit = { userInput ->
+                            viewModel.authorize(
+                                input = userInput
                             )
-                            Text("Batch credential issuance", fontWeight = FontWeight.Bold)
-                            Text(
-                                issuer?.credentialOffer?.credentialIssuerMetadata?.batchCredentialIssuance?.toString()
-                                    ?: ""
-                            )
-                            Text("Deferred credential endpoint", fontWeight = FontWeight.Bold)
-                            Text(
-                                issuer?.credentialOffer?.credentialIssuerMetadata?.deferredCredentialEndpoint?.toString()
-                                    ?: ""
-                            )
-                            Text("Deferred notification endpoint", fontWeight = FontWeight.Bold)
-                            Text(
-                                issuer?.credentialOffer?.credentialIssuerMetadata?.notificationEndpoint?.toString()
-                                    ?: ""
-                            )
-                            Text("Credential endpoint", fontWeight = FontWeight.Bold)
-                            Text(
-                                issuer?.credentialOffer?.credentialIssuerMetadata?.credentialEndpoint?.toString()
-                                    ?: ""
-                            )
-                            Text(
-                                "Pre Authorized Code", fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                issuer?.credentialOffer?.grants?.preAuthorizedCode()?.preAuthorizedCode
-                                    ?: ""
-                            )
-                            Text("txcode", fontWeight = FontWeight.Bold)
-                            Text(
-                                issuer?.credentialOffer?.grants?.preAuthorizedCode()?.txCode?.toString()
-                                    ?: ""
-                            )
-                        }
+                        })
                     }
-                }
-                Spacer(Modifier.height(12.dp))
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    SelectionContainer {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Accesstoken", fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(12.dp))
-                            Text(token?.accessToken ?: "")
-                        }
+
+                    is IssuanceState.Authorized -> {
+                        Timber.d("IssuanceState.Authorized")
                     }
-                }
-                Spacer(Modifier.height(12.dp))
-                Button(onClick = { viewModel.fetchCredential() }) {
-                    Text("Hämta Pid")
-                }
-                Spacer(Modifier.height(12.dp))
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    SelectionContainer {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Credential response", fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(12.dp))
-                            Text("c_nonce:", fontWeight = FontWeight.Bold)
-                            Text(credential?.c_nonce ?: "-")
-                            Text("c_nonce_expires_in:", fontWeight = FontWeight.Bold)
-                            Text(credential?.c_nonce_expires_in ?: "-")
-                            Text("credential:", fontWeight = FontWeight.Bold)
-                            Text(credential?.credential ?: "-")
-                        }
+
+                    is IssuanceState.CredentialFetched -> {
+                        Timber.d("IssuanceState.CredentialFetched")
+                        Disclosures()
                     }
-                }
-                Spacer(Modifier.height(12.dp))
-                if (grants.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Decoded", fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(12.dp))
-                            grants.forEach { item ->
-                                Text(item.parameter, fontWeight = FontWeight.Bold)
-                                Text(item.value)
-                            }
-                        }
+
+                    IssuanceState.Error -> {
+                        Timber.d("IssuanceState.Error")
+                    }
+
+                    IssuanceState.Loading -> {
+                        Timber.d("IssuanceState.Loading ")
                     }
                 }
             }
@@ -193,10 +124,97 @@ fun IssuanceScreen(
     }
 }
 
+@Composable
+private fun Header(metadata: CredentialIssuerMetadata?) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(id = R.color.digg_primary).copy(
+                alpha = 0.2f
+            )
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        SelectionContainer {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Box(
+                    modifier = Modifier
+                        .height(32.dp)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = metadata?.display?.first()?.logo?.uri.toString(),
+                        contentDescription = "-",
+                        modifier = Modifier.size(200.dp)
+                    )
+                }
+                Text("Issuer:", fontWeight = FontWeight.Bold)
+                Text(metadata?.display?.first()?.name ?: "-")
+                Text("Description:", fontWeight = FontWeight.Bold)
+                Text(metadata?.display?.first()?.description ?: "-")
+                Text("Credential offer:", fontWeight = FontWeight.Bold)
+                Text(metadata?.credentialEndpoint?.value?.toString() ?: "-")
+            }
+        }
+    }
+    Spacer(Modifier.height(12.dp))
+}
+
+@Composable
+private fun PreAuthInput(onSubmit: (Int) -> Unit) {
+    var text by rememberSaveable { mutableStateOf("") }
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(id = R.color.digg_primary).copy(
+                alpha = 0.2f
+            )
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = sanitize(it) },
+                label = { Text("Enter authorization code") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        text.toIntOrNull()?.let { input -> onSubmit.invoke(input) }
+                    }
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Button(
+                onClick = { text.toIntOrNull()?.let { input -> onSubmit.invoke(input) } },
+                enabled = text.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Verify")
+            }
+        }
+    }
+    Spacer(Modifier.height(12.dp))
+}
+
+fun sanitize(input: String) = input.filter { it.isDigit() }
+
+
+@Composable
+private fun Disclosures() {
+
+}
 
 @Preview(showBackground = true)
 @Composable
-private fun DeeplinkTextPreview() {
+private fun IssuancePreview() {
     WalletTheme {
 
     }

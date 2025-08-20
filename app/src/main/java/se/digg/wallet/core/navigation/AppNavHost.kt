@@ -39,7 +39,7 @@ fun AppNavHost(
             deepLinks = listOf(
                 navDeepLink {
                     uriPattern =
-                        "openid-credential-offer://credential_offer?credential_offer_uri={credential_offer_uri}"
+                        "openid-credential-offer://credential_offer?credential_offer={credential_offer_uri}"
                 }
             )
         ) { backStackEntry ->
