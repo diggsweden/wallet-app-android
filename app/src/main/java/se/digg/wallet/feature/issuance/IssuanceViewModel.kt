@@ -2,33 +2,28 @@ package se.digg.wallet.feature.issuance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.Curve
 import eu.europa.ec.eudi.openid4vci.AuthorizedRequest
-import eu.europa.ec.eudi.openid4vci.BatchSigner
 import eu.europa.ec.eudi.openid4vci.Claim
 import eu.europa.ec.eudi.openid4vci.Client
 import eu.europa.ec.eudi.openid4vci.CredentialConfiguration
-import eu.europa.ec.eudi.openid4vci.CredentialConfigurationIdentifier
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import eu.europa.ec.eudi.openid4vci.CredentialOffer
 import eu.europa.ec.eudi.openid4vci.CredentialResponseEncryptionPolicy
-import eu.europa.ec.eudi.openid4vci.IssuanceRequestPayload
 import eu.europa.ec.eudi.openid4vci.Issuer
-import eu.europa.ec.eudi.openid4vci.JwtBindingKey
-import eu.europa.ec.eudi.openid4vci.KeyAttestationJWT
 import eu.europa.ec.eudi.openid4vci.KeyGenerationConfig
 import eu.europa.ec.eudi.openid4vci.MsoMdocCredential
 import eu.europa.ec.eudi.openid4vci.OpenId4VCIConfig
-import eu.europa.ec.eudi.openid4vci.ProofsSpecification
 import eu.europa.ec.eudi.openid4vci.SdJwtVcCredential
 import eu.europa.ec.eudi.openid4vp.DefaultHttpClientFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.network.RetrofitInstance
+import se.digg.wallet.data.CredentialRequestModel
+import se.digg.wallet.data.Proof
 import timber.log.Timber
 import java.net.URI
-import java.security.interfaces.ECPrivateKey
 
 sealed interface IssuanceState {
     object Initial : IssuanceState
@@ -101,15 +96,18 @@ class IssuanceViewModel() : ViewModel() {
     fun fetchCredential(authorizedRequest: AuthorizedRequest) {
         viewModelScope.launch {
             try {
-
-                /*
-                KeychainManager.generateEs256Key("alias", true)
-                val privateKey = KeychainManager.getPrivateKey("alias")
-                 */
-
                 val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
-                val jwk = KeystoreManager.exportPublicJwk("alias")
-
+                val jwk = KeystoreManager.exportPublicJwk("alias", keyPair = keyPair)
+                val jwt = KeystoreManager.createJwtProof(
+                    eckey = jwk,
+                    audience = issuerMetadata.value?.credentialEndpoint?.value.toString(),
+                    nonce = authorizedRequest.resourceServerDpopNonce?.value.toString()
+                )
+                fetchManuallyCredential(
+                    token = authorizedRequest.accessToken.accessToken,
+                    jwt = jwt
+                )
+                /*
                 val jwkBindingKey = JwtBindingKey.Jwk(jwk)
 
                 val map: Map<ECPrivateKey, JwtBindingKey> = mapOf(
@@ -121,8 +119,6 @@ class IssuanceViewModel() : ViewModel() {
                     signingAlgorithm = JWSAlgorithm.ES256.name,
                     provider = null
                 )
-
-
 
                 val proofSpecification: ProofsSpecification =
                     ProofsSpecification.JwtProofs.NoKeyAttestation(proofsSigner = signer)
@@ -136,32 +132,41 @@ class IssuanceViewModel() : ViewModel() {
                         request(credentialRequest, proofSpecification)
                     }
                 }.getOrThrow()
-
+                 */
             } catch (e: Exception) {
-                //_uiState.value = IssuanceState.Error
+                _uiState.value = IssuanceState.Error
                 Timber.Forest.d("IssuanceViewModel: Fetch credential error: ${e.message}")
             }
         }
     }
-    /*
-        fun fetchCredential() {
-            viewModelScope.launch {
-                try {
-                    val response = RetrofitInstance.api.getCredential(
-                        accessToken = "Bearer ", //+ token.value?.accessToken,
-                        request = setupRequestBody()
-                    )
-                    _credential.value = response
 
-                    parseCredential(response)
+    fun fetchManuallyCredential(token: String, jwt: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getCredential(
+                    accessToken = "Bearer $token",
+                    request = setupRequestBody(jwt)
+                )
+                Timber.d("IssuanceViewModel: response $response")
 
-                } catch (e: Exception) {
-                    _uiState.value = IssuanceState.Error
-                    Timber.Forest.d("IssuanceViewModel: FetchCredential error: ${e.message}")
-                }
+            } catch (e: Exception) {
+                _uiState.value = IssuanceState.Error
+                Timber.Forest.d("IssuanceViewModel: FetchCredential error: ${e.message}")
             }
         }
+    }
 
+    private fun setupRequestBody(jwt: String): CredentialRequestModel {
+        return CredentialRequestModel(
+            format = "vc+sd-jwt",
+            credential_configuration_id = "eu.europa.ec.eudi.pid_vc_sd_jwt",
+            proof = Proof(
+                proof_type = "jwt",
+                jwt = jwt
+            )
+        )
+    }
+    /*
         private fun parseCredential(credential: CredentialResponseModel) {
             val grants = mutableListOf<GrantModel>()
             val splittedCredential = credential.credential.split("~")
@@ -185,17 +190,6 @@ class IssuanceViewModel() : ViewModel() {
                 }
             }
             _decodedGrants.value = grants
-        }
-
-        private fun setupRequestBody(): CredentialRequestModel {
-            return CredentialRequestModel(
-                format = "vc+sd-jwt",
-                vct = "urn:eu.europa.ec.eudi:pid:1",
-                proof = Proof(
-                    proof_type = "jwt",
-                    jwt = "eyJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiRHN4S1BwaUVseG9UYUJZcFN5QVdrdWFxUmxfbnpGNUFkZTBwM0FlOHg3VSIsInkiOiIxMUdtQVpOY0dtUGlXQWg5M20zNUkweUptX2V1VE5mcFVUbGxHN2F5SHlvIn19.eyJhdWQiOiJodHRwczovL3dhbGxldC5zYW5kYm94LmRpZ2cuc2UiLCJub25jZSI6IjZRX0x1bnRXZkdkZ1BoNjBMWkY2S2kxWHhXUkhMSTdJOXdpeXBVNkpRcGciLCJpYXQiOjE3NDY1MTQ0NzV9.TAwlcDkYFJgkCiP8_mbJ6yBrwdgXEiYe23RBdM5TSQUTa04eqY4nMQ5Igd9wLchToovLgZGpYO62d2y7wlcf4g"
-                )
-            )
         }
      */
 

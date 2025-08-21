@@ -31,7 +31,7 @@ data class TxCodeInputMode(
 
 data class CredentialRequestModel(
     val format: String,
-    val vct: String,
+    val credential_configuration_id: String,
     val proof: Proof
 )
 
@@ -41,9 +41,11 @@ data class Proof(
 )
 
 data class CredentialResponseModel(
-    val credential: String,
-    val c_nonce: String?,
-    val c_nonce_expires_in: String?
+    val credentials: List<Credential>,
+)
+
+data class Credential(
+    val credential: String
 )
 
 data class TokenModel(

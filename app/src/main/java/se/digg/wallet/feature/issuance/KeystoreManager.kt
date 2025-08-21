@@ -1,22 +1,25 @@
 package se.digg.wallet.feature.issuance
 
-// KeystoreManager.kt
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jose.jwk.Curve
+import com.nimbusds.jose.jwk.ECKey
+import com.nimbusds.jose.jwk.KeyUse
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.SignedJWT
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
-
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.jwk.Curve
-import com.nimbusds.jose.jwk.ECKey
-import com.nimbusds.jose.jwk.JWK
-import com.nimbusds.jose.jwk.KeyUse
-import java.security.interfaces.ECPrivateKey
+import java.util.Date
 
 object KeystoreManager {
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
@@ -28,7 +31,7 @@ object KeystoreManager {
             val cert = ks.getCertificate(alias)
             val privateKey = ks.getKey(alias, null)
             @Suppress("UNCHECKED_CAST")
-            return KeyPair(cert.publicKey as ECPublicKey, privateKey as java.security.PrivateKey)
+            return KeyPair(cert.publicKey as ECPublicKey, privateKey as PrivateKey)
         }
         return generateEs256Key(alias, preferStrongBox)
     }
@@ -70,7 +73,7 @@ object KeystoreManager {
         return kpg.generateKeyPair()
     }
 
-    fun exportPublicJwk(alias: String): JWK {
+    fun exportPublicJwk(alias: String, keyPair: KeyPair): ECKey {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val publicKey = ks.getCertificate(alias)?.publicKey as? ECPublicKey
             ?: error("No key for alias '$alias'")
@@ -78,9 +81,33 @@ object KeystoreManager {
         val jwk: ECKey = ECKey.Builder(Curve.P_256, publicKey)
             .keyUse(KeyUse.SIGNATURE)       // "use": "sig"
             .algorithm(JWSAlgorithm.ES256)   // "alg": "ES256"
-            .keyID(alias)                    // "kid": alias (or compute a thumbprint if you prefer)
+            .keyID(alias) // "kid": alias (or compute a thumbprint if you prefer)
+            .privateKey(keyPair.private)
             .build()
         return jwk
+    }
+
+    fun createJwtProof(eckey: ECKey, audience: String, nonce: String): String {
+        val signer = ECDSASigner(eckey)
+        val publicEcKey = eckey.toPublicJWK()
+        //todo lookinto
+        val claims = mapOf("" to "", "" to "")
+
+        val claimSet: JWTClaimsSet =
+            JWTClaimsSet.Builder()
+                .claim("typ", "openid4vci-proof+jwt")
+                .claim("nonce", nonce)
+                .audience(audience)
+                .issueTime(Date())
+                .issuer("wallet-dev")
+                .build()
+
+        val jwsHeader =
+            JWSHeader.Builder(JWSAlgorithm.ES256).keyID(publicEcKey.keyID).jwk(publicEcKey).build()
+        val signedJWT =
+            SignedJWT(jwsHeader, claimSet)
+        signedJWT.sign(signer)
+        return signedJWT.serialize()
     }
 
     fun exportPrivateKey(alias: String): ECPrivateKey? {
