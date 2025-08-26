@@ -8,8 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import se.digg.wallet.feature.issuance.IssuanceScreen
 import se.digg.wallet.feature.dashboard.DashboardScreen
+import se.digg.wallet.feature.issuance.IssuanceScreen
+import se.digg.wallet.feature.presentation.PresentationScreen
 
 @Composable
 fun AppNavHost(
@@ -45,6 +46,25 @@ fun AppNavHost(
         ) { backStackEntry ->
             val credentialOfferUri = backStackEntry.arguments?.getString("credential_offer_uri")
             IssuanceScreen(navController = navController, credentialOfferUri)
+        }
+        composable(
+            route = "presentation",
+            arguments = listOf(
+                /*
+                navArgument("clientId") { type = NavType.StringType; nullable = true },
+                navArgument("requestUri") { type = NavType.StringType; nullable = true },
+                navArgument("requestUriMethod") { type = NavType.StringType; nullable = true }
+                 */
+                navArgument("requestUri") { type = NavType.StringType; nullable = true }
+            ),
+            deepLinks = listOf(
+                navDeepLink {
+                    //uriPattern = "eudi-openid4vp://?client_id={clientId}&request_uri={requestUri}&request_uri_method={requestUriMethod}"
+                    uriPattern = "eudi-openid4vp://?{requestUri}"
+                }
+            )
+        ) { backStackEntry ->
+            PresentationScreen(navController = navController)
         }
     }
 }

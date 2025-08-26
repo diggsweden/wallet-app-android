@@ -4,6 +4,7 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
+import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.crypto.ECDSASigner
@@ -12,6 +13,7 @@ import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import timber.log.Timber
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
@@ -37,7 +39,8 @@ object KeystoreManager {
     }
 
     private fun generateEs256Key(alias: String, preferStrongBox: Boolean): KeyPair {
-        val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC)
+
+        val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, ANDROID_KEYSTORE)
 
         // Try StrongBox first (if available)
         if (preferStrongBox && Build.VERSION.SDK_INT >= 28) {
@@ -53,10 +56,12 @@ object KeystoreManager {
                         .build()
                 )
                 return kpg.generateKeyPair()
-            } catch (_: StrongBoxUnavailableException) {
+            } catch (e: StrongBoxUnavailableException) {
                 // fall back below
-            } catch (_: Exception) {
+                Timber.d("Error: ${e.message}")
+            } catch (e: Exception) {
                 // some devices throw other exceptions; fall back
+                Timber.d("Error: ${e.message}")
             }
         }
 
@@ -74,14 +79,14 @@ object KeystoreManager {
     }
 
     fun exportPublicJwk(alias: String, keyPair: KeyPair): ECKey {
-        val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        val publicKey = ks.getCertificate(alias)?.publicKey as? ECPublicKey
+        //val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        val publicKey = keyPair.public as? ECPublicKey
             ?: error("No key for alias '$alias'")
 
         val jwk: ECKey = ECKey.Builder(Curve.P_256, publicKey)
             .keyUse(KeyUse.SIGNATURE)       // "use": "sig"
-            .algorithm(JWSAlgorithm.ES256)   // "alg": "ES256"
             .keyID(alias) // "kid": alias (or compute a thumbprint if you prefer)
+            .algorithm(JWSAlgorithm.ES256)
             .privateKey(keyPair.private)
             .build()
         return jwk
@@ -95,7 +100,6 @@ object KeystoreManager {
 
         val claimSet: JWTClaimsSet =
             JWTClaimsSet.Builder()
-                .claim("typ", "openid4vci-proof+jwt")
                 .claim("nonce", nonce)
                 .audience(audience)
                 .issueTime(Date())
@@ -103,9 +107,11 @@ object KeystoreManager {
                 .build()
 
         val jwsHeader =
-            JWSHeader.Builder(JWSAlgorithm.ES256).keyID(publicEcKey.keyID).jwk(publicEcKey).build()
-        val signedJWT =
-            SignedJWT(jwsHeader, claimSet)
+            JWSHeader.Builder(JWSAlgorithm.ES256).keyID(publicEcKey.keyID).jwk(publicEcKey).type(
+                JOSEObjectType("openid4vci-proof+jwt")
+            )
+                .build()
+        val signedJWT = SignedJWT(jwsHeader, claimSet)
         signedJWT.sign(signer)
         return signedJWT.serialize()
     }

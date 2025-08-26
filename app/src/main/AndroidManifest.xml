@@ -28,12 +28,22 @@
 
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="openid-credential-offer"
-                    android:host="credential_offer"/>
+                    android:host="credential_offer"
+                    android:scheme="openid-credential-offer" />
+            </intent-filter>
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="eudi-openid4vp" />
             </intent-filter>
         </activity>
     </application>

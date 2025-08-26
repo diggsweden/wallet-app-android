@@ -49,6 +49,7 @@ import coil3.compose.AsyncImage
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import se.digg.wallet.R
 import se.digg.wallet.core.ui.theme.WalletTheme
+import se.digg.wallet.data.FetchedCredential
 import timber.log.Timber
 
 @Composable
@@ -60,8 +61,6 @@ fun IssuanceScreen(
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
     LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri ?: "error") }
-
-    //viewModel.fetchIssuer(credentialOfferUri ?: "error")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -88,8 +87,8 @@ fun IssuanceScreen(
             ) {
                 Header(metadata = issuerMetadata)
 
-                when (uiState) {
-                    IssuanceState.Initial -> {
+                when (val state = uiState) {
+                    IssuanceState.Idle -> {
                         Timber.d("IssuanceState.Initial")
                     }
 
@@ -108,7 +107,8 @@ fun IssuanceScreen(
 
                     is IssuanceState.CredentialFetched -> {
                         Timber.d("IssuanceState.CredentialFetched")
-                        Disclosures()
+                        val fetchedCredential = state.credential
+                        Disclosures(fetchedCredential = fetchedCredential)
                     }
 
                     IssuanceState.Error -> {
@@ -208,8 +208,33 @@ fun sanitize(input: String) = input.filter { it.isDigit() }
 
 
 @Composable
-private fun Disclosures() {
-
+private fun Disclosures(fetchedCredential: FetchedCredential) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(id = R.color.digg_primary).copy(
+                alpha = 0.2f
+            )
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text("Disclosures:", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(12.dp))
+            fetchedCredential.disclosures.forEach { item ->
+                OutlinedTextField(
+                    value = item.value.value,
+                    onValueChange = { },
+                    label = { Text(item.value.claim.display.first().name ?: "No name") },
+                    singleLine = true,
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+        }
+    }
+    Spacer(Modifier.height(12.dp))
 }
 
 @Preview(showBackground = true)
