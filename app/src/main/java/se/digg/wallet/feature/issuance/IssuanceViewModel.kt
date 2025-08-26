@@ -131,22 +131,25 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
-                val jwk = KeystoreManager.exportPublicJwk("alias", keyPair = keyPair)
                 val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value.toString()
-                var nonce: String? = ""
-                try {
+
+                val nonce = try {
                     val response = RetrofitInstance.api.getNonce(
                         url = nonceEndpointUrl,
                     )
-                    nonce = response.c_nonce
+                    response.c_nonce
                 } catch (e: Exception) {
                     Timber.d("IssuanceViewModel: nonce error: ${e.message}")
+                    null
                 }
-                val jwt = KeystoreManager.createJwtProof(
-                    eckey = jwk,
-                    audience = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString(),
-                    nonce = nonce?:""
+
+                val payload = mapOf(
+                    "aud" to issuerMetadata.value?.credentialIssuerIdentifier?.value.toString(),
+                    "nonce" to nonce
                 )
+
+                val jwt = KeystoreManager.createJWT(keyPair, payload)
+
                 fetchManuallyCredential(
                     token = authorizedRequest.accessToken.accessToken,
                     jwt = jwt

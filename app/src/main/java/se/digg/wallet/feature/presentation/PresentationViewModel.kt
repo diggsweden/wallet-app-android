@@ -12,14 +12,17 @@ import com.nimbusds.jose.JWEObject
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
+import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jose.crypto.impl.ECDSA
+import com.nimbusds.jose.jca.JCAContext
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.JSONObjectUtils
-import eu.europa.ec.eudi.openid4vp.ClientIdPrefix
+import com.nimbusds.openid.connect.sdk.federation.utils.JWTUtils
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.Resolution
 import eu.europa.ec.eudi.openid4vp.ResolvedRequestObject
@@ -37,7 +40,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -51,6 +53,7 @@ import se.digg.wallet.feature.issuance.KeystoreManager
 import timber.log.Timber
 import java.security.KeyPair
 import java.security.MessageDigest
+import java.security.Signature
 import java.time.Instant
 
 sealed interface PresentationState {
@@ -101,7 +104,7 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
                         matchDisclosures(resolution.requestObject as ResolvedRequestObject.OpenId4VPAuthorization)
                     }
                 }
-                
+
                 Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
             } catch (e: RuntimeException) {
                 Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
@@ -202,7 +205,7 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
         val combined = listOf(header).plus(body).joinToString(separator = "~").plus("~")
         Timber.d("PresentationViewModel - SendDisclosures: $combined")
         val keybinding = createKeyBinding(combined, authorization)
-        val full = combined+keybinding
+        val full = combined + keybinding
         return full
     }
 
@@ -212,7 +215,7 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
     ): String {
         val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
         val nonce = authorization.nonce
-        val aud = "x509_san_dns:"+authorization.client.id.originalClientId
+        val aud = "x509_san_dns:" + authorization.client.id.originalClientId
         val sdJwtData: ByteArray = sdJwt.toByteArray(Charsets.US_ASCII)
         val hash = MessageDigest.getInstance("SHA-256").digest(sdJwtData)
         val base64Hash = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
@@ -221,41 +224,10 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
             "nonce" to nonce,
             "sd_hash" to base64Hash
         )
-        val keybinding = createJWT(keyPair = keyPair, payload = payload, headerType = "kb+jwt")
+        val keybinding =
+            KeystoreManager.createJWT(keyPair = keyPair, payload = payload, headerType = "kb+jwt")
         Timber.d("PresentationViewModel - SendDisclosures ")
         return keybinding
-    }
-
-    fun createJWT(
-        keyPair: KeyPair,
-        payload: Map<String, Any?>,
-        headerType: String? = null
-    ): String {
-        val now = Instant.now().epochSecond.toInt()
-        val claims = mapOf(
-            "iat" to now,
-            "nbf" to now,
-            "exp" to now + 600
-        ) + payload
-
-        val exportedECKey = KeystoreManager.exportPublicJwk("alias", keyPair)
-        val publicECKey = exportedECKey.toPublicJWK()
-
-        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
-            .keyID(publicECKey.keyID)
-            .apply { if (headerType != null) this.type(JOSEObjectType(headerType)) }
-            .jwk(publicECKey)
-            .build()
-
-        val jws = JWSObject(
-            header,
-            Payload(JSONObjectUtils.toJSONString(claims))
-        )
-
-        val signer = ECDSASigner(exportedECKey)
-        jws.sign(signer)
-
-        return jws.serialize()
     }
 
     private fun createSubmissionPayload(

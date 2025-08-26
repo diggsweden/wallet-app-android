@@ -7,10 +7,16 @@ import android.security.keystore.StrongBoxUnavailableException
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.JWSObject
+import com.nimbusds.jose.JWSSigner
+import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jose.crypto.impl.ECDSA
+import com.nimbusds.jose.jca.JCAContext
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
-import com.nimbusds.jose.jwk.KeyUse
+import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jose.util.JSONObjectUtils
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import timber.log.Timber
@@ -18,22 +24,28 @@ import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
+import java.security.Signature
 import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
+import java.time.Instant
 import java.util.Date
 
 object KeystoreManager {
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
-    /** Get or create a P-256 (ES256) keypair under [alias]. */
     fun getOrCreateEs256Key(alias: String, preferStrongBox: Boolean = true): KeyPair {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         if (ks.containsAlias(alias)) {
-            val cert = ks.getCertificate(alias)
-            val privateKey = ks.getKey(alias, null)
-            @Suppress("UNCHECKED_CAST")
-            return KeyPair(cert.publicKey as ECPublicKey, privateKey as PrivateKey)
+            val entry = runCatching {
+                ks.getEntry(alias, null) as KeyStore.PrivateKeyEntry
+            }.getOrNull()
+
+            if (entry != null) {
+                val pub = entry.certificate.publicKey as ECPublicKey
+                val private: PrivateKey = entry.privateKey
+                return KeyPair(pub, private)
+            }
         }
         return generateEs256Key(alias, preferStrongBox)
     }
@@ -78,61 +90,68 @@ object KeystoreManager {
         return kpg.generateKeyPair()
     }
 
-    fun exportPublicJwk(alias: String, keyPair: KeyPair): ECKey {
+    fun exportJwk(alias: String, keyPair: KeyPair): ECKey {
         //val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val publicKey = keyPair.public as? ECPublicKey
             ?: error("No key for alias '$alias'")
 
         val jwk: ECKey = ECKey.Builder(Curve.P_256, publicKey)
-            .keyUse(KeyUse.SIGNATURE)       // "use": "sig"
             .keyID(alias) // "kid": alias (or compute a thumbprint if you prefer)
-            .algorithm(JWSAlgorithm.ES256)
-            .privateKey(keyPair.private)
             .build()
         return jwk
     }
 
-    fun createJwtProof(eckey: ECKey, audience: String, nonce: String): String {
-        val signer = ECDSASigner(eckey)
-        val publicEcKey = eckey.toPublicJWK()
-        //todo lookinto
-        val claims = mapOf("" to "", "" to "")
+    fun createJWT(
+        keyPair: KeyPair,
+        payload: Map<String, Any?>,
+        headerType: String? = null
+    ): String {
+        val now = Instant.now().epochSecond.toInt()
+        val claims = mapOf(
+            "iat" to now,
+            "nbf" to now,
+            "exp" to now + 600
+        ) + payload
 
-        val claimSet: JWTClaimsSet =
-            JWTClaimsSet.Builder()
-                .claim("nonce", nonce)
-                .audience(audience)
-                .issueTime(Date())
-                .issuer("wallet-dev")
-                .build()
+        val exportedECKey = exportJwk("alias", keyPair)
+        val publicECKey = exportedECKey.toPublicJWK()
 
-        val jwsHeader =
-            JWSHeader.Builder(JWSAlgorithm.ES256).keyID(publicEcKey.keyID).jwk(publicEcKey).type(
-                JOSEObjectType("openid4vci-proof+jwt")
-            )
-                .build()
-        val signedJWT = SignedJWT(jwsHeader, claimSet)
-        signedJWT.sign(signer)
-        return signedJWT.serialize()
-    }
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+            .apply { if (headerType != null) this.type(JOSEObjectType(headerType)) }
+            .jwk(publicECKey)
+            .build()
 
-    fun exportPrivateKey(alias: String): ECPrivateKey? {
-        val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        return (ks.getKey(alias, null) as? ECPrivateKey)
-    }
-
-    fun generateEcKey(alias: String = "my_ec_key"): Pair<ECPublicKey, ECPrivateKey> {
-        val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore")
-        kpg.initialize(
-            KeyGenParameterSpec.Builder(
-                alias,
-                KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
-            )
-                .setAlgorithmParameterSpec(ECGenParameterSpec("secp256r1")) // P-256 (ES256)
-                .setDigests(KeyProperties.DIGEST_SHA256)
-                .build()
+        val jws = JWSObject(
+            header,
+            Payload(JSONObjectUtils.toJSONString(claims))
         )
-        val kp = kpg.generateKeyPair()
-        return kp.public as ECPublicKey to kp.private as ECPrivateKey
+
+        jws.sign(object : JWSSigner {
+            override fun sign(
+                header: JWSHeader?,
+                signingInput: ByteArray?
+            ): Base64URL {
+                val signature = Signature.getInstance("SHA256withECDSA").run {
+                    initSign(keyPair.private)
+                    update(signingInput)
+                    sign()
+                }
+                val signatureByteArrayLength = ECDSA.getSignatureByteArrayLength(JWSAlgorithm.ES256)
+                val joseSignature =
+                    ECDSA.transcodeSignatureToConcat(signature, signatureByteArrayLength)
+                return Base64URL.encode(joseSignature)
+            }
+
+            override fun supportedJWSAlgorithms(): Set<JWSAlgorithm?> {
+                return setOf(JWSAlgorithm.ES256)
+            }
+
+            override fun getJCAContext(): JCAContext {
+                return JCAContext()
+            }
+        }
+        )
+
+        return jws.serialize()
     }
 }
