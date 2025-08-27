@@ -9,7 +9,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object RetrofitInstance {
     //private const val BASE_URL = "https://wallet.sandbox.digg.se/"
-    private const val BASE_URL = "https://issuer.eudiw.dev/"
+    private const val BASE_URL = "https://google.se/"
 
     val interceptor = HttpLoggingInterceptor().apply {
         this.level = HttpLoggingInterceptor.Level.BODY

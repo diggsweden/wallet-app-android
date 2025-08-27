@@ -5,24 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.JWSHeader
-import com.nimbusds.jose.JWSObject
-import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHEncrypter
-import com.nimbusds.jose.crypto.ECDSASigner
-import com.nimbusds.jose.crypto.impl.ECDSA
-import com.nimbusds.jose.jca.JCAContext
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
-import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.JSONObjectUtils
-import com.nimbusds.openid.connect.sdk.federation.utils.JWTUtils
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.Resolution
 import eu.europa.ec.eudi.openid4vp.ResolvedRequestObject
@@ -40,6 +30,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -51,15 +44,16 @@ import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.feature.issuance.KeystoreManager
 import timber.log.Timber
-import java.security.KeyPair
 import java.security.MessageDigest
-import java.security.Signature
-import java.time.Instant
 
 sealed interface PresentationState {
     object Initial : PresentationState
     object Loading : PresentationState
     object Error : PresentationState
+}
+
+sealed interface UiEffect {
+    data class OpenUrl(val url: String) : UiEffect
 }
 
 class PresentationViewModel constructor(app: Application, savedStateHandle: SavedStateHandle) :
@@ -70,8 +64,13 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
     val method: String? = savedStateHandle["requestUriMethod"]
     var walletConfig: SiopOpenId4VPConfig? = null
     var matchedClaims: List<DisclosureLocal> = emptyList()
+    var presentationUri : String = ""
 
-    init {
+    private val _effects = MutableSharedFlow<UiEffect>()
+    val effects: SharedFlow<UiEffect> = _effects.asSharedFlow()
+
+    fun init(fullUri : String){
+        presentationUri = fullUri
         setupWalletConfig()
     }
 
@@ -97,14 +96,13 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
             )
             try {
                 val resolution = SiopOpenId4Vp.invoke(walletConfig!!, provideKtorClient())
-                    .resolveRequestUri("eudi-openid4vp://?" + requestUri!!)
-                val requestObject = when (resolution) {
+                    .resolveRequestUri(presentationUri)
+                when (resolution) {
                     is Resolution.Invalid -> throw resolution.error.asException()
                     is Resolution.Success -> {
                         matchDisclosures(resolution.requestObject as ResolvedRequestObject.OpenId4VPAuthorization)
                     }
                 }
-
                 Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
             } catch (e: RuntimeException) {
                 Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
@@ -165,6 +163,7 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
                             request = responseBody.toRequestBody("application/x-www-form-urlencoded".toMediaType())
                         )
                         Timber.d("PresentationViewModel - Presentation: OK $response}")
+                        _effects.emit(UiEffect.OpenUrl(response.redirect_uri))
 
                     } catch (e: Exception) {
                         Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")

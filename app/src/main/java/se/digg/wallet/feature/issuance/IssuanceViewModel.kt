@@ -39,6 +39,8 @@ import se.digg.wallet.data.Disclosure
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.DisplayLocal
 import se.digg.wallet.data.FetchedCredential
+import se.digg.wallet.data.OldCredentialRequestModel
+import se.digg.wallet.data.OldProof
 import se.digg.wallet.data.Proof
 import timber.log.Timber
 import java.net.URI
@@ -53,8 +55,6 @@ sealed interface IssuanceState {
 }
 
 class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
-    private var credentialOfferUri: String? = null
-    val base = "openid-credential-offer://credential_offer?credential_offer="
     val openId4VCIConfig = OpenId4VCIConfig(
         client = Client.Public("wallet-dev"),
         authFlowRedirectionURI = URI.create("eudi-wallet//auth"),
@@ -78,16 +78,15 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
     private val _issuerMetadata = MutableStateFlow<CredentialIssuerMetadata?>(null)
     val issuerMetadata: StateFlow<CredentialIssuerMetadata?> = _issuerMetadata
 
-    fun fetchIssuer(url: String) {
+    fun fetchIssuer(uri: String) {
         _uiState.value = IssuanceState.Loading
         viewModelScope.launch {
             try {
                 val issuerFetched = Issuer.make(
                     config = openId4VCIConfig,
                     httpClient = provideKtorClient(),
-                    credentialOfferUri = base + url
+                    credentialOfferUri = uri
                 ).getOrThrow()
-
                 claimsMetadata = getClaimsMetadata(issuerFetched.credentialOffer)
                 _issuerMetadata.value = issuerFetched.credentialOffer.credentialIssuerMetadata
                 issuer = issuerFetched
@@ -96,19 +95,6 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
                 Timber.d("IssuanceViewModel: Fetch issuer error: ${e.message}")
-            }
-        }
-    }
-
-    fun provideKtorClient(): HttpClient {
-        return HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(Json { ignoreUnknownKeys = true })
-            }
-            engine {
-                config {
-                    retryOnConnectionFailure(true)
-                }
             }
         }
     }
@@ -131,20 +117,20 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
-                val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value.toString()
+                val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value
 
                 val nonce = try {
                     val response = RetrofitInstance.api.getNonce(
-                        url = nonceEndpointUrl,
+                        url = nonceEndpointUrl.toString(),
                     )
                     response.c_nonce
                 } catch (e: Exception) {
                     Timber.d("IssuanceViewModel: nonce error: ${e.message}")
-                    null
                 }
 
                 val payload = mapOf(
                     "aud" to issuerMetadata.value?.credentialIssuerIdentifier?.value.toString(),
+                    "iss" to "wallet-dev",
                     "nonce" to nonce
                 )
 
@@ -164,7 +150,9 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
     fun fetchManuallyCredential(token: String, jwt: String) {
         viewModelScope.launch {
             try {
+                val credentialEndpoint = _issuerMetadata.value?.credentialEndpoint?.value.toString()
                 val response = RetrofitInstance.api.getCredential(
+                    url = credentialEndpoint,
                     accessToken = "Bearer $token",
                     request = setupRequestBody(jwt)
                 )
@@ -194,11 +182,33 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun provideKtorClient(): HttpClient {
+        return HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+            engine {
+                config {
+                    retryOnConnectionFailure(true)
+                }
+            }
+        }
+    }
+
     private fun setupRequestBody(jwt: String): CredentialRequestModel {
         return CredentialRequestModel(
             format = "vc+sd-jwt",
             credential_configuration_id = "eu.europa.ec.eudi.pid_vc_sd_jwt",
             proofs = Proof(listOf(jwt))
+
+        )
+    }
+
+    private fun setupDiggRequestBody(jwt: String): OldCredentialRequestModel {
+        return OldCredentialRequestModel(
+            format = "vc+sd-jwt",
+            credential_configuration_id = "eu.europa.ec.eudi.pid_jwt_vc_json",
+            proof = OldProof(jwt = jwt, proof_type = "jwt")
         )
     }
 

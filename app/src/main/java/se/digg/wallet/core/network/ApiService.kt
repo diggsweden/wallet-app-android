@@ -9,8 +9,9 @@ import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
 
 interface CredentialApiService {
-    @POST("/credential")
+    @POST
     suspend fun getCredential(
+        @Url url: String,
         @Header("Authorization") accessToken: String,
         @Body request: CredentialRequestModel
     ): CredentialResponseModel

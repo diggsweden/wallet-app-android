@@ -10,26 +10,21 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
-import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.impl.ECDSA
 import com.nimbusds.jose.jca.JCAContext
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.JSONObjectUtils
-import com.nimbusds.jwt.JWTClaimsSet
-import com.nimbusds.jwt.SignedJWT
 import timber.log.Timber
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.Signature
-import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
 import java.time.Instant
-import java.util.Date
 
 object KeystoreManager {
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"

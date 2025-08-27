@@ -47,8 +47,19 @@ data class CredentialRequestModel(
     val proofs: Proof
 )
 
+data class OldCredentialRequestModel(
+    val format: String,
+    val credential_configuration_id: String,
+    val proof: OldProof
+)
+
 data class Proof(
     val jwt: List<String>
+)
+
+data class OldProof(
+    val jwt: String,
+    val proof_type: String
 )
 
 data class CredentialResponseModel(
@@ -102,7 +113,7 @@ data class DisplayLocal(
     val description: String? = null,
     @Serializable(with = JavaUriSerializer::class)
     val backgroundImage: URI? = null,
-){
+) {
     @Serializable
     data class Logo(
         @Serializable(with = JavaUriSerializer::class)

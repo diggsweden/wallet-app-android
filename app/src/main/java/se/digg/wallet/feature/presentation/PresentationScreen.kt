@@ -24,8 +24,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,8 +40,23 @@ import se.digg.wallet.core.ui.theme.WalletTheme
 @Composable
 fun PresentationScreen(
     navController: NavController,
+    fullUri: String,
     viewModel: PresentationViewModel = viewModel()
 ) {
+    val uriHandler = LocalUriHandler.current
+
+    LaunchedEffect(Unit) {
+        viewModel.init(fullUri)
+
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is UiEffect.OpenUrl -> {
+                    uriHandler.openUri(effect.url)
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

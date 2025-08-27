@@ -20,7 +20,11 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.crypto.impl.ECDSA
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
-import eu.europa.ec.eudi.openid4vci.*
+import eu.europa.ec.eudi.openid4vci.BatchSignOperation
+import eu.europa.ec.eudi.openid4vci.BatchSigner
+import eu.europa.ec.eudi.openid4vci.SignFunction
+import eu.europa.ec.eudi.openid4vci.SignOperation
+import eu.europa.ec.eudi.openid4vci.Signer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.PrivateKey

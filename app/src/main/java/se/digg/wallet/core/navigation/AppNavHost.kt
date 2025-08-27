@@ -1,8 +1,10 @@
 package se.digg.wallet.core.navigation
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -13,7 +15,6 @@ import androidx.navigation.navDeepLink
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.issuance.IssuanceScreen
 import se.digg.wallet.feature.presentation.PresentationScreen
-import timber.log.Timber
 
 @Composable
 fun AppNavHost(
@@ -47,8 +48,9 @@ fun AppNavHost(
                 }
             )
         ) { backStackEntry ->
-            val credentialOfferUri = backStackEntry.arguments?.getString("credential_offer_uri")
-            IssuanceScreen(navController = navController, credentialOfferUri)
+            //val credentialOfferUri = backStackEntry.arguments?.getString("credential_offer_uri")
+            val fullUri = backStackEntry.deepLinkUri()
+            IssuanceScreen(navController = navController, fullUri.toString())
         }
         composable(
             route = "presentation",
@@ -67,11 +69,11 @@ fun AppNavHost(
                 }
             )
         ) { backStackEntry ->
-            val deepLinkIntent: Intent? = backStackEntry.arguments?.getParcelable(
-                NavController.KEY_DEEP_LINK_INTENT)
-            val fullUri = deepLinkIntent?.data
-
-            PresentationScreen(navController = navController)
+            val fullUri = backStackEntry.deepLinkUri()
+            PresentationScreen(navController = navController, fullUri = fullUri.toString())
         }
     }
 }
+
+fun NavBackStackEntry.deepLinkIntent(): Intent? = arguments?.getParcelable(NavController.KEY_DEEP_LINK_INTENT)
+fun NavBackStackEntry.deepLinkUri(): Uri? = deepLinkIntent()?.data
