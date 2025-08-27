@@ -131,25 +131,25 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
                 val storedCredential = CredentialStore.getCredential(
                     getApplication()
                 )
-                val credential: CredentialLocal? = storedCredential?.jwt?.let {
+                // TODO: Handle failing to parse credential, or send it to viewmodel from outside
+                val credential: CredentialLocal = storedCredential?.jwt?.let {
                     return@let Json.decodeFromString(CredentialLocal.serializer(), it)
-                }
+                } ?: return@launch
 
-                val claims = authorization.query.credentials.value[0].claims?.map {
-                    it.path.value.joinToString(separator = ".")
-                }
+                val query = authorization.query.credentials.value[0]
 
-                claims?.let {
-                    matchedClaims = claims.mapNotNull {
-                        credential?.disclosures?.get(it)
-                    }
+                matchedClaims = when (val claims = query.claims) {
+                    null -> credential.disclosures.values.toList()
+                    else -> claims
+                        .map { it.path.value.joinToString(".") }
+                        .mapNotNull(credential.disclosures::get)
                 }
 
                 //Update ui
                 val submissionPayload = createSubmissionPayload(
                     createVpToken(credential = credential, authorization),
                     authorization.state,
-                    authorization.query.credentials.value[0].id
+                    query.id
                 )
                 val jwe = createJWE(
                     submissionPayload,

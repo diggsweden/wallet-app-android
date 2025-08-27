@@ -1,7 +1,9 @@
 package se.digg.wallet.core.navigation
 
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,6 +13,7 @@ import androidx.navigation.navDeepLink
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.issuance.IssuanceScreen
 import se.digg.wallet.feature.presentation.PresentationScreen
+import timber.log.Timber
 
 @Composable
 fun AppNavHost(
@@ -64,6 +67,10 @@ fun AppNavHost(
                 }
             )
         ) { backStackEntry ->
+            val deepLinkIntent: Intent? = backStackEntry.arguments?.getParcelable(
+                NavController.KEY_DEEP_LINK_INTENT)
+            val fullUri = deepLinkIntent?.data
+
             PresentationScreen(navController = navController)
         }
     }
