@@ -151,10 +151,10 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 val credentialEndpoint = _issuerMetadata.value?.credentialEndpoint?.value.toString()
-                val response = RetrofitInstance.api.getCredential(
+                val response = RetrofitInstance.api.getOldCredential(
                     url = credentialEndpoint,
                     accessToken = "Bearer $token",
-                    request = setupRequestBody(jwt)
+                    request = setupDiggRequestBody(jwt)
                 )
                 Timber.d("IssuanceViewModel: response $response")
                 val parsedCredential = parseCredential(response)
@@ -200,7 +200,6 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
             format = "vc+sd-jwt",
             credential_configuration_id = "eu.europa.ec.eudi.pid_vc_sd_jwt",
             proofs = Proof(listOf(jwt))
-
         )
     }
 

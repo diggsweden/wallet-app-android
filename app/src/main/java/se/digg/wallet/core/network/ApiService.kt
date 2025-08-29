@@ -7,6 +7,7 @@ import retrofit2.http.POST
 import retrofit2.http.Url
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
+import se.digg.wallet.data.OldCredentialRequestModel
 
 interface CredentialApiService {
     @POST
@@ -14,6 +15,13 @@ interface CredentialApiService {
         @Url url: String,
         @Header("Authorization") accessToken: String,
         @Body request: CredentialRequestModel
+    ): CredentialResponseModel
+
+    @POST
+    suspend fun getOldCredential(
+        @Url url: String,
+        @Header("Authorization") accessToken: String,
+        @Body request: OldCredentialRequestModel
     ): CredentialResponseModel
 
     @POST
