@@ -53,7 +53,7 @@ fun AppNavHost(
             IssuanceScreen(navController = navController, fullUri.toString())
         }
         composable(
-            route = "presentation",
+            route = "presentation_eudi",
             arguments = listOf(
                 /*
                 navArgument("clientId") { type = NavType.StringType; nullable = true },
@@ -66,6 +66,20 @@ fun AppNavHost(
                 navDeepLink {
                     //uriPattern = "eudi-openid4vp://?client_id={clientId}&request_uri={requestUri}&request_uri_method={requestUriMethod}"
                     uriPattern = "eudi-openid4vp://?{requestUri}"
+                }
+            )
+        ) { backStackEntry ->
+            val fullUri = backStackEntry.deepLinkUri()
+            PresentationScreen(navController = navController, fullUri = fullUri.toString())
+        }
+        composable(
+            route = "presentation",
+            arguments = listOf(
+                navArgument("requestUri") { type = NavType.StringType; nullable = true }
+            ),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "openid4vp://?{requestUri}"
                 }
             )
         ) { backStackEntry ->

@@ -35,8 +35,8 @@ import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.ui.theme.WalletTheme
 
-const val CREDENTIAL_URL = "https://issuer.eudiw.dev/credential_offer_choice"
-const val PRESENTATION_URL = "https://dev.verifier.eudiw.dev/home"
+const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/prepare-credential-offer"
+const val PRESENTATION_URL = "https://wallet.sandbox.digg.se/strumpsorteringscentralen/"
 
 @Composable
 fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
