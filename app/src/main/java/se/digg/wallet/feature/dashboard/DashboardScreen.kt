@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
+import se.digg.wallet.core.navigation.NavigationItem
 import se.digg.wallet.core.ui.theme.WalletTheme
 
 const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/prepare-credential-offer"
@@ -42,7 +45,7 @@ const val PRESENTATION_URL = "https://wallet.sandbox.digg.se/strumpsorteringscen
 fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
 
     val credential by viewModel.credential.collectAsState()
-    val disclosures by viewModel.disclosureCount.collectAsState()
+    val credentialDetails by viewModel.credentialDetails.collectAsState()
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
@@ -54,10 +57,14 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
             ) {
                 Header()
                 credential?.let { credentialData ->
-                    CredentialCard(disclosures.toString())
+                    CredentialCard(credentialDetails, onCredentialClick = {
+                        navController.navigate(
+                            NavigationItem.CredentialDetails.route
+                        )
+                    })
                 }
                 NewCredentialCard()
-                PresentationCard()
+                //PresentationCard()
             }
         }
     }
@@ -92,7 +99,10 @@ private fun Header() {
 }
 
 @Composable
-private fun CredentialCard(credentialJwt: String) {
+private fun CredentialCard(
+    credentialInfo: DashboardCredentialUiModel?,
+    onCredentialClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -102,12 +112,10 @@ private fun CredentialCard(credentialJwt: String) {
     ) {
         Card(
             onClick = {
-
+                onCredentialClick.invoke()
             },
             colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.digg_primary).copy(
-                    alpha = 0.2f
-                )
+                containerColor = colorResource(id = R.color.digg_primary)
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,11 +124,22 @@ private fun CredentialCard(credentialJwt: String) {
                 modifier = Modifier
                     .padding(12.dp)
                     .height(150.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .fillMaxWidth()
             ) {
-                Text("Identity document with $credentialJwt disclosures")
+                credentialInfo?.issuer?.let {
+                    Text(
+                        it,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+                credentialInfo?.disclosureCount?.let {
+                    Text("Identity document with $it disclosures")
+                    Spacer(Modifier.height(16.dp))
+                }
+                credentialInfo?.issueDate?.let {
+                    Text("Issued $it")
+                }
             }
         }
     }
@@ -164,7 +183,7 @@ private fun NewCredentialCard() {
 }
 
 @Composable
-private fun PresentationCard(){
+private fun PresentationCard() {
     Column(
         modifier = Modifier
             .padding(16.dp)

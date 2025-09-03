@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -234,7 +235,12 @@ private fun Disclosures(fetchedCredential: FetchedCredential, onCloseClicked: ()
                 OutlinedTextField(
                     value = item.value.value,
                     onValueChange = { },
-                    label = { Text(item.value.claim.display.first().name ?: "No name") },
+                    label = {
+                        Text(
+                            item.value.claim.display.first().name ?: "No name", maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     singleLine = true,
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth()

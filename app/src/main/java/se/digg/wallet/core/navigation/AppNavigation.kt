@@ -1,9 +1,10 @@
 package se.digg.wallet.core.navigation
 
 enum class AppNavigation {
-    HOME
+    HOME, CREDENTIAL_DETAILS
 }
 
 sealed class NavigationItem(val route: String) {
-    object Home : NavigationItem(AppNavigation.HOME.name)
+    object Home : NavigationItem(route = AppNavigation.HOME.name)
+    object CredentialDetails : NavigationItem(route = AppNavigation.CREDENTIAL_DETAILS.name)
 }

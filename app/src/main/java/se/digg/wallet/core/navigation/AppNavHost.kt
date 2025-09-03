@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import se.digg.wallet.feature.credentialdetails.CredentialDetailsScreen
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.issuance.IssuanceScreen
 import se.digg.wallet.feature.presentation.PresentationScreen
@@ -30,6 +31,10 @@ fun AppNavHost(
     ) {
         composable(NavigationItem.Home.route) {
             DashboardScreen(navController = navController)
+        }
+
+        composable(NavigationItem.CredentialDetails.route) {
+            CredentialDetailsScreen(navController = navController)
         }
 
         composable(

@@ -12,6 +12,9 @@ import kotlinx.serialization.json.Json
 import se.digg.wallet.core.storage.CredentialStore
 import se.digg.wallet.data.CredentialData
 import se.digg.wallet.data.CredentialLocal
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
 
 class DashboardViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -23,13 +26,33 @@ class DashboardViewModel(app: Application) : AndroidViewModel(app) {
                 initialValue = null
             )
 
-    val disclosureCount: StateFlow<Int?> =
+    val credentialDetails: StateFlow<DashboardCredentialUiModel?> =
         credential.map {
             it?.jwt?.let {
-                val test = Json.decodeFromString(CredentialLocal.serializer(), it)
-                test.disclosures.values.size
+                val credential = Json.decodeFromString(CredentialLocal.serializer(), it)
+
+                DashboardCredentialUiModel(
+                    issuer = credential.issuer?.name ?: "",
+                    disclosureCount = credential.disclosures.values.size,
+                    issueDate = formatDate(credential.issuedAt)
+                )
             }
         }
             .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000),0)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 }
+
+fun formatDate(date: Date): String {
+    val localDateTime = date.toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+
+    val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    return localDateTime.format(formatter)
+}
+
+data class DashboardCredentialUiModel(
+    val issuer: String,
+    val disclosureCount: Int,
+    val issueDate: String
+)
