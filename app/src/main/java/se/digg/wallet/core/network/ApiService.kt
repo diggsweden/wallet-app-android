@@ -41,5 +41,5 @@ data class NonceResponseModel(
 )
 
 data class PresentationResponseModel(
-    val redirect_uri: String
+    val redirect_uri: String?
 )

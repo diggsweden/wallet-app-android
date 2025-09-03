@@ -41,6 +41,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -108,7 +109,9 @@ fun IssuanceScreen(
                     is IssuanceState.CredentialFetched -> {
                         Timber.d("IssuanceState.CredentialFetched")
                         val fetchedCredential = state.credential
-                        Disclosures(fetchedCredential = fetchedCredential)
+                        Disclosures(
+                            fetchedCredential = fetchedCredential,
+                            onCloseClicked = { navController.navigateUp() })
                     }
 
                     IssuanceState.Error -> {
@@ -208,7 +211,7 @@ fun sanitize(input: String) = input.filter { it.isDigit() }
 
 
 @Composable
-private fun Disclosures(fetchedCredential: FetchedCredential) {
+private fun Disclosures(fetchedCredential: FetchedCredential, onCloseClicked: () -> Boolean) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.digg_primary).copy(
@@ -219,6 +222,12 @@ private fun Disclosures(fetchedCredential: FetchedCredential) {
             .fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                text = "PID issued successfully",
+                fontWeight = FontWeight.Bold
+            )
             Text("Disclosures:", fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
             fetchedCredential.disclosures.forEach { item ->
@@ -231,6 +240,12 @@ private fun Disclosures(fetchedCredential: FetchedCredential) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(12.dp))
+            }
+            Button(
+                onClick = { onCloseClicked.invoke() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Close")
             }
         }
     }

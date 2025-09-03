@@ -31,7 +31,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -49,7 +51,9 @@ import java.security.MessageDigest
 sealed interface PresentationState {
     object Initial : PresentationState
     object Loading : PresentationState
-    object Error : PresentationState
+    data class SelectDisclosures(val disclosures: List<DisclosureLocal>) : PresentationState
+    object ShareSuccess : PresentationState
+    data class Error(val errorMessage: String?) : PresentationState
 }
 
 sealed interface UiEffect {
@@ -64,12 +68,16 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
     val method: String? = savedStateHandle["requestUriMethod"]
     var walletConfig: SiopOpenId4VPConfig? = null
     var matchedClaims: List<DisclosureLocal> = emptyList()
-    var presentationUri : String = ""
+    var presentationUri: String = ""
+    var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
+
+    val _uiState = MutableStateFlow<PresentationState>(PresentationState.Initial)
+    val uiState: StateFlow<PresentationState> = _uiState
 
     private val _effects = MutableSharedFlow<UiEffect>()
     val effects: SharedFlow<UiEffect> = _effects.asSharedFlow()
 
-    fun init(fullUri : String){
+    fun init(fullUri: String) {
         presentationUri = fullUri
         setupWalletConfig()
     }
@@ -100,12 +108,15 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
                 when (resolution) {
                     is Resolution.Invalid -> throw resolution.error.asException()
                     is Resolution.Success -> {
-                        matchDisclosures(resolution.requestObject as ResolvedRequestObject.OpenId4VPAuthorization)
+                        authorization =
+                            resolution.requestObject as ResolvedRequestObject.OpenId4VPAuthorization
+                        matchDisclosures()
                     }
                 }
                 Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
             } catch (e: RuntimeException) {
                 Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
+                _uiState.value = PresentationState.Error(errorMessage = e.message)
             }
         }
     }
@@ -123,7 +134,7 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
         }
     }
 
-    fun matchDisclosures(authorization: ResolvedRequestObject.OpenId4VPAuthorization) {
+    fun matchDisclosures() {
         viewModelScope.launch {
             try {
                 val storedCredential = CredentialStore.getCredential(
@@ -133,45 +144,71 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
                 val credential: CredentialLocal = storedCredential?.jwt?.let {
                     return@let Json.decodeFromString(CredentialLocal.serializer(), it)
                 } ?: return@launch
+                authorization?.let { auth ->
+                    val query = auth.query.credentials.value[0]
 
-                val query = authorization.query.credentials.value[0]
-
-                matchedClaims = when (val claims = query.claims) {
-                    null -> credential.disclosures.values.toList()
-                    else -> claims
-                        .map { it.path.value.joinToString(".") }
-                        .mapNotNull(credential.disclosures::get)
-                }
-
-                //Update ui
-                val submissionPayload = createSubmissionPayload(
-                    createVpToken(credential = credential, authorization),
-                    authorization.state,
-                    query.id
-                )
-                val jwe = createJWE(
-                    submissionPayload,
-                    authorization.responseEncryptionSpecification?.recipientKey
-                )
-                val responseBody = "response=$jwe"
-                val responseUrl =
-                    (authorization.responseMode as ResponseMode.DirectPostJwt?)?.responseURI
-                responseUrl?.let { it ->
-                    try {
-                        val response = RetrofitInstance.api.postVpToken(
-                            url = it.toString(),
-                            request = responseBody.toRequestBody("application/x-www-form-urlencoded".toMediaType())
-                        )
-                        Timber.d("PresentationViewModel - Presentation: OK $response}")
-                        _effects.emit(UiEffect.OpenUrl(response.redirect_uri))
-
-                    } catch (e: Exception) {
-                        Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
+                    matchedClaims = when (val claims = query.claims) {
+                        null -> credential.disclosures.values.toList()
+                        else -> claims
+                            .map { it.path.value.joinToString(".") }
+                            .mapNotNull(credential.disclosures::get)
                     }
-                }
-                Timber.d("PresentationViewModel - Claims")
+                    _uiState.value =
+                        PresentationState.SelectDisclosures(disclosures = matchedClaims)
+                    Timber.d("PresentationViewModel - Claims")
+                } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
-                Timber.d("PresentationViewModel - CredentialData:${credentialData?.jwt ?: "Error"}")
+                Timber.d("PresentationViewModel -Error: ${e.message}")
+                _uiState.value = PresentationState.Error(errorMessage = e.message)
+            }
+        }
+    }
+
+    fun sendData() {
+        viewModelScope.launch {
+            try {
+                val storedCredential = CredentialStore.getCredential(
+                    getApplication()
+                )
+                val credential: CredentialLocal = storedCredential?.jwt?.let {
+                    return@let Json.decodeFromString(CredentialLocal.serializer(), it)
+                } ?: return@launch
+                authorization?.let { auth ->
+                    val query = auth.query.credentials.value[0]
+                    val submissionPayload = createSubmissionPayload(
+                        createVpToken(credential = credential, auth),
+                        auth.state,
+                        query.id
+                    )
+                    val jwe = createJWE(
+                        submissionPayload,
+                        auth.responseEncryptionSpecification?.recipientKey
+                    )
+                    val responseBody = "response=$jwe"
+                    val responseUrl =
+                        (auth.responseMode as ResponseMode.DirectPostJwt?)?.responseURI
+                    responseUrl?.let { it ->
+                        try {
+                            val response = RetrofitInstance.api.postVpToken(
+                                url = it.toString(),
+                                request = responseBody.toRequestBody("application/x-www-form-urlencoded".toMediaType())
+                            )
+                            Timber.d("PresentationViewModel - Presentation: OK $response}")
+                            response.redirect_uri?.let {
+                                _effects.emit(UiEffect.OpenUrl(response.redirect_uri))
+                            }?:run {
+                                _uiState.value = PresentationState.ShareSuccess
+                            }
+
+                        } catch (e: Exception) {
+                            Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
+                            _uiState.value = PresentationState.Error(errorMessage = e.message)
+                        }
+                    }
+                } ?: throw IllegalStateException("Authorization was null")
+            } catch (e: Exception) {
+                Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
+                _uiState.value = PresentationState.Error(errorMessage = e.message)
             }
         }
     }

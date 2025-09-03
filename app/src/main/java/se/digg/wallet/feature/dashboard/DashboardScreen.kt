@@ -42,6 +42,7 @@ const val PRESENTATION_URL = "https://wallet.sandbox.digg.se/strumpsorteringscen
 fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
 
     val credential by viewModel.credential.collectAsState()
+    val disclosures by viewModel.disclosureCount.collectAsState()
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
@@ -53,7 +54,7 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
             ) {
                 Header()
                 credential?.let { credentialData ->
-                    CredentialCard(credentialData.jwt)
+                    CredentialCard(disclosures.toString())
                 }
                 NewCredentialCard()
                 PresentationCard()
@@ -119,7 +120,7 @@ private fun CredentialCard(credentialJwt: String) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(credentialJwt)
+                Text("Identity document with $credentialJwt disclosures")
             }
         }
     }

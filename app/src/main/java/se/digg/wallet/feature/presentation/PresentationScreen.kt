@@ -12,9 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,16 +25,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.ui.theme.WalletTheme
+import se.digg.wallet.data.DisclosureLocal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +49,8 @@ fun PresentationScreen(
     fullUri: String,
     viewModel: PresentationViewModel = viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(Unit) {
@@ -74,20 +82,86 @@ fun PresentationScreen(
                 }
             })
         }) { innerPadding ->
-        Surface(modifier = Modifier.padding(innerPadding)) {
+        Surface(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp)
             ) {
-                Header()
-                Spacer(Modifier.height(4.dp))
-                Disclosures()
+                when (val state = uiState) {
+                    is PresentationState.Error -> {
+                        Error(errorMessage = state.errorMessage)
+                    }
+
+                    PresentationState.Initial -> {
+                        Header()
+                    }
+
+                    PresentationState.Loading -> {
+                        Header()
+                    }
+
+                    is PresentationState.SelectDisclosures -> {
+                        val matchedClaims = state.disclosures
+                        Header()
+                        Spacer(Modifier.height(4.dp))
+                        Disclosures(
+                            onSendClick = { viewModel.sendData() },
+                            matchedClaims = matchedClaims
+                        )
+                    }
+
+                    is PresentationState.ShareSuccess -> {
+                        ShareSuccess(onFinishClick = { navController.navigateUp() })
+                    }
+                }
             }
         }
     }
     Spacer(Modifier.height(4.dp))
+}
+
+@Composable
+private fun Error(errorMessage: String?) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "Error",
+            fontWeight = FontWeight.Bold
+        )
+        Text(text = errorMessage ?: "No error message available")
+    }
+}
+
+@Composable
+private fun ShareSuccess(onFinishClick: () -> Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "You have successfully shared data",
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "Please continue the flow in your browser or on your other device.",
+        )
+        Button(
+            onClick = { onFinishClick.invoke() }
+        ) {
+            Text("Close")
+        }
+    }
 }
 
 @Composable
@@ -111,14 +185,14 @@ private fun Header() {
                     .padding(12.dp)
                     .fillMaxWidth(),
             ) {
-                Text("Do you want to share data with EUDI Wallet Reference Implementation?")
+                Text("Do you want to share data?")
             }
         }
     }
 }
 
 @Composable
-private fun Disclosures() {
+private fun Disclosures(onSendClick: () -> Unit, matchedClaims: List<DisclosureLocal>) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -137,12 +211,28 @@ private fun Disclosures() {
                     .padding(12.dp)
                     .fillMaxWidth(),
             ) {
-                Text("Disclosures to share:")
-                LockedFieldWithCheckbox(modifier = Modifier,label ="Birth Date", value = "FC", checked = true, onCheckedChange = {})
-                LockedFieldWithCheckbox(modifier = Modifier,label ="Issuing Country", value = "adasda", checked = true, onCheckedChange = {})
-                LockedFieldWithCheckbox(modifier = Modifier,label ="Family Name(s)", value = "AFASDSD", checked = true, onCheckedChange = {})
-                LockedFieldWithCheckbox(modifier = Modifier,label ="Issuance Authority", value = "GASdASD", checked = true, onCheckedChange = {})
-                LockedFieldWithCheckbox(modifier = Modifier,label ="Given Name(s)", value = "gasdadfa", checked = true, onCheckedChange = {})
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    text = "Disclosures to share:",
+                    fontWeight = FontWeight.Bold
+                )
+                matchedClaims.forEach { matchedClaim ->
+                    LockedFieldWithCheckbox(
+                        modifier = Modifier,
+                        label = matchedClaim.claim.display.first().name ?: "-",
+                        value = matchedClaim.value,
+                        checked = true,
+                        onCheckedChange = {})
+                }
+                Spacer(Modifier.height(16.dp))
+                Button(
+                    onClick = { onSendClick.invoke() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Approve")
+                }
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -161,7 +251,7 @@ fun LockedFieldWithCheckbox(
     modifier: Modifier = Modifier,
     label: String,
     value: String,
-    checked: Boolean,
+    checked: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
@@ -170,15 +260,16 @@ fun LockedFieldWithCheckbox(
     ) {
         OutlinedTextField(
             value = value,
-            label = {Text(label)},
+            label = {
+                Text(
+                    label, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
             onValueChange = {},
             readOnly = true,
             singleLine = true,
             modifier = Modifier.weight(1f)
-        )
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange
         )
     }
 }
