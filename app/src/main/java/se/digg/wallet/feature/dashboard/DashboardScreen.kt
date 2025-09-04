@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -24,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -81,10 +84,13 @@ private fun Header() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo_full),
-            contentDescription = "App icon",
-            colorFilter = null
+            painter = painterResource(R.drawable.playstore_icon),
+            contentDescription = "Logo",
+            modifier = Modifier
+                .width(120.dp)
+                .height(120.dp)
         )
+        Spacer(Modifier.height(24.dp))
         Text(
             fontSize = 24.sp,
             text = stringResource(R.string.homescreen_welcome),
