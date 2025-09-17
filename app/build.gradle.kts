@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "se.digg.wallet"
-    compileSdk = 35
+    compileSdk = 36
 
     //TODO this can be removed when eudi-libraries are removed.
     packaging {
@@ -18,7 +18,7 @@ android {
         applicationId = "se.digg.wallet"
         minSdk = 28
         targetSdk = 35
-        versionCode = 3
+        versionCode = 4
         versionName = "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
