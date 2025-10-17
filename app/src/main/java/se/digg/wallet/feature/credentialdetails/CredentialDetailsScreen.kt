@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
 import se.digg.wallet.data.DisclosureLocal
-import se.digg.wallet.feature.presentation.LockedFieldWithCheckbox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +43,6 @@ fun CredentialDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(Unit) { viewModel.matchDisclosures() }
-
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

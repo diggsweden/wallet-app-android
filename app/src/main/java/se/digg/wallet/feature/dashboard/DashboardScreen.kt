@@ -2,8 +2,8 @@ package se.digg.wallet.feature.dashboard
 
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,40 +12,84 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.CredentialCard
+import se.digg.wallet.core.designsystem.component.NewCredentialCard
+import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.navigation.NavigationItem
-import se.digg.wallet.core.ui.theme.WalletTheme
 
 const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/prepare-credential-offer"
-const val PRESENTATION_URL = "https://wallet.sandbox.digg.se/strumpsorteringscentralen/"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel = viewModel()) {
+fun DashboardScreen(
+    navController: NavController,
+    onLogout: () -> Unit,
+    viewModel: DashboardViewModel = viewModel()
+) {
 
     val credential by viewModel.credential.collectAsState()
     val credentialDetails by viewModel.credentialDetails.collectAsState()
+    val context = LocalContext.current
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.playstore_icon),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(24.dp)
+
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text("ID-plånboken", style = MaterialTheme.typography.bodyMedium)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate(
+                            NavigationItem.Settings.route
+                        )
+                        //viewModel.clearPin()
+                        //onLogout.invoke()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = ""
+                        )
+                    }
+                })
+        }) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
             Column(
                 modifier = Modifier
@@ -55,14 +99,22 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
             ) {
                 Header()
                 credential?.let { credentialData ->
-                    CredentialCard(credentialDetails, onCredentialClick = {
-                        navController.navigate(
-                            NavigationItem.CredentialDetails.route
-                        )
-                    })
+                    CredentialCard(
+                        onClick = {
+                            navController.navigate(
+                                NavigationItem.CredentialDetails.route
+                            )
+                        },
+                        issuer = credentialDetails?.issuer,
+                        disclosureCount = credentialDetails?.disclosureCount,
+                        issueDate = credentialDetails?.issueDate
+                    )
                 }
-                NewCredentialCard()
-                //PresentationCard()
+
+                NewCredentialCard(text = "Add new credential", onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
+                    context.startActivity(intent)
+                })
             }
         }
     }
@@ -72,22 +124,13 @@ fun DashboardScreen(navController: NavController, viewModel: DashboardViewModel 
 private fun Header() {
     Column(
         modifier = Modifier
-            .padding(top = 16.dp)
-            .padding(bottom = 8.dp)
+            .padding(top = 16.dp, bottom = 8.dp)
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(R.drawable.playstore_icon),
-            contentDescription = "Logo",
-            modifier = Modifier
-                .width(120.dp)
-                .height(120.dp)
-        )
-        Spacer(Modifier.height(24.dp))
         Text(
-            fontSize = 24.sp,
+            style = MaterialTheme.typography.titleLarge,
             text = "Welcome!",
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -99,130 +142,9 @@ private fun Header() {
 }
 
 @Composable
-private fun CredentialCard(
-    credentialInfo: DashboardCredentialUiModel?,
-    onCredentialClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            onClick = {
-                onCredentialClick.invoke()
-            },
-            colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.digg_primary)
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .height(150.dp)
-                    .fillMaxWidth()
-            ) {
-                credentialInfo?.issuer?.let {
-                    Text(
-                        it,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(16.dp))
-                }
-                credentialInfo?.disclosureCount?.let {
-                    Text("Identity document with $it disclosures")
-                    Spacer(Modifier.height(16.dp))
-                }
-                credentialInfo?.issueDate?.let {
-                    Text("Issued $it")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NewCredentialCard() {
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val context = LocalContext.current
-        Card(
-            onClick = {
-                val context = context
-                val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
-                context.startActivity(intent)
-            },
-            colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.digg_primary).copy(
-                    alpha = 0.2f
-                )
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .height(150.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Add new credential")
-            }
-        }
-    }
-}
-
-@Composable
-private fun PresentationCard() {
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val context = LocalContext.current
-        Card(
-            onClick = {
-                val context = context
-                val intent = Intent(Intent.ACTION_VIEW, PRESENTATION_URL.toUri())
-                context.startActivity(intent)
-            },
-            colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.digg_primary).copy(
-                    alpha = 0.2f
-                )
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .height(150.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Presentation")
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun GreetingPreview() {
+@WalletPreview
+private fun Preview() {
     WalletTheme {
-
+        DashboardScreen(navController = rememberNavController(), onLogout = {})
     }
 }

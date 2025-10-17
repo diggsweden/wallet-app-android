@@ -50,7 +50,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import se.digg.wallet.R
-import se.digg.wallet.core.ui.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.data.FetchedCredential
 import timber.log.Timber
 

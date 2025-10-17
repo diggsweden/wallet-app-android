@@ -3,11 +3,14 @@ package se.digg.wallet.core.network
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Url
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.OldCredentialRequestModel
+import se.digg.wallet.feature.enrollment.activation.WuaRequestModel
+import se.digg.wallet.feature.enrollment.activation.WuaResponseModel
 
 interface CredentialApiService {
     @POST
@@ -34,6 +37,16 @@ interface CredentialApiService {
     suspend fun getNonce(
         @Url url: String,
     ): NonceResponseModel
+
+    @Headers(
+        "X-API-KEY: REPLACE_ME_TODO",
+        "accept: */*",
+        "Content-Type: application/json"
+    )
+    @POST("wua")
+    suspend fun getWuaRequest(
+        @Body request: WuaRequestModel
+    ): WuaResponseModel
 }
 
 data class NonceResponseModel(

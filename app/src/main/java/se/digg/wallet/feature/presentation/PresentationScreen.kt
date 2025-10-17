@@ -39,7 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
-import se.digg.wallet.core.ui.theme.WalletTheme
+import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
+import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.data.DisclosureLocal
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +51,6 @@ fun PresentationScreen(
     viewModel: PresentationViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
     val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(Unit) {
@@ -243,33 +243,5 @@ private fun Disclosures(onSendClick: () -> Unit, matchedClaims: List<DisclosureL
 private fun PresentationPreview() {
     WalletTheme {
 
-    }
-}
-
-@Composable
-fun LockedFieldWithCheckbox(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    checked: Boolean = true,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        OutlinedTextField(
-            value = value,
-            label = {
-                Text(
-                    label, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            },
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            modifier = Modifier.weight(1f)
-        )
     }
 }

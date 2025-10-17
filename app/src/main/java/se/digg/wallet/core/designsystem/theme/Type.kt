@@ -1,0 +1,44 @@
+package se.digg.wallet.core.designsystem.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import se.digg.wallet.R
+
+val ubuntuFontFamily = FontFamily(
+    Font(R.font.ubuntu_light, FontWeight.Light),
+    Font(R.font.ubuntu_light_italic, FontWeight.Light, FontStyle.Italic),
+    Font(R.font.ubuntu_regular, FontWeight.Normal),
+    Font(R.font.ubuntu_italic, FontWeight.Normal, FontStyle.Italic),
+    Font(R.font.ubuntu_medium, FontWeight.Medium),
+    Font(R.font.ubuntu_medium_italic, FontWeight.Medium, FontStyle.Italic),
+    Font(R.font.ubuntu_bold, FontWeight.Bold),
+    Font(R.font.ubuntu_bold_italic, FontWeight.Bold, FontStyle.Italic),
+)
+
+private val DefaultM3 = Typography()
+
+//https://developer.android.com/develop/ui/compose/designsystems/material2-material3#typography
+val UbuntuTypography = Typography(
+    displayLarge = DefaultM3.displayLarge.copy(fontFamily = ubuntuFontFamily),
+    displayMedium = DefaultM3.displayMedium.copy(fontFamily = ubuntuFontFamily),
+    displaySmall = DefaultM3.displaySmall.copy(fontFamily = ubuntuFontFamily),
+
+    headlineLarge = DefaultM3.headlineLarge.copy(fontFamily = ubuntuFontFamily),
+    headlineMedium = DefaultM3.headlineMedium.copy(fontFamily = ubuntuFontFamily),
+    headlineSmall = DefaultM3.headlineSmall.copy(fontFamily = ubuntuFontFamily),
+
+    titleLarge = DefaultM3.titleLarge.copy(fontFamily = ubuntuFontFamily),
+    titleMedium = DefaultM3.titleMedium.copy(fontFamily = ubuntuFontFamily),
+    titleSmall = DefaultM3.titleSmall.copy(fontFamily = ubuntuFontFamily),
+
+    bodyLarge = DefaultM3.bodyLarge.copy(fontFamily = ubuntuFontFamily),
+    bodyMedium = DefaultM3.bodyMedium.copy(fontFamily = ubuntuFontFamily),
+    bodySmall = DefaultM3.bodySmall.copy(fontFamily = ubuntuFontFamily),
+
+    labelLarge = DefaultM3.labelLarge.copy(fontFamily = ubuntuFontFamily),
+    labelMedium = DefaultM3.labelMedium.copy(fontFamily = ubuntuFontFamily),
+    labelSmall = DefaultM3.labelSmall.copy(fontFamily = ubuntuFontFamily),
+)

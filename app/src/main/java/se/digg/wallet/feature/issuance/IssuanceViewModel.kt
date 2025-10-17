@@ -104,7 +104,6 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val authorizedRequest =
                     issuer!!.authorizeWithPreAuthorizationCode(input.toString()).getOrThrow()
-                //_uiState.value = IssuanceState.Authorized(authorizedRequest)
                 fetchCredential(authorizedRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
@@ -154,7 +153,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 val response = RetrofitInstance.api.getOldCredential(
                     url = credentialEndpoint,
                     accessToken = "Bearer $token",
-                    request = setupDiggRequestBody(jwt)
+                    request = setupOldRequestBody(jwt)
                 )
                 Timber.d("IssuanceViewModel: response $response")
                 val parsedCredential = parseCredential(response)
@@ -195,6 +194,8 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+
+    //TODO: use this one when we got a valid VCI1.0 support
     private fun setupRequestBody(jwt: String): CredentialRequestModel {
         return CredentialRequestModel(
             format = "vc+sd-jwt",
@@ -203,7 +204,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
-    private fun setupDiggRequestBody(jwt: String): OldCredentialRequestModel {
+    private fun setupOldRequestBody(jwt: String): OldCredentialRequestModel {
         return OldCredentialRequestModel(
             format = "vc+sd-jwt",
             credential_configuration_id = "eu.europa.ec.eudi.pid_jwt_vc_json",

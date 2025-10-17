@@ -1,4 +1,4 @@
-package se.digg.wallet.core.ui.theme
+package se.digg.wallet.core.designsystem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,14 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
+    primary = Orange100,
+    secondary = Orange50,
     tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
+    primary = Orange100,
+    secondary = Orange50,
     tertiary = Pink40
 
     /* Other default colors to override
@@ -35,8 +35,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun WalletTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -51,7 +50,7 @@ fun WalletTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = UbuntuTypography,
         content = content
     )
 }

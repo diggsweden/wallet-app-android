@@ -1,0 +1,20 @@
+package se.digg.wallet.feature.enrollment.activation
+
+data class WuaRequestModel(
+    val walletId: String,
+    val jwk: Jwk
+)
+
+data class Jwk(
+    val kty: String,
+    val crv: String,
+    val x: String,
+    val y: String,
+    val kid: String? = null,
+    val alg: String? = null,
+    val use: String? = null
+)
+
+data class WuaResponseModel(
+    val jwt: String
+)

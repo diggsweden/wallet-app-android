@@ -16,12 +16,14 @@ import se.digg.wallet.feature.credentialdetails.CredentialDetailsScreen
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.issuance.IssuanceScreen
 import se.digg.wallet.feature.presentation.PresentationScreen
+import se.digg.wallet.feature.settings.SettingsScreen
 
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    startDestination: String = NavigationItem.Home.route
+    startDestination: String = NavigationItem.Home.route,
+    onLogout: () -> Unit
 ) {
 
     NavHost(
@@ -30,11 +32,15 @@ fun AppNavHost(
         startDestination = startDestination
     ) {
         composable(NavigationItem.Home.route) {
-            DashboardScreen(navController = navController)
+            DashboardScreen(navController = navController, onLogout = { onLogout.invoke() })
         }
 
         composable(NavigationItem.CredentialDetails.route) {
             CredentialDetailsScreen(navController = navController)
+        }
+
+        composable(NavigationItem.Settings.route) {
+            SettingsScreen(navController = navController)
         }
 
         composable(
@@ -94,5 +100,7 @@ fun AppNavHost(
     }
 }
 
-fun NavBackStackEntry.deepLinkIntent(): Intent? = arguments?.getParcelable(NavController.KEY_DEEP_LINK_INTENT)
+fun NavBackStackEntry.deepLinkIntent(): Intent? =
+    arguments?.getParcelable(NavController.KEY_DEEP_LINK_INTENT)
+
 fun NavBackStackEntry.deepLinkUri(): Uri? = deepLinkIntent()?.data

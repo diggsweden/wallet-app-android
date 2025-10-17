@@ -1,0 +1,30 @@
+package se.digg.wallet.core.designsystem.utils
+
+import android.content.res.Configuration
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(
+    name = "Dark Mode - Text size: Normal",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
+)
+@Preview(
+    name = "Light Mode - Text size: Normal",
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    showBackground = true
+)
+annotation class WalletPreview
+
+
+
+@Preview(
+    name = "Dark Mode - Text size: Normal",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
+)
+@Preview(
+    name = "Light Mode - Text size: Normal",
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    showBackground = true
+)
+annotation class WalletAccessibilityPreview

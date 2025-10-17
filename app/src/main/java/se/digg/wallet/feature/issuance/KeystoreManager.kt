@@ -46,7 +46,6 @@ object KeystoreManager {
     }
 
     private fun generateEs256Key(alias: String, preferStrongBox: Boolean): KeyPair {
-
         val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, ANDROID_KEYSTORE)
 
         // Try StrongBox first (if available)
@@ -64,15 +63,12 @@ object KeystoreManager {
                 )
                 return kpg.generateKeyPair()
             } catch (e: StrongBoxUnavailableException) {
-                // fall back below
                 Timber.d("Error: ${e.message}")
             } catch (e: Exception) {
-                // some devices throw other exceptions; fall back
                 Timber.d("Error: ${e.message}")
             }
         }
 
-        // Fallback: normal Keystore
         kpg.initialize(
             KeyGenParameterSpec.Builder(
                 alias,
@@ -86,12 +82,11 @@ object KeystoreManager {
     }
 
     fun exportJwk(alias: String, keyPair: KeyPair): ECKey {
-        //val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val publicKey = keyPair.public as? ECPublicKey
             ?: error("No key for alias '$alias'")
 
         val jwk: ECKey = ECKey.Builder(Curve.P_256, publicKey)
-            .keyID(alias) // "kid": alias (or compute a thumbprint if you prefer)
+            .keyID(alias)
             .build()
         return jwk
     }
