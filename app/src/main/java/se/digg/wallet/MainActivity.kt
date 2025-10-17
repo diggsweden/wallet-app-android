@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WalletTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
                     AppRoot()
                 }
             }
