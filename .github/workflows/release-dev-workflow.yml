@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+#
+# SPDX-License-Identifier: CC0-1.0
+
+---
+name: Release Dev Workflow
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-android-variants.yml@v2
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+    with:
+      java-version: "21"
+      jdk-distribution: "zulu"
+      build-module: "app"
+      product-flavor: "demo"
+      build-types: "debug,release"
+      include-aab: true
+      artifact-name-prefix: "testing_store"
+      include-date-stamp: true
+      enable-signing: false

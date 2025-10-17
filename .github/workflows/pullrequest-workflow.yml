@@ -6,32 +6,32 @@
 name: Pull Request Workflow
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  commitlint:
-    uses: diggsweden/.github/.github/workflows/commit-lint.yml@main
-  dependencyreviewlint:
-    uses: diggsweden/.github/.github/workflows/dependency-review.yml@main
-  # licenselint:
-  #   uses: diggsweden/.github/.github/workflows/license-lint.yml@main
-  # misclint:
-  #   permissions:
-  #     contents: read
-  #     security-events: write
-  #   uses: diggsweden/.github/.github/workflows/megalint.yml@main
-  test:
+  pr-checks:
+    uses: diggsweden/reusable-ci/.github/workflows/pullrequest-orchestrator.yml@v2
     permissions:
       contents: read
       packages: read
+      security-events: write
+    secrets: inherit
+    with:
+      project-type: gradle
+      linters.publiccodelint: false
+      linters.licenselint: false
+
+  test:
+    needs: [pr-checks]
     if: always()
-    needs: [commitlint,dependencyreviewlint]
+    permissions:
+      contents: read
+      packages: read
     uses: ./.github/workflows/test.yml

@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Artifacts Configuration for wallet-app-android
+# Android application - APK/AAB files attached to GitHub Release
+
+artifacts:
+  - name: wallet-android
+    project-type: gradle-android
+    working-directory: .
+    build-type: application
+    publish-to: []
+    config:
+      java-version: 21
+      gradle-tasks: build assembleDemoRelease bundleDemoRelease
+      build-module: app
+      gradle-version-file: gradle.properties

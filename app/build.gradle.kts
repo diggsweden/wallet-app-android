@@ -19,8 +19,8 @@ android {
         applicationId = "se.digg.wallet"
         minSdk = 28
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.0.1"
+        versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: 1
+        versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

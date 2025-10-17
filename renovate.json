@@ -1,0 +1,146 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "osvVulnerabilityAlerts": true,
+  "dependencyDashboardOSVVulnerabilitySummary": "all",
+  "extends": [
+    "config:best-practices",
+    "workarounds:all",
+    "security:openssf-scorecard",
+    ":configMigration",
+    ":dependencyDashboard",
+    ":gitSignOff",
+    ":automergeMinor",
+    ":semanticCommits",
+    ":rebaseStalePrs",
+    "mergeConfidence:all-badges"
+  ],
+  "semanticCommitType": "build",
+  "semanticCommitScope": "deps",
+  "commitMessageLowerCase": "auto",
+  "commitBody": "Signed-off-by: {{{gitAuthor}}}",
+  "minimumReleaseAge": "7 days",
+  "labels": [
+    "dependencies"
+  ],
+  "vulnerabilityAlerts": {
+    "labels": [
+      "security",
+      "dependencies"
+    ],
+    "enabled": true,
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "description": "Group all GitHub Actions minor and patch updates",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "addLabels": [
+        "actions"
+      ],
+      "groupName": "github actions",
+      "groupSlug": "github-actions",
+      "pinDigests": true
+    },
+    {
+      "description": "GitHub Actions - Major updates (no grouping)",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "addLabels": [
+        "actions",
+        "major-update"
+      ],
+      "automerge": false,
+      "pinDigests": true
+    },
+    {
+      "description": "Gradle/Android dependencies - Major updates",
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "addLabels": [
+        "gradle",
+        "dependencies",
+        "major-update"
+      ],
+      "groupName": "gradle major"
+    },
+    {
+      "description": "Gradle/Android dependencies - Non-major updates",
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "addLabels": [
+        "gradle",
+        "dependencies"
+      ],
+      "groupName": "gradle non-major"
+    },
+    {
+      "description": "Android Gradle Plugin",
+      "groupName": "android gradle plugin",
+      "matchPackageNames": [
+        "com.android.tools.build:gradle"
+      ]
+    },
+    {
+      "description": "Kotlin dependencies",
+      "groupName": "kotlin",
+      "matchPackageNames": [
+        "org.jetbrains.kotlin{/,}**",
+        "/^org\\.jetbrains\\.kotlin:/"
+      ]
+    },
+    {
+      "description": "AndroidX dependencies",
+      "groupName": "androidx",
+      "matchPackageNames": [
+        "androidx.{/,}**",
+        "/^androidx\\./"
+      ]
+    },
+    {
+      "description": "Compose dependencies",
+      "groupName": "compose",
+      "matchPackageNames": [
+        "androidx.compose{/,}**",
+        "/^androidx\\.compose\\./"
+      ]
+    },
+    {
+      "description": "Development and testing tools",
+      "groupName": "dev tools",
+      "matchPackageNames": [
+        "junit:junit",
+        "androidx.test{/,}**",
+        "/^androidx\\.test\\./"
+      ]
+    }
+  ],
+  "prConcurrentLimit": 4,
+  "prCreation": "immediate",
+  "rangeStrategy": "auto",
+  "ignorePresets": [
+    ":prHourlyLimit2"
+  ],
+  "schedule": [
+    "after 8:00pm on Saturday",
+    "before 11:59pm on Sunday"
+  ]
+}
