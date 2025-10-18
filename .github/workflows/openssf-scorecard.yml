@@ -6,8 +6,10 @@
 name: OpenSSF Scorecard Analysis
 on:
   schedule:
-    # Weekly on Saturdays at 01:25 UTC
-    - cron: "25 1 * * 6"
+    # Saturdays at 02:00 UTC
+    - cron: "0 2 * * 6"
+    # Wednesdays at 02:00 UTC
+    - cron: "0 2 * * 3"
   workflow_dispatch:
 
 permissions:
