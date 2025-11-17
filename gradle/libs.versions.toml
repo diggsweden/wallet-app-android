@@ -7,7 +7,7 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.3"
 activityCompose = "1.11.0"
-composeBom = "2025.09.00"
+composeBom = "2025.10.01"
 appcompat = "1.7.1"
 material = "1.13.0"
 navigationCompose = "2.9.4"
@@ -48,7 +48,6 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-material-icons = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "composeBom"}
 
 #Storage
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }

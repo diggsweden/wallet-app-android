@@ -15,8 +15,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,7 +35,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,7 +58,8 @@ import timber.log.Timber
 fun IssuanceScreen(
     navController: NavController,
     credentialOfferUri: String?,
-    viewModel: IssuanceViewModel = viewModel()
+    viewModel: IssuanceViewModel = viewModel(factory = IssuanceViewModel.Factory(LocalContext.current))
+
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
@@ -72,9 +73,9 @@ fun IssuanceScreen(
                     text = "Issue PID"
                 )
             }, navigationIcon = {
-                IconButton(onClick = { navController.navigateUp() }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(R.drawable.arrow_back),
                         contentDescription = ""
                     )
                 }

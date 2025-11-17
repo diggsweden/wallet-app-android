@@ -4,7 +4,6 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
-import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
@@ -94,7 +93,7 @@ object KeystoreManager {
     fun createJWT(
         keyPair: KeyPair,
         payload: Map<String, Any?>,
-        headerType: String? = null
+        headers: Map<String, Any>
     ): String {
         val now = Instant.now().epochSecond.toInt()
         val claims = mapOf(
@@ -106,8 +105,8 @@ object KeystoreManager {
         val exportedECKey = exportJwk("alias", keyPair)
         val publicECKey = exportedECKey.toPublicJWK()
 
-        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
-            .apply { if (headerType != null) this.type(JOSEObjectType(headerType)) }
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256).customParams(headers)
+            //.apply { this.type(JOSEObjectType(headers)) }
             .jwk(publicECKey)
             .build()
 

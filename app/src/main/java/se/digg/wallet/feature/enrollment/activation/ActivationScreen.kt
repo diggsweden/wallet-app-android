@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,17 +14,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
-fun WalletSetupScreen(
+fun ActivationScreen(
     navController: NavController,
     onContinue: () -> Unit,
-    viewModel: WalletSetupViewModel = viewModel(factory = WalletSetupViewModel.Factory(LocalContext.current)),
-
-    ) {
+    viewModel: ActivationViewModel = viewModel(factory = ActivationViewModel.Factory(LocalContext.current))
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.requestWua() }
@@ -36,18 +41,28 @@ fun WalletSetupScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when (uiState) {
-            SetupState.Loading -> {
-                Text("Laddar...")
+            ActivationState.Loading -> {
+                Text(stringResource(R.string.enrollment_activation_state_loading))
             }
 
-            SetupState.Complete -> {
+            ActivationState.Complete -> {
                 Button({ onContinue.invoke() })
-                { Text("Fortsätt") }
+                { Text(stringResource(R.string.generic_continue)) }
             }
 
-            SetupState.Error -> {
-                Text("Error")
+            ActivationState.Error -> {
+                Text(stringResource(R.string.generic_error))
             }
+        }
+    }
+}
+
+@Composable
+@WalletPreview
+private fun Preview() {
+    WalletTheme {
+        Surface {
+            ActivationScreen(rememberNavController(), onContinue = {})
         }
     }
 }

@@ -1,8 +1,9 @@
 package se.digg.wallet.feature.issuance
 
-import android.app.Application
+import android.content.Context
 import android.util.Base64
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.jwk.Curve
 import eu.europa.ec.eudi.openid4vci.AuthorizedRequest
@@ -23,15 +24,13 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import se.digg.wallet.core.network.RetrofitInstance
-import se.digg.wallet.core.storage.CredentialStore
-import se.digg.wallet.data.CredentialData
+import se.digg.wallet.core.storage.user.DatabaseProvider
+import se.digg.wallet.core.storage.user.UserRepository
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
@@ -54,7 +53,7 @@ sealed interface IssuanceState {
     object Error : IssuanceState
 }
 
-class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
+class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
     val openId4VCIConfig = OpenId4VCIConfig(
         client = Client.Public("wallet-dev"),
         authFlowRedirectionURI = URI.create("eudi-wallet//auth"),
@@ -62,6 +61,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
     )
 
+    /*
     val credential: StateFlow<CredentialData?> =
         CredentialStore.credentialFlow(context = app)
             .stateIn(
@@ -69,6 +69,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = null
             )
+     */
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
     private var issuer: Issuer? = null
 
@@ -115,6 +116,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
     fun fetchCredential(authorizedRequest: AuthorizedRequest) {
         viewModelScope.launch {
             try {
+                val wua = repo.getWua() ?: ""
                 val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
                 val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value
 
@@ -133,7 +135,11 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                     "nonce" to nonce
                 )
 
-                val jwt = KeystoreManager.createJWT(keyPair, payload)
+                val headers = mapOf(
+                    "typ" to "openid4vci-proof+jwt",
+                    "key_attestation" to wua
+                )
+                val jwt = KeystoreManager.createJWT(keyPair, payload, headers)
 
                 fetchManuallyCredential(
                     token = authorizedRequest.accessToken.accessToken,
@@ -164,11 +170,13 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                         Json.encodeToString(CredentialLocal.serializer(), parsedCredentialLocal)
                     val decodedJson =
                         Json.decodeFromString(CredentialLocal.serializer(), jsonString)
+                    /*
                     CredentialStore.saveCredential(
                         getApplication(),
                         CredentialData(jsonString)
-
                     )
+                     */
+                    viewModelScope.launch { repo.setCredential(jsonString) }
                 } catch (e: Exception) {
                     _uiState.value = IssuanceState.Error
                     Timber.Forest.d("IssuanceViewModel: Save credential error: ${e.message}")
@@ -193,7 +201,6 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
-
 
     //TODO: use this one when we got a valid VCI1.0 support
     private fun setupRequestBody(jwt: String): CredentialRequestModel {
@@ -310,5 +317,14 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
             .associateBy { claim ->
                 claim.path.value.joinToString(".") { it.toString() }
             }
+    }
+
+    class Factory(private val appContext: Context) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            val db = DatabaseProvider.get(appContext)
+            val repo = UserRepository(db.userDao())
+            return IssuanceViewModel(repo) as T
+        }
     }
 }

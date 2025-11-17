@@ -31,8 +31,9 @@ fun AppNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+        /*
         composable(NavigationItem.Home.route) {
-            DashboardScreen(navController = navController, onLogout = { onLogout.invoke() })
+            DashboardScreen(navController = navController)
         }
 
         composable(NavigationItem.CredentialDetails.route) {
@@ -40,7 +41,7 @@ fun AppNavHost(
         }
 
         composable(NavigationItem.Settings.route) {
-            SettingsScreen(navController = navController)
+            SettingsScreen(navController = navController, onLogout = { onLogout.invoke() })
         }
 
         composable(
@@ -97,10 +98,12 @@ fun AppNavHost(
             val fullUri = backStackEntry.deepLinkUri()
             PresentationScreen(navController = navController, fullUri = fullUri.toString())
         }
+         */
     }
 }
-
+/*
 fun NavBackStackEntry.deepLinkIntent(): Intent? =
     arguments?.getParcelable(NavController.KEY_DEEP_LINK_INTENT)
 
 fun NavBackStackEntry.deepLinkUri(): Uri? = deepLinkIntent()?.data
+ */

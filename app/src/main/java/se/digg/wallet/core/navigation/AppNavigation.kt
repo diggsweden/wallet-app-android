@@ -10,16 +10,24 @@ sealed class NavigationItem(val route: String) {
     object Settings : NavigationItem(route = AppNavigation.SETTINGS.name)
 }
 
-enum class OnboardingNavigation {
-    INTRO, ONBOARDING, TERMS, CONTACT, PIN, WUA, DONE
+enum class EnrollmentNavigation {
+    INTRO, ONBOARDING, TERMS, CONTACT, PIN, WUA, PID, DONE
 }
 
-sealed class OnboardingNavItem(val route: String) {
-    object Intro : OnboardingNavItem(route = OnboardingNavigation.INTRO.name)
-    object Onboarding : OnboardingNavItem(route = OnboardingNavigation.ONBOARDING.name)
-    object Terms : OnboardingNavItem(route = OnboardingNavigation.TERMS.name)
-    object ContactInfo : OnboardingNavItem(route = OnboardingNavigation.CONTACT.name)
-    object Pin : OnboardingNavItem(route = OnboardingNavigation.PIN.name)
-    object Wua : OnboardingNavItem(route = OnboardingNavigation.WUA.name)
-    object Done : OnboardingNavItem(route = OnboardingNavigation.DONE.name)
+sealed class EnrollmentNavItem(val route: String) {
+    object Intro : EnrollmentNavItem(route = EnrollmentNavigation.INTRO.name)
+    object Onboarding : EnrollmentNavItem(route = EnrollmentNavigation.ONBOARDING.name)
+    object Terms : EnrollmentNavItem(route = EnrollmentNavigation.TERMS.name)
+    object ContactInfo : EnrollmentNavItem(route = EnrollmentNavigation.CONTACT.name)
+    object Pin : EnrollmentNavItem(route = EnrollmentNavigation.PIN.name)
+    object Wua : EnrollmentNavItem(route = EnrollmentNavigation.WUA.name)
+    object Pid : EnrollmentNavItem(route = EnrollmentNavigation.PID.name)
+    object Done : EnrollmentNavItem(route = EnrollmentNavigation.DONE.name)
+}
+
+object RootGraph {
+    const val Enrollment = "enrollment_graph"
+    const val Dashboard = "dashboard_graph"
+    const val Issuance = "issuance_graph"
+    const val Presentation = "presentation_graph"
 }

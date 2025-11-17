@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -49,7 +47,6 @@ const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/prepare-credential-of
 @Composable
 fun DashboardScreen(
     navController: NavController,
-    onLogout: () -> Unit,
     viewModel: DashboardViewModel = viewModel()
 ) {
 
@@ -72,7 +69,7 @@ fun DashboardScreen(
 
                         )
                         Spacer(Modifier.width(12.dp))
-                        Text("ID-plånboken", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.dashboard_title), style = MaterialTheme.typography.bodyMedium)
                     }
                 },
                 actions = {
@@ -80,11 +77,9 @@ fun DashboardScreen(
                         navController.navigate(
                             NavigationItem.Settings.route
                         )
-                        //viewModel.clearPin()
-                        //onLogout.invoke()
                     }) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            painter = painterResource(R.drawable.settings_24px),
                             contentDescription = ""
                         )
                     }
@@ -111,7 +106,7 @@ fun DashboardScreen(
                     )
                 }
 
-                NewCredentialCard(text = "Add new credential", onClick = {
+                NewCredentialCard(text = stringResource(R.string.dashboard_add_credential), onClick = {
                     val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
                     context.startActivity(intent)
                 })
@@ -131,12 +126,12 @@ private fun Header() {
     ) {
         Text(
             style = MaterialTheme.typography.titleLarge,
-            text = "Welcome!",
+            text = stringResource(R.string.dashboard_welcome),
             modifier = Modifier.padding(bottom = 16.dp)
         )
         Text(
             fontSize = 16.sp,
-            text = "This is the starting point for the Swedish government identity wallet."
+            text = stringResource(R.string.dashboard_description)
         )
     }
 }
@@ -145,6 +140,6 @@ private fun Header() {
 @WalletPreview
 private fun Preview() {
     WalletTheme {
-        DashboardScreen(navController = rememberNavController(), onLogout = {})
+        DashboardScreen(navController = rememberNavController())
     }
 }

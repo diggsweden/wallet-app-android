@@ -38,3 +38,18 @@ val White = Color(0xFFFFFFFF)
 val GreenHover = Color(0xFF657C54)
 val BlackHover = Color(0xFF5A5856)
 val Error = Color(0xFFB50000)
+
+//DIGG
+val LightPrimary = Color(0xFFD5DAD4)
+val LightOnPrimary = Color(0xFF556951)
+val DarkPrimary = Color(0xFF2B3529)
+val DarkOnPrimary = Color(0xFFFFFFFF)
+
+val DiggBlack = Color(0xFF2B2A29)
+val DiggBrown = Color(0xFF8F554C)
+
+//DIGG Button
+val ButtonContainerPrimary = Color(0xFF556951)
+val ButtonContentPrimary = Color(0xFFFFFFFF)
+val ButtonContainerPrimaryDark = Color(0xFFD5DAD4)
+val ButtonContentPrimaryDark = Color(0xFF2B2A29)

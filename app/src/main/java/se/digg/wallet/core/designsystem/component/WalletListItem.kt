@@ -3,15 +3,15 @@ package se.digg.wallet.core.designsystem.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -46,7 +46,7 @@ private fun ListItemPreview() {
                 supportingContent = { Text("Supporting") },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Outlined.Notifications,
+                        painter = painterResource(R.drawable.heart_smile_24px),
                         contentDescription = null
                     )
                 }
@@ -56,7 +56,7 @@ private fun ListItemPreview() {
                 supportingContent = { Text("Supporting") },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Outlined.Notifications,
+                        painter = painterResource(R.drawable.heart_smile_24px),
                         contentDescription = null
                     )
                 }
@@ -74,7 +74,7 @@ private fun ListItemPreview() {
                 supportingContent = { Text("Supporting") },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Outlined.Notifications,
+                        painter = painterResource(R.drawable.heart_smile_24px),
                         contentDescription = null
                     )
                 }

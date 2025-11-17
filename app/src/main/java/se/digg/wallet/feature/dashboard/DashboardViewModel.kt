@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.storage.CredentialStore
 import se.digg.wallet.core.storage.user.DatabaseProvider
@@ -47,10 +46,6 @@ class DashboardViewModel(app: Application) : AndroidViewModel(app) {
         }
             .distinctUntilChanged()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    fun clearPin() = viewModelScope.launch {
-        repo.wipeAll()
-    }
 }
 
 fun formatDate(date: Date): String {

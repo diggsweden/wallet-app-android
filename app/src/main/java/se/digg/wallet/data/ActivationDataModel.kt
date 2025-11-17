@@ -1,4 +1,4 @@
-package se.digg.wallet.feature.enrollment.activation
+package se.digg.wallet.data
 
 data class WuaRequestModel(
     val walletId: String,

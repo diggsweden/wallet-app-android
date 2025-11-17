@@ -260,8 +260,9 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
             "nonce" to nonce,
             "sd_hash" to base64Hash
         )
+        val headers = mapOf("typ" to "kb+jwt")
         val keybinding =
-            KeystoreManager.createJWT(keyPair = keyPair, payload = payload, headerType = "kb+jwt")
+            KeystoreManager.createJWT(keyPair = keyPair, payload = payload, headers)
         Timber.d("PresentationViewModel - SendDisclosures ")
         return keybinding
     }

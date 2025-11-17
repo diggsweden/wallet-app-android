@@ -1,7 +1,9 @@
 package se.digg.wallet.feature.enrollment.contactinfo
 
+import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +13,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.network.RetrofitInstance
+import se.digg.wallet.core.storage.user.DatabaseProvider
+import se.digg.wallet.core.storage.user.UserRepository
+import se.digg.wallet.data.CreateAccountRequestDTO
+import se.digg.wallet.data.Jwk
+import se.digg.wallet.feature.issuance.KeystoreManager
+import timber.log.Timber
 
 data class ContactUiState(
     val phone: String = "",
@@ -38,11 +47,11 @@ sealed interface ContactEvent {
     data object SubmitClicked : ContactEvent
 }
 
-class ContactInfoViewModel : ViewModel() {
+class ContactInfoViewModel(val userRepository: UserRepository) : ViewModel() {
+
     private val _state = MutableStateFlow(ContactUiState())
     val state: StateFlow<ContactUiState> = _state.asStateFlow()
 
-    // one-shot navigation/finish event
     private val _done = Channel<Unit>(Channel.BUFFERED)
     val done: Flow<Unit> = _done.receiveAsFlow()
 
@@ -51,7 +60,7 @@ class ContactInfoViewModel : ViewModel() {
             is ContactEvent.PhoneChanged -> updatePhone(event.value)
             is ContactEvent.EmailChanged -> updateEmail(event.value)
             is ContactEvent.VerifyEmailChanged -> updateVerifyEmail(event.value)
-            ContactEvent.SubmitClicked -> submit()
+            ContactEvent.SubmitClicked -> validateAndSubmit()
         }
     }
 
@@ -73,7 +82,7 @@ class ContactInfoViewModel : ViewModel() {
         _state.update { it.copy(verifyEmail = value, verifyEmailError = error) }
     }
 
-    private fun submit() {
+    private fun validateAndSubmit() {
         val s = _state.value
         val phoneErr = validatePhone(s.phone)
         val emailErr = validateEmail(s.email)
@@ -88,7 +97,29 @@ class ContactInfoViewModel : ViewModel() {
 
         if (phoneErr == null && emailErr == null && verifyEmailErr == null) {
             viewModelScope.launch {
-                _done.send(Unit)
+                try {
+                    val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
+                    val jwk = KeystoreManager.exportJwk("alias", keyPair)
+
+                    val requestBody = CreateAccountRequestDTO(
+                        personalIdentityNumber = "12345678",
+                        emailAdress = "asser@asser.com",
+                        telephoneNumber = "0851332391",
+                        publicKey = Jwk(
+                            kty = jwk.keyType.value,
+                            crv = jwk.curve.name,
+                            x = jwk.x.toString(),
+                            y = jwk.y.toString(),
+                            kid = "myKey"
+                        )
+                    )
+                    val response = RetrofitInstance.api.createAccount(requestBody)
+                    Timber.d("ContactInfo - Response: $response")
+                    userRepository.setAccountId(response.accountId)
+                    _done.send(Unit)
+                } catch (e: Exception) {
+                    Timber.d("ContactInfo - Account creation error: ${e.message}")
+                }
             }
         }
     }
@@ -109,5 +140,14 @@ class ContactInfoViewModel : ViewModel() {
         val cleaned = value.replace(Regex("[\\s-]"), "")
         val regex = Regex("^\\+?\\d{7,15}$")
         return if (regex.matches(cleaned)) null else "Ange ett giltigt telefonnummer"
+    }
+
+    class Factory(private val appContext: Context) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            val db = DatabaseProvider.get(appContext)
+            val repo = UserRepository(db.userDao())
+            return ContactInfoViewModel(repo) as T
+        }
     }
 }

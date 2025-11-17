@@ -1,70 +1,70 @@
-package se.digg.wallet.feature.enrollment.intro
+package se.digg.wallet.feature.enrollment.pid
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.theme.DiggBlack
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.feature.dashboard.CREDENTIAL_URL
 
 @Composable
-fun IntroScreen(navController: NavController, onContinue: () -> Unit) {
-
-    BackHandler {
-
-    }
+fun PidScreen(
+    navController: NavController,
+    onContinue: () -> Unit
+) {
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        Image(
-            painter = painterResource(R.drawable.playstore_icon),
-            contentDescription = stringResource(R.string.enrollment_intro_logo_description),
-            modifier = Modifier
-                .width(120.dp)
-                .height(120.dp)
+        Icon(
+            modifier = Modifier.size(48.dp),
+            painter = painterResource(R.drawable.id_card_24px),
+            contentDescription = "Lock",
+            tint = DiggBlack
         )
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
-            stringResource(R.string.enrollment_intro_title),
+            stringResource(R.string.enrollment_pid_title),
             style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
         )
-        Text(
-            stringResource(R.string.enrollment_intro_description),
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(stringResource(R.string.enrollment_pid_description))
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.padding(bottom = 16.dp),
             text = stringResource(R.string.generic_next),
             onClick = {
-                onContinue.invoke()
+                val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
+                context.startActivity(intent)
             })
     }
 }
@@ -74,7 +74,9 @@ fun IntroScreen(navController: NavController, onContinue: () -> Unit) {
 private fun Preview() {
     WalletTheme {
         Surface {
-            IntroScreen(rememberNavController(), onContinue = {})
+            PidScreen(
+                navController = rememberNavController(),
+                onContinue = {})
         }
     }
 }

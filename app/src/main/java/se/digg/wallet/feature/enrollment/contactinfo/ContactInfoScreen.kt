@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,7 +20,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -33,6 +33,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
+import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -40,7 +42,7 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 fun ContactInfoScreen(
     navController: NavController,
     onContinue: () -> Unit,
-    viewModel: ContactInfoViewModel = viewModel()
+    viewModel: ContactInfoViewModel = viewModel(factory = ContactInfoViewModel.Factory(LocalContext.current))
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focus = LocalFocusManager.current
@@ -52,23 +54,28 @@ fun ContactInfoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.weight(1f))
 
-        Icon(modifier = Modifier.size(48.dp),
-            imageVector = Icons.Filled.Person,
-            contentDescription = "Favorite",
-            tint = MaterialTheme.colorScheme.primary
+        Icon(
+            modifier = Modifier.size(48.dp),
+            painter = painterResource(R.drawable.person_edit_24px),
+            contentDescription = stringResource(R.string.enrollment_contact_info_icon_description),
+            tint = MaterialTheme.colorScheme.onSurface
         )
-
-        Text("Kontaktuppgifter", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            stringResource(R.string.enrollment_contact_info_title),
+            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
+        )
         Spacer(modifier = Modifier.height(12.dp))
+
         OutlinedTextField(
             value = state.email,
             onValueChange = { viewModel.onEvent(ContactEvent.EmailChanged(it)) },
-            label = { Text("E-post") },
+            label = { Text(stringResource(R.string.enrollment_contact_info_email)) },
             isError = state.emailError != null,
             supportingText = { if (state.emailError != null) Text(state.emailError!!) },
             singleLine = true,
@@ -84,11 +91,10 @@ fun ContactInfoScreen(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = state.verifyEmail,
             onValueChange = { viewModel.onEvent(ContactEvent.VerifyEmailChanged(it)) },
-            label = { Text("Verifiera e-post") },
+            label = { Text(stringResource(R.string.enrollment_contact_info_verify_email)) },
             isError = state.verifyEmailError != null,
             supportingText = { if (state.verifyEmailError != null) Text(state.verifyEmailError!!) },
             singleLine = true,
@@ -108,7 +114,7 @@ fun ContactInfoScreen(
         OutlinedTextField(
             value = state.phone,
             onValueChange = { viewModel.onEvent(ContactEvent.PhoneChanged(it)) },
-            label = { Text("Telefonnummer") },
+            label = { Text(stringResource(R.string.enrollment_contact_info_phone)) },
             isError = state.phoneError != null,
             supportingText = { if (state.phoneError != null) Text(state.phoneError!!) },
             singleLine = true,
@@ -118,33 +124,14 @@ fun ContactInfoScreen(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-
-
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Bottom
-    ) {
-        Button(
+        Spacer(modifier = Modifier.weight(1f))
+        PrimaryButton(
+            text = stringResource(R.string.generic_next),
+            enabled = state.isValid && !state.isSubmitting,
             onClick = {
                 focus.clearFocus()
                 viewModel.onEvent(ContactEvent.SubmitClicked)
-            },
-            enabled = state.isValid && !state.isSubmitting,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (state.isSubmitting) {
-                CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(end = 8.dp)
-                )
-            }
-            Text("Fortsätt")
-        }
+            })
     }
 }
 

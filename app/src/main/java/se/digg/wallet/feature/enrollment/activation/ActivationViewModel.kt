@@ -10,29 +10,31 @@ import kotlinx.coroutines.launch
 import se.digg.wallet.core.network.RetrofitInstance
 import se.digg.wallet.core.storage.user.DatabaseProvider
 import se.digg.wallet.core.storage.user.UserRepository
+import se.digg.wallet.data.Jwk
+import se.digg.wallet.data.WuaRequestModel
 import se.digg.wallet.feature.issuance.KeystoreManager
 import timber.log.Timber
 import java.util.UUID
 
-sealed interface SetupState {
-    object Loading : SetupState
-    object Error : SetupState
-    object Complete : SetupState
+sealed interface ActivationState {
+    object Loading : ActivationState
+    object Error : ActivationState
+    object Complete : ActivationState
 }
 
-class WalletSetupViewModel(private val repo: UserRepository) : ViewModel() {
+class ActivationViewModel(private val repo: UserRepository) : ViewModel() {
 
-    val _uiState = MutableStateFlow<SetupState>(SetupState.Loading)
-    val uiState: StateFlow<SetupState> = _uiState
+    val _uiState = MutableStateFlow<ActivationState>(ActivationState.Loading)
+    val uiState: StateFlow<ActivationState> = _uiState
 
     fun requestWua() {
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
                 val jwk = KeystoreManager.exportJwk("alias", keyPair)
-
+                val uuid = UUID.randomUUID()
                 val request = WuaRequestModel(
-                    walletId = UUID.randomUUID().toString(),
+                    walletId = uuid.toString(),
                     jwk = Jwk(
                         kty = jwk.keyType.value,
                         crv = jwk.curve.name,
@@ -41,19 +43,22 @@ class WalletSetupViewModel(private val repo: UserRepository) : ViewModel() {
                     )
                 )
                 val response = RetrofitInstance.api.getWuaRequest(request)
-                Timber.d("Wallet setup ok - $response")
-                storeWuaLocally(response.jwt)
-                _uiState.value = SetupState.Complete
+                Timber.d("Wallet activation ok - $response")
+                storeWuaLocally(jwt = response.jwt, uuid = uuid)
+                _uiState.value = ActivationState.Complete
 
             } catch (e: Exception) {
-                Timber.d("Wallet setup error - ${e.message}")
-                _uiState.value = SetupState.Error
+                Timber.d("Wallet activation error - ${e.message}")
+                _uiState.value = ActivationState.Error
             }
         }
     }
 
-    fun storeWuaLocally(jwt: String) {
-        viewModelScope.launch { repo.setWua(jwt) }
+    fun storeWuaLocally(jwt: String, uuid: UUID) {
+        viewModelScope.launch {
+            repo.setWua(jwt)
+            repo.setUuid(uuid)
+        }
     }
 
     class Factory(private val appContext: Context) : ViewModelProvider.Factory {
@@ -61,7 +66,7 @@ class WalletSetupViewModel(private val repo: UserRepository) : ViewModel() {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val db = DatabaseProvider.get(appContext)
             val repo = UserRepository(db.userDao())
-            return WalletSetupViewModel(repo) as T
+            return ActivationViewModel(repo) as T
         }
     }
 }

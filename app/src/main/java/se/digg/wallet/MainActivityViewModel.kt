@@ -7,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -16,38 +14,38 @@ import kotlinx.coroutines.launch
 import se.digg.wallet.core.storage.user.DatabaseProvider
 import se.digg.wallet.core.storage.user.UserRepository
 
-enum class AppFlow { Onboarding, Dashboard, PIN }
+enum class AppFlow { Enrollment, Dashboard, PIN }
 
 data class AppFlowState(
-    val flow: AppFlow = AppFlow.Onboarding,
+    val flow: AppFlow = AppFlow.Enrollment,
     val dashboardStartRoute: String? = null
 )
 
 class MainActivityViewModel(private val repo: UserRepository) : ViewModel() {
-    private val _state = MutableStateFlow(AppFlowState())
-    val state: StateFlow<AppFlowState> = _state
-    val pin = repo.user.map { it?.pin }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    private val _enrollmentState = MutableStateFlow(AppFlowState())
+    val enrollmentState: StateFlow<AppFlowState> = _enrollmentState
+    val pin = repo.user.map { it?.pin }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     init {
         viewModelScope.launch {
             val pin: String? = repo.getPin()
-            if(pin.isNullOrBlank()){
-                goToOnboarding()
-            } else
-            {
+            if (pin.isNullOrBlank()) {
+                goToEnrollment()
+            } else {
                 goToDashboard()
             }
         }
     }
 
-    fun goToOnboarding() =
-        _state.update { it.copy(flow = AppFlow.Onboarding, dashboardStartRoute = null) }
+    fun goToEnrollment() =
+        _enrollmentState.update { it.copy(flow = AppFlow.Enrollment, dashboardStartRoute = null) }
 
     fun goToDashboard(startRoute: String? = null) =
-        _state.update { it.copy(flow = AppFlow.Dashboard, dashboardStartRoute = startRoute) }
+        _enrollmentState.update { it.copy(flow = AppFlow.Dashboard, dashboardStartRoute = startRoute) }
 
     fun goToPinInput(startRoute: String? = null) =
-        _state.update { it.copy(flow = AppFlow.PIN, dashboardStartRoute = startRoute) }
+        _enrollmentState.update { it.copy(flow = AppFlow.PIN, dashboardStartRoute = startRoute) }
 
     class Factory(private val appContext: Context) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

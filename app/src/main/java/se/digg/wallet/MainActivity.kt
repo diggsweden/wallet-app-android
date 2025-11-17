@@ -1,5 +1,6 @@
 package se.digg.wallet
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,17 +13,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.navigation.AppNavHost
-import se.digg.wallet.core.navigation.EnrollmentNavHost
-import se.digg.wallet.feature.enrollment.pin.PinViewModel
+import se.digg.wallet.core.navigation.WalletNavHost
 
 class MainActivity : ComponentActivity() {
+
+    lateinit var navigation : NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            navigation = rememberNavController()
             WalletTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AppRoot()
@@ -34,9 +37,16 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun AppRoot(viewModel: MainActivityViewModel = viewModel(factory = MainActivityViewModel.Factory(LocalContext.current))) {
-    val app by viewModel.state.collectAsState()
+fun AppRoot(
+    viewModel: MainActivityViewModel = viewModel(
+        factory = MainActivityViewModel.Factory(
+            LocalContext.current
+        )
+    )
+) {
+    val app by viewModel.enrollmentState.collectAsState()
 
+    /*
     when (app.flow) {
         AppFlow.Onboarding -> EnrollmentNavHost(
             navController = rememberNavController(),
@@ -47,6 +57,22 @@ fun AppRoot(viewModel: MainActivityViewModel = viewModel(factory = MainActivityV
             navController = rememberNavController(),
             onLogout = {
                 viewModel.goToOnboarding() })
+
+        AppFlow.PIN -> TODO()
+    }
+     */
+
+
+    when (app.flow) {
+        AppFlow.Enrollment -> WalletNavHost(
+            navController = rememberNavController(),
+            isEnrolled = false
+        ) { viewModel.goToDashboard() }
+
+        AppFlow.Dashboard -> WalletNavHost(
+            navController = rememberNavController(),
+            isEnrolled = true
+        ) { viewModel.goToEnrollment() }
 
         AppFlow.PIN -> TODO()
     }

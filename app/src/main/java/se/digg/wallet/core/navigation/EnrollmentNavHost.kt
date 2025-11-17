@@ -1,23 +1,12 @@
 package se.digg.wallet.core.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import se.digg.wallet.feature.enrollment.OnboardingEffect
-import se.digg.wallet.feature.enrollment.OnboardingEvent
 import se.digg.wallet.feature.enrollment.OnboardingViewModel
-import se.digg.wallet.feature.enrollment.contactinfo.ContactInfoScreen
-import se.digg.wallet.feature.enrollment.done.DoneScreen
-import se.digg.wallet.feature.enrollment.intro.IntroScreen
-import se.digg.wallet.feature.enrollment.pin.PinScreen
-import se.digg.wallet.feature.enrollment.activation.WalletSetupScreen
-import se.digg.wallet.feature.enrollment.terms.TermsScreen
 
 const val ONBOARDING_GRAPH = "onboarding"
 
@@ -29,7 +18,7 @@ fun EnrollmentNavHost(
     onFinish: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-
+/*
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -42,11 +31,14 @@ fun EnrollmentNavHost(
         }
     }
 
+ */
+/*
     NavHost(
         modifier = modifier,
         navController = navController,
         startDestination = OnboardingNavItem.Intro.route
     ) {
+
         composable(OnboardingNavItem.Intro.route) {
             IntroScreen(navController = navController, onContinue = {
                 viewModel.onEvent(
@@ -54,6 +46,8 @@ fun EnrollmentNavHost(
                 )
             })
         }
+
+
         composable(OnboardingNavItem.Terms.route) {
             TermsScreen(navController = navController, onContinue = {
                 viewModel.onEvent(
@@ -88,4 +82,5 @@ fun EnrollmentNavHost(
             })
         }
     }
+ */
 }

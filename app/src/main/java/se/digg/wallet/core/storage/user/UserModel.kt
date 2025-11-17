@@ -10,8 +10,11 @@ data class User(
     @PrimaryKey val id: Int = 0,
     val pin: String?,
     val email: String?,
+    val phone: String?,
     val uuid: UUID?,
-    val wua: String?
+    val accountId: String?,
+    val wua: String?,
+    val credential: String?
 )
 
 
