@@ -79,6 +79,7 @@ internal fun ByteArray.transcodeSignatureToConcat(alg: JWSAlgorithm): ByteArray 
 internal fun String.toJoseAlg(): JWSAlgorithm =
     this.toJoseECAlg()
         ?: error("Unsupported algorithm for JWS signature: $this")
+
 internal fun String.toJoseECAlg(): JWSAlgorithm? = when (this) {
     "SHA256withECDSA" -> JWSAlgorithm.ES256
     "SHA384withECDSA" -> JWSAlgorithm.ES384
@@ -122,7 +123,8 @@ internal fun <PUB> Signer.Companion.fromEcPrivateKey(
         get() = signingAlgorithm
 
     override suspend fun acquire(): SignOperation<PUB> {
-        val sign = SignFunction.forJavaPrivateKey(signingAlgorithm, privateKey, secureRandom, provider)
+        val sign =
+            SignFunction.forJavaPrivateKey(signingAlgorithm, privateKey, secureRandom, provider)
         return SignOperation(sign, publicMaterial)
     }
 

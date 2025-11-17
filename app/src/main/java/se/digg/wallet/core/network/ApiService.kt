@@ -10,13 +10,15 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Url
+import se.digg.wallet.data.CreateAccountRequestDTO
+import se.digg.wallet.data.CreateAccountResponseDTO
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.OldCredentialRequestModel
-import se.digg.wallet.feature.enrollment.activation.WuaRequestModel
-import se.digg.wallet.feature.enrollment.activation.WuaResponseModel
+import se.digg.wallet.data.WuaRequestModel
+import se.digg.wallet.data.WuaResponseModel
 
-interface CredentialApiService {
+interface ApiService {
     @POST
     suspend fun getCredential(
         @Url url: String,
@@ -43,7 +45,17 @@ interface CredentialApiService {
     ): NonceResponseModel
 
     @Headers(
-        "X-API-KEY: REPLACE_ME_TODO",
+        "X-API-KEY: my_secret_key",
+        "accept: */*",
+        "Content-Type: application/json"
+    )
+    @POST("accounts/v1")
+    suspend fun createAccount(
+        @Body request: CreateAccountRequestDTO
+    ): CreateAccountResponseDTO
+
+    @Headers(
+        "X-API-KEY: my_secret_key",
         "accept: */*",
         "Content-Type: application/json"
     )

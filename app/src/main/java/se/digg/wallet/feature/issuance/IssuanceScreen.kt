@@ -19,14 +19,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -42,18 +41,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.data.FetchedCredential
 import timber.log.Timber
@@ -62,7 +63,7 @@ import timber.log.Timber
 fun IssuanceScreen(
     navController: NavController,
     credentialOfferUri: String?,
-    viewModel: IssuanceViewModel = viewModel()
+    viewModel: IssuanceViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
@@ -73,12 +74,12 @@ fun IssuanceScreen(
         {
             TopAppBar(title = {
                 Text(
-                    text = "Issue PID"
+                    text = "Hämta attributsintyg"
                 )
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(R.drawable.arrow_left),
                         contentDescription = ""
                     )
                 }
@@ -100,11 +101,7 @@ fun IssuanceScreen(
 
                     is IssuanceState.IssuerFetched -> {
                         Timber.d("IssuanceState.IssuerFetched")
-                        PreAuthInput(onSubmit = { userInput ->
-                            viewModel.authorize(
-                                input = userInput
-                            )
-                        })
+                        viewModel.authorize(123456)
                     }
 
                     is IssuanceState.Authorized -> {
@@ -136,7 +133,7 @@ fun IssuanceScreen(
 private fun Header(metadata: CredentialIssuerMetadata?) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.digg_primary).copy(
+            containerColor = MaterialTheme.colorScheme.onPrimary.copy(
                 alpha = 0.2f
             )
         ),
@@ -147,7 +144,7 @@ private fun Header(metadata: CredentialIssuerMetadata?) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Box(
                     modifier = Modifier
-                        .height(32.dp)
+                        .height(200.dp)
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -157,12 +154,8 @@ private fun Header(metadata: CredentialIssuerMetadata?) {
                         modifier = Modifier.size(200.dp)
                     )
                 }
-                Text("Issuer:", fontWeight = FontWeight.Bold)
+                Text("Utfärdare:", fontWeight = FontWeight.Bold)
                 Text(metadata?.display?.first()?.name ?: "-")
-                Text("Description:", fontWeight = FontWeight.Bold)
-                Text(metadata?.display?.first()?.description ?: "-")
-                Text("Credential offer:", fontWeight = FontWeight.Bold)
-                Text(metadata?.credentialEndpoint?.value?.toString() ?: "-")
             }
         }
     }
@@ -217,49 +210,44 @@ fun sanitize(input: String) = input.filter { it.isDigit() }
 
 @Composable
 private fun Disclosures(fetchedCredential: FetchedCredential, onCloseClicked: () -> Boolean) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.digg_primary).copy(
-                alpha = 0.2f
-            )
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                text = "PID issued successfully",
-                fontWeight = FontWeight.Bold
-            )
-            Text("Disclosures:", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(12.dp))
-            fetchedCredential.disclosures.forEach { item ->
-                OutlinedTextField(
-                    value = item.value.value,
-                    onValueChange = { },
-                    label = {
-                        Text(
-                            item.value.claim.display.first().name ?: "No name", maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    singleLine = true,
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
+    Column {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.onPrimary.copy(
+                    alpha = 0.2f
                 )
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text("Attribut:", fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
-            }
-            Button(
-                onClick = { onCloseClicked.invoke() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Close")
+                fetchedCredential.disclosures.forEach { item ->
+                    OutlinedTextField(
+                        value = item.value.value,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                item.value.claim.display.first().name ?: "No name", maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        singleLine = true,
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
             }
         }
+        Spacer(Modifier.height(12.dp))
     }
-    Spacer(Modifier.height(12.dp))
+    PrimaryButton(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(R.string.generic_ok),
+        onClick = { onCloseClicked.invoke() }
+    )
 }
 
 @Preview(showBackground = true)

@@ -9,11 +9,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,36 +18,50 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel(),
+    onLogout: () -> Unit
+) {
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                SettingsViewModel.UiEvent.LocalStorageCleared -> {
+                    onLogout.invoke()
+                }
+            }
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         {
@@ -61,7 +72,7 @@ fun SettingsScreen(navController: NavController) {
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(R.drawable.arrow_left),
                         contentDescription = ""
                     )
                 }
@@ -76,7 +87,7 @@ fun SettingsScreen(navController: NavController) {
                     .padding(horizontal = 16.dp)
             ) {
                 SettingsHeader()
-                SettingsContent()
+                SettingsContent(onLogoutClick = { viewModel.onLogout() })
             }
         }
     }
@@ -102,19 +113,21 @@ private fun SettingsHeader() {
                 .height(160.dp)
         )
         Text(
-            "App version: ${info.versionName}:${info.versionCode}",
+            stringResource(R.string.settings_app_version, info.versionName, info.versionCode),
             style = MaterialTheme.typography.bodyMedium
         )
     }
 }
 
 @Composable
-private fun SettingsContent() {
-    ListItem(
-        modifier = Modifier.clickable(true, onClick = {}),
-        headlineContent = { Text("Licenses") })
-    Spacer(Modifier.height(12.dp))
-    Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Logout")}
+private fun SettingsContent(onLogoutClick: () -> Unit) {
+    PrimaryButton(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(R.string.settings_logout),
+        onClick = {
+            onLogoutClick.invoke()
+        }
+    )
 }
 
 data class AppVersionInfo(
@@ -142,7 +155,7 @@ fun getAppVersionInfoCompat(context: Context): AppVersionInfo {
 private fun Preview() {
     WalletTheme {
         Surface {
-            SettingsScreen(navController = rememberNavController())
+            SettingsScreen(navController = rememberNavController(), onLogout = {})
         }
     }
 }

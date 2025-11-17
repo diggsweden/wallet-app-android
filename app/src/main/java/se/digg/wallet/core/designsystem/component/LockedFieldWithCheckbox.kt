@@ -47,7 +47,7 @@ fun LockedFieldWithCheckbox(
 
 @Composable
 @WalletPreview
-private fun Preview(){
+private fun Preview() {
     WalletTheme {
         Surface {
             LockedFieldWithCheckbox(label = "Label", value = "Value") { }

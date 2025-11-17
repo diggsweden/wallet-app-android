@@ -4,6 +4,7 @@
 
 package se.digg.wallet
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,44 +15,66 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavDeepLinkRequest
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.navigation.AppNavHost
-import se.digg.wallet.core.navigation.EnrollmentNavHost
-import se.digg.wallet.feature.enrollment.pin.PinViewModel
+import se.digg.wallet.core.navigation.WalletNavHost
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    lateinit var navHostController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            navHostController = rememberNavController()
             WalletTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
-                    AppRoot()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    AppRoot(navHostController)
                 }
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent()
+    }
+
+    private fun handleIntent() {
+        intent.data?.let { uri ->
+            val request = NavDeepLinkRequest.Builder
+                .fromUri(uri)
+                .build()
+
+            navHostController.navigate(
+                request
+            )
+        }
+    }
 }
 
-
 @Composable
-fun AppRoot(viewModel: MainActivityViewModel = viewModel(factory = MainActivityViewModel.Factory(LocalContext.current))) {
-    val app by viewModel.state.collectAsState()
+fun AppRoot(
+    navHostController: NavHostController,
+    viewModel: MainActivityViewModel = hiltViewModel()
+) {
+    val app by viewModel.enrollmentState.collectAsState()
 
     when (app.flow) {
-        AppFlow.Onboarding -> EnrollmentNavHost(
-            navController = rememberNavController(),
-            onFinish = {
-                viewModel.goToDashboard() })
+        AppFlow.Enrollment -> WalletNavHost(
+            navController = navHostController,
+            isEnrolled = false
+        ) { viewModel.goToDashboard() }
 
-        AppFlow.Dashboard -> AppNavHost(
-            navController = rememberNavController(),
-            onLogout = {
-                viewModel.goToOnboarding() })
-
-        AppFlow.PIN -> TODO()
+        AppFlow.Dashboard -> WalletNavHost(
+            navController = navHostController,
+            isEnrolled = true
+        ) { viewModel.goToEnrollment() }
     }
 }

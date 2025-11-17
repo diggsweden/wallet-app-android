@@ -4,6 +4,7 @@
 
 package se.digg.wallet.core.designsystem.component
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,9 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -29,12 +28,14 @@ fun CredentialCard(
     issueDate: String?,
     onClick: () -> Unit,
 ) {
+    val isDarkMode = isSystemInDarkTheme()
+
     Card(
         onClick = {
             onClick.invoke()
         },
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.digg_primary)
+            containerColor = MaterialTheme.colorScheme.errorContainer
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -53,11 +54,11 @@ fun CredentialCard(
                 Spacer(Modifier.height(16.dp))
             }
             disclosureCount?.let {
-                Text("Identity document with $it disclosures")
+                Text("ID-handling med $it attribut")
                 Spacer(Modifier.height(16.dp))
             }
             issueDate?.let {
-                Text("Issued $it")
+                Text("Utgiven $it")
             }
         }
     }

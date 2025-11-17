@@ -4,11 +4,11 @@
 
 package se.digg.wallet.feature.issuance
 
-import android.app.Application
 import android.util.Base64
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.jwk.Curve
+import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vci.AuthorizedRequest
 import eu.europa.ec.eudi.openid4vci.Claim
 import eu.europa.ec.eudi.openid4vci.Client
@@ -27,15 +27,13 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
 import org.json.JSONArray
-import se.digg.wallet.core.network.RetrofitInstance
-import se.digg.wallet.core.storage.CredentialStore
-import se.digg.wallet.data.CredentialData
+import se.digg.wallet.core.services.KeyAlias
+import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
@@ -46,8 +44,15 @@ import se.digg.wallet.data.FetchedCredential
 import se.digg.wallet.data.OldCredentialRequestModel
 import se.digg.wallet.data.OldProof
 import se.digg.wallet.data.Proof
+import se.digg.wallet.data.UserRepository
 import timber.log.Timber
 import java.net.URI
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.inject.Inject
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 sealed interface IssuanceState {
     object Idle : IssuanceState
@@ -58,21 +63,15 @@ sealed interface IssuanceState {
     object Error : IssuanceState
 }
 
-class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
+@HiltViewModel
+class IssuanceViewModel @Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
     val openId4VCIConfig = OpenId4VCIConfig(
         client = Client.Public("wallet-dev"),
         authFlowRedirectionURI = URI.create("eudi-wallet//auth"),
         keyGenerationConfig = KeyGenerationConfig.Companion.ecOnly(Curve.P_256),
         credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
     )
-
-    val credential: StateFlow<CredentialData?> =
-        CredentialStore.credentialFlow(context = app)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
-            )
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
     private var issuer: Issuer? = null
 
@@ -88,7 +87,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val issuerFetched = Issuer.make(
                     config = openId4VCIConfig,
-                    httpClient = provideKtorClient(),
+                    httpClient = createUnsafeKtorClient(),
                     credentialOfferUri = uri
                 ).getOrThrow()
                 claimsMetadata = getClaimsMetadata(issuerFetched.credentialOffer)
@@ -111,7 +110,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 fetchCredential(authorizedRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Authorize error: ${e.message}")
+                Timber.d("IssuanceViewModel: Authorize error: ${e.message}")
             }
         }
     }
@@ -119,13 +118,12 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
     fun fetchCredential(authorizedRequest: AuthorizedRequest) {
         viewModelScope.launch {
             try {
-                val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
+                val wua = userRepository.getWua() ?: ""
+                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
                 val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value
 
                 val nonce = try {
-                    val response = RetrofitInstance.api.getNonce(
-                        url = nonceEndpointUrl.toString(),
-                    )
+                    val response = userRepository.fetchNonce(url = nonceEndpointUrl.toString())
                     response.c_nonce
                 } catch (e: Exception) {
                     Timber.d("IssuanceViewModel: nonce error: ${e.message}")
@@ -137,7 +135,11 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                     "nonce" to nonce
                 )
 
-                val jwt = KeystoreManager.createJWT(keyPair, payload)
+                val headers = mapOf(
+                    "typ" to "openid4vci-proof+jwt",
+                    "key_attestation" to wua
+                )
+                val jwt = KeystoreManager.createJWT(keyPair, payload, headers)
 
                 fetchManuallyCredential(
                     token = authorizedRequest.accessToken.accessToken,
@@ -145,7 +147,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 )
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Fetch credential error: ${e.message}")
+                Timber.d("IssuanceViewModel: Fetch credential error: ${e.message}")
             }
         }
     }
@@ -154,7 +156,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 val credentialEndpoint = _issuerMetadata.value?.credentialEndpoint?.value.toString()
-                val response = RetrofitInstance.api.getOldCredential(
+                val response = userRepository.fetchCredential(
                     url = credentialEndpoint,
                     accessToken = "Bearer $token",
                     request = setupOldRequestBody(jwt)
@@ -168,19 +170,15 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                         Json.encodeToString(CredentialLocal.serializer(), parsedCredentialLocal)
                     val decodedJson =
                         Json.decodeFromString(CredentialLocal.serializer(), jsonString)
-                    CredentialStore.saveCredential(
-                        getApplication(),
-                        CredentialData(jsonString)
-
-                    )
+                    viewModelScope.launch { userRepository.setCredential(jsonString) }
                 } catch (e: Exception) {
                     _uiState.value = IssuanceState.Error
-                    Timber.Forest.d("IssuanceViewModel: Save credential error: ${e.message}")
+                    Timber.d("IssuanceViewModel: Save credential error: ${e.message}")
                 }
 
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: FetchCredential error: ${e.message}")
+                Timber.d("IssuanceViewModel: FetchCredential error: ${e.message}")
             }
         }
     }
@@ -194,6 +192,46 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 config {
                     retryOnConnectionFailure(true)
                 }
+            }
+        }
+    }
+
+    fun createUnsafeKtorClient(): HttpClient {
+        val trustAllCerts = arrayOf<TrustManager>(
+            object : X509TrustManager {
+                override fun checkClientTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
+
+                override fun checkServerTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
+
+                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            }
+        )
+
+        val trustManager = trustAllCerts[0] as X509TrustManager
+
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, trustAllCerts, SecureRandom())
+        }
+
+        val unsafeOkHttp = OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
+
+        return HttpClient(OkHttp) {
+            engine {
+                preconfigured = unsafeOkHttp
+            }
+            install(ContentNegotiation) {
+                json()
             }
         }
     }
@@ -240,7 +278,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 }
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Parse credential error: ${e.message}")
+                Timber.d("IssuanceViewModel: Parse credential error: ${e.message}")
             }
         }
         return FetchedCredential(
@@ -274,7 +312,7 @@ class IssuanceViewModel(app: Application) : AndroidViewModel(app) {
                 }
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Parse credential error: ${e.message}")
+                Timber.d("IssuanceViewModel: Parse credential error: ${e.message}")
             }
         }
         return CredentialLocal(

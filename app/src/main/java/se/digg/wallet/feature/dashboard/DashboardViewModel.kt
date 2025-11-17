@@ -4,42 +4,29 @@
 
 package se.digg.wallet.feature.dashboard
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import se.digg.wallet.core.storage.CredentialStore
-import se.digg.wallet.core.storage.user.DatabaseProvider
-import se.digg.wallet.core.storage.user.UserRepository
-import se.digg.wallet.data.CredentialData
 import se.digg.wallet.data.CredentialLocal
+import se.digg.wallet.data.UserRepository
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
+import javax.inject.Inject
 
-class DashboardViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val repo = UserRepository(
-        DatabaseProvider.get(app).userDao()
-    )
-
-    val credential: StateFlow<CredentialData?> =
-        CredentialStore.credentialFlow(context = app)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
-            )
+@HiltViewModel
+class DashboardViewModel @Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
 
     val credentialDetails: StateFlow<DashboardCredentialUiModel?> =
-        credential.map {
-            it?.jwt?.let {
+        userRepository.user.map {
+            it?.credential?.let {
                 val credential = Json.decodeFromString(CredentialLocal.serializer(), it)
 
                 DashboardCredentialUiModel(
@@ -51,10 +38,6 @@ class DashboardViewModel(app: Application) : AndroidViewModel(app) {
         }
             .distinctUntilChanged()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    fun clearPin() = viewModelScope.launch {
-        repo.wipeAll()
-    }
 }
 
 fun formatDate(date: Date): String {
