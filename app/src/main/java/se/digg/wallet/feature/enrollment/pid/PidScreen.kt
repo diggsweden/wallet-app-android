@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,8 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggBlack
@@ -33,9 +36,19 @@ import se.digg.wallet.feature.dashboard.CREDENTIAL_URL
 @Composable
 fun PidScreen(
     navController: NavController,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
+    viewModel: PidViewModel = viewModel(factory = PidViewModel.Factory(LocalContext.current))
+
 ) {
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.credential.collectLatest { credential ->
+            if (credential!=null){
+                onContinue.invoke()
+            }
+        }
+    }
 
     Column(
         modifier = Modifier

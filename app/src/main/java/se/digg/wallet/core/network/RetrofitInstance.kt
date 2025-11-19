@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import se.digg.wallet.core.network.RetrofitInstance.interceptor
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -18,10 +19,6 @@ object RetrofitInstance {
     val interceptor = HttpLoggingInterceptor().apply {
         this.level = HttpLoggingInterceptor.Level.BODY
     }
-    val client = OkHttpClient.Builder().apply {
-        this.addInterceptor(interceptor)
-    }.build()
-
     val api: CredentialApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -38,12 +35,28 @@ object RetrofitInstance {
     }
 }
 
+fun getOkHttpClient(): OkHttpClient {
+    return OkHttpClient.Builder().apply {
+        this.addInterceptor(interceptor)
+    }.build()
+}
+
 fun getUnsafeOkHttpClient(): OkHttpClient {
     return try {
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
-                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun checkClientTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
+
+                override fun checkServerTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
+
                 override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
             }
         )
@@ -57,6 +70,7 @@ fun getUnsafeOkHttpClient(): OkHttpClient {
         OkHttpClient.Builder()
             .sslSocketFactory(sslSocketFactory, trustManager)
             .hostnameVerifier { _, _ -> true }
+            .addInterceptor(interceptor)
             .build()
 
     } catch (e: Exception) {

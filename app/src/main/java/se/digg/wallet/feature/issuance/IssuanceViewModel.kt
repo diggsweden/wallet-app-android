@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
 import org.json.JSONArray
 import se.digg.wallet.core.network.RetrofitInstance
 import se.digg.wallet.core.storage.user.DatabaseProvider
@@ -43,6 +44,11 @@ import se.digg.wallet.data.OldProof
 import se.digg.wallet.data.Proof
 import timber.log.Timber
 import java.net.URI
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 sealed interface IssuanceState {
     object Idle : IssuanceState
@@ -60,16 +66,6 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
         keyGenerationConfig = KeyGenerationConfig.Companion.ecOnly(Curve.P_256),
         credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
     )
-
-    /*
-    val credential: StateFlow<CredentialData?> =
-        CredentialStore.credentialFlow(context = app)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
-            )
-     */
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
     private var issuer: Issuer? = null
 
@@ -85,7 +81,7 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
             try {
                 val issuerFetched = Issuer.make(
                     config = openId4VCIConfig,
-                    httpClient = provideKtorClient(),
+                    httpClient = createUnsafeKtorClient(),
                     credentialOfferUri = uri
                 ).getOrThrow()
                 claimsMetadata = getClaimsMetadata(issuerFetched.credentialOffer)
@@ -108,7 +104,7 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
                 fetchCredential(authorizedRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Authorize error: ${e.message}")
+                Timber.d("IssuanceViewModel: Authorize error: ${e.message}")
             }
         }
     }
@@ -147,7 +143,7 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
                 )
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Fetch credential error: ${e.message}")
+                Timber.d("IssuanceViewModel: Fetch credential error: ${e.message}")
             }
         }
     }
@@ -170,21 +166,15 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
                         Json.encodeToString(CredentialLocal.serializer(), parsedCredentialLocal)
                     val decodedJson =
                         Json.decodeFromString(CredentialLocal.serializer(), jsonString)
-                    /*
-                    CredentialStore.saveCredential(
-                        getApplication(),
-                        CredentialData(jsonString)
-                    )
-                     */
                     viewModelScope.launch { repo.setCredential(jsonString) }
                 } catch (e: Exception) {
                     _uiState.value = IssuanceState.Error
-                    Timber.Forest.d("IssuanceViewModel: Save credential error: ${e.message}")
+                    Timber.d("IssuanceViewModel: Save credential error: ${e.message}")
                 }
 
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: FetchCredential error: ${e.message}")
+                Timber.d("IssuanceViewModel: FetchCredential error: ${e.message}")
             }
         }
     }
@@ -201,6 +191,37 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
             }
         }
     }
+
+    fun createUnsafeKtorClient(): HttpClient {
+        val trustAllCerts = arrayOf<TrustManager>(
+            object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            }
+        )
+
+        val trustManager = trustAllCerts[0] as X509TrustManager
+
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, trustAllCerts, SecureRandom())
+        }
+
+        val unsafeOkHttp = OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustManager)
+            .hostnameVerifier { _, _ -> true }   // ignore host name mismatch
+            .build()
+
+        return HttpClient(OkHttp) {
+            engine {
+                preconfigured = unsafeOkHttp
+            }
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+    }
+
 
     //TODO: use this one when we got a valid VCI1.0 support
     private fun setupRequestBody(jwt: String): CredentialRequestModel {
@@ -243,7 +264,7 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
                 }
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Parse credential error: ${e.message}")
+                Timber.d("IssuanceViewModel: Parse credential error: ${e.message}")
             }
         }
         return FetchedCredential(
@@ -277,7 +298,7 @@ class IssuanceViewModel(private val repo: UserRepository) : ViewModel() {
                 }
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
-                Timber.Forest.d("IssuanceViewModel: Parse credential error: ${e.message}")
+                Timber.d("IssuanceViewModel: Parse credential error: ${e.message}")
             }
         }
         return CredentialLocal(

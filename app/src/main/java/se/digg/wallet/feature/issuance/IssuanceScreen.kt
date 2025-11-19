@@ -59,7 +59,6 @@ fun IssuanceScreen(
     navController: NavController,
     credentialOfferUri: String?,
     viewModel: IssuanceViewModel = viewModel(factory = IssuanceViewModel.Factory(LocalContext.current))
-
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
@@ -73,7 +72,7 @@ fun IssuanceScreen(
                     text = "Issue PID"
                 )
             }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
+                IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_back),
                         contentDescription = ""

@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import se.digg.wallet.core.storage.user.DatabaseProvider
 import se.digg.wallet.core.storage.user.UserRepository
 
-enum class AppFlow { Enrollment, Dashboard, PIN }
+enum class AppFlow { Enrollment, Dashboard }
 
 data class AppFlowState(
     val flow: AppFlow = AppFlow.Enrollment,
@@ -24,13 +24,13 @@ data class AppFlowState(
 class MainActivityViewModel(private val repo: UserRepository) : ViewModel() {
     private val _enrollmentState = MutableStateFlow(AppFlowState())
     val enrollmentState: StateFlow<AppFlowState> = _enrollmentState
-    val pin = repo.user.map { it?.pin }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    /*val credential = repo.user.map { it?.credential }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+     */
 
     init {
         viewModelScope.launch {
-            val pin: String? = repo.getPin()
-            if (pin.isNullOrBlank()) {
+            val credential: String? = repo.getCredential()
+            if (credential.isNullOrBlank()) {
                 goToEnrollment()
             } else {
                 goToDashboard()
@@ -43,9 +43,6 @@ class MainActivityViewModel(private val repo: UserRepository) : ViewModel() {
 
     fun goToDashboard(startRoute: String? = null) =
         _enrollmentState.update { it.copy(flow = AppFlow.Dashboard, dashboardStartRoute = startRoute) }
-
-    fun goToPinInput(startRoute: String? = null) =
-        _enrollmentState.update { it.copy(flow = AppFlow.PIN, dashboardStartRoute = startRoute) }
 
     class Factory(private val appContext: Context) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

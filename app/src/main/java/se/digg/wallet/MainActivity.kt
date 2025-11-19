@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.core.designsystem.theme.WalletTheme
@@ -20,24 +21,43 @@ import se.digg.wallet.core.navigation.WalletNavHost
 
 class MainActivity : ComponentActivity() {
 
-    lateinit var navigation : NavHostController
+    lateinit var navHostController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            navigation = rememberNavController()
+            navHostController = rememberNavController()
             WalletTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppRoot()
+                    AppRoot(navHostController)
                 }
             }
         }
     }
-}
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent()
+    }
+
+    private fun handleIntent() {
+        intent.data?.let { uri ->
+            val request = NavDeepLinkRequest.Builder
+                .fromUri(uri)
+                .build()
+
+            navHostController.navigate(
+                request,
+                //navOptions = NavOptions.Builder().setLaunchSingleTop(true).build()
+            )
+        }
+    }
+}
 
 @Composable
 fun AppRoot(
+    navHostController: NavHostController,
     viewModel: MainActivityViewModel = viewModel(
         factory = MainActivityViewModel.Factory(
             LocalContext.current
@@ -46,34 +66,15 @@ fun AppRoot(
 ) {
     val app by viewModel.enrollmentState.collectAsState()
 
-    /*
-    when (app.flow) {
-        AppFlow.Onboarding -> EnrollmentNavHost(
-            navController = rememberNavController(),
-            onFinish = {
-                viewModel.goToDashboard() })
-
-        AppFlow.Dashboard -> AppNavHost(
-            navController = rememberNavController(),
-            onLogout = {
-                viewModel.goToOnboarding() })
-
-        AppFlow.PIN -> TODO()
-    }
-     */
-
-
     when (app.flow) {
         AppFlow.Enrollment -> WalletNavHost(
-            navController = rememberNavController(),
+            navController = navHostController,
             isEnrolled = false
         ) { viewModel.goToDashboard() }
 
         AppFlow.Dashboard -> WalletNavHost(
-            navController = rememberNavController(),
+            navController = navHostController,
             isEnrolled = true
         ) { viewModel.goToEnrollment() }
-
-        AppFlow.PIN -> TODO()
     }
 }

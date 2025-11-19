@@ -95,26 +95,6 @@ fun WalletNavHost(
                 SettingsScreen(navController = navController, onLogout = { onLogout.invoke() })
             }
 
-            /*composable(
-                route = "homescreen?credentialOfferUri={credential_offer_uri}",
-                arguments = listOf(
-                    navArgument("credential_offer_uri") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                    }
-                ),
-                deepLinks = listOf(
-                    navDeepLink {
-                        uriPattern =
-                            "openid-credential-offer://credential_offer?credential_offer={credential_offer_uri}"
-                    }
-                )
-            ) { backStackEntry ->
-                val fullUri = backStackEntry.deepLinkUri()
-                IssuanceScreen(navController = navController, fullUri.toString())
-            }
-             */
             composable(
                 route = "presentation_eudi",
                 arguments = listOf(
@@ -208,7 +188,12 @@ fun WalletNavHost(
             }
             composable(EnrollmentNavItem.Done.route) {
                 DoneScreen(navController = navController, onFinish = {
-                    //onFinish.invoke()
+                    navController.navigate(NavigationItem.Home.route){
+                        popUpTo(navController.graph.id){
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 })
             }
         }

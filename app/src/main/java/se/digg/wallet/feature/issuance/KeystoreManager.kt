@@ -28,7 +28,7 @@ import java.time.Instant
 object KeystoreManager {
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
-    fun getOrCreateEs256Key(alias: String, preferStrongBox: Boolean = true): KeyPair {
+    fun getOrCreateEs256Key(alias: String = "alias", preferStrongBox: Boolean = true): KeyPair {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         if (ks.containsAlias(alias)) {
             val entry = runCatching {
