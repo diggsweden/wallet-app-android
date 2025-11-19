@@ -22,9 +22,25 @@ android {
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: 1
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        setProperty("archivesBaseName", "wallet-$versionName")
     }
+
+    signingConfigs {
+        System.getenv("ANDROID_KEYSTORE_PATH")?.let { keystore ->
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfigs.findByName("release")?.let { config ->
+                signingConfig = config
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -32,22 +48,27 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
+
     buildFeatures {
         compose = true
     }
+
     lint {
         abortOnError = false
         disable.add("UnusedMaterial3ScaffoldPaddingParameter")
     }
+
     flavorDimensions += listOf("version")
     productFlavors {
         create("demo") {
