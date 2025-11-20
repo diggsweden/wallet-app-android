@@ -14,7 +14,7 @@ import se.digg.wallet.data.OldCredentialRequestModel
 import se.digg.wallet.data.WuaRequestModel
 import se.digg.wallet.data.WuaResponseModel
 
-interface CredentialApiService {
+interface ApiService {
     @POST
     suspend fun getCredential(
         @Url url: String,

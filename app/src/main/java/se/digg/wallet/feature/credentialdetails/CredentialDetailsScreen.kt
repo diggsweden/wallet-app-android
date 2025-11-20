@@ -23,13 +23,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
@@ -39,7 +38,7 @@ import se.digg.wallet.data.DisclosureLocal
 @Composable
 fun CredentialDetailsScreen(
     navController: NavController,
-    viewModel: CredentialDetailsViewModel = viewModel(factory = CredentialDetailsViewModel.Factory(LocalContext.current))
+    viewModel: CredentialDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(Unit) { viewModel.matchDisclosures() }

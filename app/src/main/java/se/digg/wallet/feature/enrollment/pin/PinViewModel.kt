@@ -1,17 +1,16 @@
 package se.digg.wallet.feature.enrollment.pin
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.storage.user.DatabaseProvider
-import se.digg.wallet.core.storage.user.UserRepository
+import se.digg.wallet.data.UserRepository
+import javax.inject.Inject
 
 sealed interface PinState {
     object Pin : PinState
@@ -22,7 +21,9 @@ sealed interface UiEffect {
     object Verified : UiEffect
 }
 
-class PinViewModel(private val repo: UserRepository) : ViewModel() {
+@HiltViewModel
+class PinViewModel@Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
 
     val _uiState = MutableStateFlow<PinState>(PinState.Pin)
     val uiState: StateFlow<PinState> = _uiState
@@ -32,7 +33,7 @@ class PinViewModel(private val repo: UserRepository) : ViewModel() {
 
     var pin: String = ""
 
-    fun setPin(input: String) = viewModelScope.launch { repo.setPin(input) }
+    fun setPin(input: String) = viewModelScope.launch { userRepository.setPin(input) }
 
     fun onPinSubmit(input: String) {
         when (uiState.value) {
@@ -51,15 +52,6 @@ class PinViewModel(private val repo: UserRepository) : ViewModel() {
                     _uiState.value = PinState.Pin
                 }
             }
-        }
-    }
-
-    class Factory(private val appContext: Context) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val db = DatabaseProvider.get(appContext)
-            val repo = UserRepository(db.userDao())
-            return PinViewModel(repo) as T
         }
     }
 }

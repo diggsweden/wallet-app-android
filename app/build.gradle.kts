@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+    kotlin("kapt")
 }
 
 android {
@@ -18,7 +20,7 @@ android {
     defaultConfig {
         applicationId = "se.digg.wallet"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 4
         versionName = "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -51,6 +53,10 @@ android {
     }
 }
 
+hilt {
+ enableAggregatingTask = false
+}
+
 dependencies {
 
     implementation(platform(libs.androidx.compose.bom))
@@ -76,9 +82,10 @@ dependencies {
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
     implementation(libs.bundles.storage)
+    implementation(libs.bundles.di)
+    kapt(libs.hilt.compiler)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
-    //implementation(libs.material.icons)
 }

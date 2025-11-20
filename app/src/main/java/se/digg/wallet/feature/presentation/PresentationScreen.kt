@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
@@ -45,7 +45,7 @@ import se.digg.wallet.data.DisclosureLocal
 fun PresentationScreen(
     navController: NavController,
     fullUri: String,
-    viewModel: PresentationViewModel = viewModel()
+    viewModel: PresentationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val uriHandler = LocalUriHandler.current

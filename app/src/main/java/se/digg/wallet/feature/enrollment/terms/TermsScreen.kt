@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.R
@@ -30,7 +30,7 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 @Composable
 fun TermsScreen(
     navController: NavController,
-    viewModel: TermsViewModel = viewModel(),
+    viewModel: TermsViewModel = hiltViewModel(),
     onContinue: () -> Unit
 ) {
 

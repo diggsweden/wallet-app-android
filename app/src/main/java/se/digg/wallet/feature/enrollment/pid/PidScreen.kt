@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
@@ -37,7 +37,7 @@ import se.digg.wallet.feature.dashboard.CREDENTIAL_URL
 fun PidScreen(
     navController: NavController,
     onContinue: () -> Unit,
-    viewModel: PidViewModel = viewModel(factory = PidViewModel.Factory(LocalContext.current))
+    viewModel: PidViewModel = hiltViewModel()
 
 ) {
     val context = LocalContext.current

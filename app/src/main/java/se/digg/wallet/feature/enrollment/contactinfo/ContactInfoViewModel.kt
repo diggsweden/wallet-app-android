@@ -1,10 +1,9 @@
 package se.digg.wallet.feature.enrollment.contactinfo
 
-import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,13 +12,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.network.RetrofitInstance
-import se.digg.wallet.core.storage.user.DatabaseProvider
-import se.digg.wallet.core.storage.user.UserRepository
 import se.digg.wallet.data.CreateAccountRequestDTO
 import se.digg.wallet.data.Jwk
+import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.issuance.KeystoreManager
 import timber.log.Timber
+import javax.inject.Inject
 
 data class ContactUiState(
     val phone: String = "",
@@ -47,7 +45,9 @@ sealed interface ContactEvent {
     data object SubmitClicked : ContactEvent
 }
 
-class ContactInfoViewModel(val userRepository: UserRepository) : ViewModel() {
+@HiltViewModel
+class ContactInfoViewModel@Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
 
     private val _state = MutableStateFlow(ContactUiState())
     val state: StateFlow<ContactUiState> = _state.asStateFlow()
@@ -113,7 +113,7 @@ class ContactInfoViewModel(val userRepository: UserRepository) : ViewModel() {
                             kid = "myKey"
                         )
                     )
-                    val response = RetrofitInstance.api.createAccount(requestBody)
+                    val response = userRepository.createAccount(requestBody)
                     Timber.d("ContactInfo - Response: $response")
                     userRepository.setAccountId(response.accountId)
                     _done.send(Unit)
@@ -140,14 +140,5 @@ class ContactInfoViewModel(val userRepository: UserRepository) : ViewModel() {
         val cleaned = value.replace(Regex("[\\s-]"), "")
         val regex = Regex("^\\+?\\d{7,15}$")
         return if (regex.matches(cleaned)) null else "Ange ett giltigt telefonnummer"
-    }
-
-    class Factory(private val appContext: Context) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val db = DatabaseProvider.get(appContext)
-            val repo = UserRepository(db.userDao())
-            return ContactInfoViewModel(repo) as T
-        }
     }
 }

@@ -22,13 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.R
@@ -38,7 +37,7 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 @Composable
 fun PinScreen(
     navController: NavController,
-    viewModel: PinViewModel = viewModel(factory = PinViewModel.Factory(LocalContext.current)),
+    viewModel: PinViewModel = hiltViewModel(),
     onContinue: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()

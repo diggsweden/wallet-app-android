@@ -31,7 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.R
@@ -47,10 +47,10 @@ const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/prepare-credential-of
 @Composable
 fun DashboardScreen(
     navController: NavController,
-    viewModel: DashboardViewModel = viewModel()
+    viewModel: DashboardViewModel = hiltViewModel()
+
 ) {
 
-    val credential by viewModel.credential.collectAsState()
     val credentialDetails by viewModel.credentialDetails.collectAsState()
     val context = LocalContext.current
 
@@ -93,7 +93,7 @@ fun DashboardScreen(
                     .padding(bottom = 16.dp)
             ) {
                 Header()
-                credential?.let { credentialData ->
+                credentialDetails?.let { credentialData ->
                     CredentialCard(
                         onClick = {
                             navController.navigate(

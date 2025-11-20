@@ -1,8 +1,6 @@
 package se.digg.wallet.feature.presentation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -13,6 +11,7 @@ import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.JSONObjectUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.Resolution
 import eu.europa.ec.eudi.openid4vp.ResolvedRequestObject
@@ -39,14 +38,13 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import se.digg.wallet.core.network.RetrofitInstance
-import se.digg.wallet.core.storage.CredentialStore
-import se.digg.wallet.data.CredentialData
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
+import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.issuance.KeystoreManager
 import timber.log.Timber
 import java.security.MessageDigest
+import javax.inject.Inject
 
 sealed interface PresentationState {
     object Initial : PresentationState
@@ -60,12 +58,9 @@ sealed interface UiEffect {
     data class OpenUrl(val url: String) : UiEffect
 }
 
-class PresentationViewModel constructor(app: Application, savedStateHandle: SavedStateHandle) :
-    AndroidViewModel(app) {
-    var credentialData: CredentialData? = null
-    val clientId: String? = savedStateHandle["clientId"]
-    val requestUri: String? = savedStateHandle["requestUri"]
-    val method: String? = savedStateHandle["requestUriMethod"]
+@HiltViewModel
+class PresentationViewModel @Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
     var walletConfig: SiopOpenId4VPConfig? = null
     var matchedClaims: List<DisclosureLocal> = emptyList()
     var presentationUri: String = ""
@@ -137,11 +132,9 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
     fun matchDisclosures() {
         viewModelScope.launch {
             try {
-                val storedCredential = CredentialStore.getCredential(
-                    getApplication()
-                )
+                val storedCredential = userRepository.getCredential()
                 // TODO: Handle failing to parse credential, or send it to viewmodel from outside
-                val credential: CredentialLocal = storedCredential?.jwt?.let {
+                val credential: CredentialLocal = storedCredential?.let {
                     return@let Json.decodeFromString(CredentialLocal.serializer(), it)
                 } ?: return@launch
                 authorization?.let { auth ->
@@ -167,10 +160,8 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
     fun sendData() {
         viewModelScope.launch {
             try {
-                val storedCredential = CredentialStore.getCredential(
-                    getApplication()
-                )
-                val credential: CredentialLocal = storedCredential?.jwt?.let {
+                val storedCredential = userRepository.getCredential()
+                val credential: CredentialLocal = storedCredential?.let {
                     return@let Json.decodeFromString(CredentialLocal.serializer(), it)
                 } ?: return@launch
                 authorization?.let { auth ->
@@ -189,14 +180,15 @@ class PresentationViewModel constructor(app: Application, savedStateHandle: Save
                         (auth.responseMode as ResponseMode.DirectPostJwt?)?.responseURI
                     responseUrl?.let { it ->
                         try {
-                            val response = RetrofitInstance.api.postVpToken(
+                            val response = userRepository.postVpToken(
                                 url = it.toString(),
                                 request = responseBody.toRequestBody("application/x-www-form-urlencoded".toMediaType())
                             )
+
                             Timber.d("PresentationViewModel - Presentation: OK $response}")
                             response.redirect_uri?.let {
                                 _effects.emit(UiEffect.OpenUrl(response.redirect_uri))
-                            }?:run {
+                            } ?: run {
                                 _uiState.value = PresentationState.ShareSuccess
                             }
 

@@ -11,14 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.navigation.WalletNavHost
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     lateinit var navHostController: NavHostController
@@ -58,11 +59,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRoot(
     navHostController: NavHostController,
-    viewModel: MainActivityViewModel = viewModel(
-        factory = MainActivityViewModel.Factory(
-            LocalContext.current
-        )
-    )
+    viewModel: MainActivityViewModel = hiltViewModel()
 ) {
     val app by viewModel.enrollmentState.collectAsState()
 

@@ -1,20 +1,18 @@
 package se.digg.wallet.feature.enrollment.activation
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.network.RetrofitInstance
-import se.digg.wallet.core.storage.user.DatabaseProvider
-import se.digg.wallet.core.storage.user.UserRepository
 import se.digg.wallet.data.Jwk
+import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.WuaRequestModel
 import se.digg.wallet.feature.issuance.KeystoreManager
 import timber.log.Timber
 import java.util.UUID
+import javax.inject.Inject
 
 sealed interface ActivationState {
     object Loading : ActivationState
@@ -22,7 +20,9 @@ sealed interface ActivationState {
     object Complete : ActivationState
 }
 
-class ActivationViewModel(private val repo: UserRepository) : ViewModel() {
+@HiltViewModel
+class ActivationViewModel @Inject constructor(private val userRepository: UserRepository) :
+    ViewModel() {
 
     val _uiState = MutableStateFlow<ActivationState>(ActivationState.Loading)
     val uiState: StateFlow<ActivationState> = _uiState
@@ -42,7 +42,7 @@ class ActivationViewModel(private val repo: UserRepository) : ViewModel() {
                         y = jwk.y.toString()
                     )
                 )
-                val response = RetrofitInstance.api.getWuaRequest(request)
+                val response = userRepository.fetchWua(request)
                 Timber.d("Wallet activation ok - $response")
                 storeWuaLocally(jwt = response.jwt, uuid = uuid)
                 _uiState.value = ActivationState.Complete
@@ -56,17 +56,8 @@ class ActivationViewModel(private val repo: UserRepository) : ViewModel() {
 
     fun storeWuaLocally(jwt: String, uuid: UUID) {
         viewModelScope.launch {
-            repo.setWua(jwt)
-            repo.setUuid(uuid)
-        }
-    }
-
-    class Factory(private val appContext: Context) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val db = DatabaseProvider.get(appContext)
-            val repo = UserRepository(db.userDao())
-            return ActivationViewModel(repo) as T
+            userRepository.setWua(jwt)
+            userRepository.setUuid(uuid)
         }
     }
 }
