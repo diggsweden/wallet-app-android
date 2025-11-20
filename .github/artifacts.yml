@@ -16,3 +16,4 @@ artifacts:
       gradle-tasks: build assembleDemoRelease bundleDemoRelease
       build-module: app
       gradle-version-file: gradle.properties
+      enable-signing: true
