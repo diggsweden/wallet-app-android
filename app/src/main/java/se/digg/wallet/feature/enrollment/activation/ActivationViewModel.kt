@@ -10,6 +10,9 @@ import se.digg.wallet.data.Jwk
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.WuaRequestModel
 import se.digg.wallet.feature.issuance.KeystoreManager
+import se.wallet.client.gateway.client.WuaClient
+import se.wallet.client.gateway.models.CreateWuaDto
+import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
@@ -33,9 +36,9 @@ class ActivationViewModel @Inject constructor(private val userRepository: UserRe
                 val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
                 val jwk = KeystoreManager.exportJwk("alias", keyPair)
                 val uuid = UUID.randomUUID()
-                val request = WuaRequestModel(
+                val request = CreateWuaDto(
                     walletId = uuid.toString(),
-                    jwk = Jwk(
+                    jwk = JwkDto(
                         kty = jwk.keyType.value,
                         crv = jwk.curve.name,
                         x = jwk.x.toString(),
@@ -43,8 +46,17 @@ class ActivationViewModel @Inject constructor(private val userRepository: UserRe
                     )
                 )
                 val response = userRepository.fetchWua(request)
+                val jwt = when (response) {
+                    is WuaClient.CreateWuaResult.Failure -> {
+                        throw Exception("Could not get WUA")
+                    }
+
+                    is WuaClient.CreateWuaResult.Success -> {
+                        response.data.jwt ?: ""
+                    }
+                }
                 Timber.d("Wallet activation ok - $response")
-                storeWuaLocally(jwt = response.jwt, uuid = uuid)
+                storeWuaLocally(jwt = jwt, uuid = uuid)
                 _uiState.value = ActivationState.Complete
 
             } catch (e: Exception) {

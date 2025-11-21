@@ -14,8 +14,6 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.URLProtocol
-import io.ktor.http.encodedPath
-import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -42,9 +40,9 @@ object NetworkModule {
             header("X-API-KEY", "my_secret_key")
         }
 
-//    install(AuthPlugin) {
-//        accountId = "HÄR SKA DET IN ETT ACCOUNT ID"
-//    }
+//        install(authPlugin) {
+//            accountId = "33ba74eb-3ccc-4976-bed7-8c4e5f85184d"
+//        }
 
         install(ContentNegotiation) {
             json(
