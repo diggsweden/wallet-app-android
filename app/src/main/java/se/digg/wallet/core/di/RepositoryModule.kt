@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.ktor.client.HttpClient
 import se.digg.wallet.core.network.ApiService
 import se.digg.wallet.core.storage.user.UserDao
 import se.digg.wallet.data.UserRepository
@@ -15,6 +16,10 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(apiService: ApiService, userDao: UserDao): UserRepository =
-        UserRepository(apiService = apiService, userDao = userDao)
+    fun provideUserRepository(
+        apiService: ApiService,
+        userDao: UserDao,
+        gatewayClient: HttpClient
+    ): UserRepository =
+        UserRepository(apiService = apiService, userDao = userDao, gatewayClient = gatewayClient)
 }

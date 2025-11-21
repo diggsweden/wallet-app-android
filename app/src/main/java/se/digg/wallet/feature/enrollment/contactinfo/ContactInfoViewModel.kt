@@ -16,6 +16,9 @@ import se.digg.wallet.data.CreateAccountRequestDTO
 import se.digg.wallet.data.Jwk
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.issuance.KeystoreManager
+import se.wallet.client.gateway.client.AccountsV1Client
+import se.wallet.client.gateway.models.CreateAccountRequestDto
+import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -46,7 +49,7 @@ sealed interface ContactEvent {
 }
 
 @HiltViewModel
-class ContactInfoViewModel@Inject constructor(private val userRepository: UserRepository) :
+class ContactInfoViewModel @Inject constructor(private val userRepository: UserRepository) :
     ViewModel() {
 
     private val _state = MutableStateFlow(ContactUiState())
@@ -101,11 +104,11 @@ class ContactInfoViewModel@Inject constructor(private val userRepository: UserRe
                     val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
                     val jwk = KeystoreManager.exportJwk("alias", keyPair)
 
-                    val requestBody = CreateAccountRequestDTO(
+                    val requestBody = CreateAccountRequestDto(
                         personalIdentityNumber = "12345678",
                         emailAdress = "asser@asser.com",
                         telephoneNumber = "0851332391",
-                        publicKey = Jwk(
+                        publicKey = JwkDto(
                             kty = jwk.keyType.value,
                             crv = jwk.curve.name,
                             x = jwk.x.toString(),
@@ -114,8 +117,17 @@ class ContactInfoViewModel@Inject constructor(private val userRepository: UserRe
                         )
                     )
                     val response = userRepository.createAccount(requestBody)
+                    val accountId = when (response) {
+                        is AccountsV1Client.CreateAccountResult.Failure -> {
+                            throw Exception("Kunde inte skapa konto")
+                        }
+
+                        is AccountsV1Client.CreateAccountResult.Success -> {
+                            response.data.accountId ?: ""
+                        }
+                    }
                     Timber.d("ContactInfo - Response: $response")
-                    userRepository.setAccountId(response.accountId)
+                    userRepository.setAccountId(accountId)
                     _done.send(Unit)
                 } catch (e: Exception) {
                     Timber.d("ContactInfo - Account creation error: ${e.message}")

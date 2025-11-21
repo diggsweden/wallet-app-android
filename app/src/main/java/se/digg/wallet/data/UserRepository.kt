@@ -1,5 +1,6 @@
 package se.digg.wallet.data
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 import okhttp3.RequestBody
 import se.digg.wallet.core.network.ApiService
@@ -7,14 +8,19 @@ import se.digg.wallet.core.network.NonceResponseModel
 import se.digg.wallet.core.network.PresentationResponseModel
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
+import se.wallet.client.gateway.client.AccountsV1Client
+import se.wallet.client.gateway.client.AccountsV1Client.CreateAccountResult
+import se.wallet.client.gateway.models.CreateAccountRequestDto
 import java.util.UUID
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val apiService: ApiService,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val gatewayClient: HttpClient
 ) {
     val user: Flow<User?> = userDao.observe()
+    val accountsClient = AccountsV1Client(gatewayClient)
 
     suspend fun fetchCredential(
         url: String,
@@ -40,8 +46,8 @@ class UserRepository @Inject constructor(
         return apiService.postVpToken(url = url, request = request)
     }
 
-    suspend fun createAccount(request: CreateAccountRequestDTO): CreateAccountResponseDTO {
-        return apiService.createAccount(request = request)
+    suspend fun createAccount(request: CreateAccountRequestDto): CreateAccountResult {
+        return accountsClient.createAccount(request)
     }
 
     suspend fun getPin(): String? = userDao.get()?.pin

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     kotlin("kapt")
+    alias(libs.plugins.fabrikt)
 }
 
 android {
@@ -35,11 +36,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -49,6 +50,30 @@ android {
         create("demo") {
             dimension = "version"
             applicationIdSuffix = ".demo"
+        }
+    }
+
+    sourceSets {
+        sourceSets["main"].java.srcDir("build/generated/sources/fabrikt/src/main")
+    }
+}
+
+fabrikt {
+    generate("client-gateway") {
+        apiFile = file("src/main/openapi/client-gateway.json")
+        basePackage = "se.wallet.client.gateway"
+        addFileDisclaimer = enabled
+        validationLibrary = NoValidation
+        typeOverrides {
+           uuid = String
+        }
+        client {
+            generate = enabled
+            target = Ktor
+        }
+        model {
+            serializationLibrary = Kotlinx
+
         }
     }
 }
