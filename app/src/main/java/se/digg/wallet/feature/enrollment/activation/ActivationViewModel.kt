@@ -6,11 +6,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.data.Jwk
+import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.data.UserRepository
-import se.digg.wallet.data.WuaRequestModel
-import se.digg.wallet.feature.issuance.KeystoreManager
+import se.digg.wallet.core.services.KeystoreManager
 import se.wallet.client.gateway.client.WuaClient
+import se.wallet.client.gateway.client.WuaV2Client.CreateWua_1Result
 import se.wallet.client.gateway.models.CreateWuaDto
 import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
@@ -33,8 +33,8 @@ class ActivationViewModel @Inject constructor(private val userRepository: UserRe
     fun requestWua() {
         viewModelScope.launch {
             try {
-                val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
-                val jwk = KeystoreManager.exportJwk("alias", keyPair)
+                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
+                val jwk = KeystoreManager.exportJwk(keyPair)
                 val uuid = UUID.randomUUID()
                 val request = CreateWuaDto(
                     walletId = uuid.toString(),
@@ -47,11 +47,11 @@ class ActivationViewModel @Inject constructor(private val userRepository: UserRe
                 )
                 val response = userRepository.fetchWua(request)
                 val jwt = when (response) {
-                    is WuaClient.CreateWuaResult.Failure -> {
+                    is CreateWua_1Result.Failure -> {
                         throw Exception("Could not get WUA")
                     }
 
-                    is WuaClient.CreateWuaResult.Success -> {
+                    is CreateWua_1Result.Success -> {
                         response.data.jwt ?: ""
                     }
                 }

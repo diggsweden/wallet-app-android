@@ -2,27 +2,25 @@ package se.digg.wallet.core.network
 
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
-import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
-import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
+import io.ktor.http.HttpStatusCode
 
-data class AuthPluginConfig(
-    var accountId: String = ""
-)
+class AuthPluginConfig {
+    lateinit var sessionManager: SessionManager
+}
 
 val authPlugin = createClientPlugin("AuthPlugin", ::AuthPluginConfig) {
-    val sessionManager = SessionManager(
-        challengeClient = PublicAuthSessionChallengeClient(client),
-        validateClient = PublicAuthSessionResponseClient(client),
-        accountId = pluginConfig.accountId
-    )
-
     on(Send) { request ->
-        val url = request.url.toString()
-        if (url.contains("session") || url.contains("account")) {
+        if (request.url.pathSegments.any { it.startsWith("account") }) {
             return@on proceed(request)
         }
 
-        request.headers.append("X-SESSION-ID", sessionManager.getToken())
-        return@on proceed(request)
+        request.headers.append("session", pluginConfig.sessionManager.getToken())
+
+        val call = proceed(request)
+        if (call.response.status == HttpStatusCode.Forbidden) {
+            pluginConfig.sessionManager.reset()
+        }
+
+        return@on call
     }
 }

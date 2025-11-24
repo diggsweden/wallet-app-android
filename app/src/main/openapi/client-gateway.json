@@ -6,12 +6,13 @@
   },
   "servers": [
     {
-      "url": "/api"
+      "url": ""
     }
   ],
   "security": [
     {
-      "ApiKeyScheme": []
+      "ApiKeyScheme": [],
+      "SessionIdScheme": []
     }
   ],
   "paths": {
@@ -139,11 +140,15 @@
           "description": "Challenge response",
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthChallengeResponseDto"
+              },
               "example": {
                 "signedJwt": "insert.signed.jwt"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "401": {
@@ -155,6 +160,15 @@
           },
           "400": {
             "description": "Bad input, session not created",
+            "headers": {
+              "session": {
+                "description": "Session ID",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -164,7 +178,17 @@
             }
           },
           "200": {
-            "description": "Session created"
+            "description": "Session created",
+            "headers": {
+              "session": {
+                "required": true,
+                "description": "Session ID",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
           }
         }
       }
@@ -536,6 +560,18 @@
           }
         }
       },
+      "AuthChallengeResponseDto": {
+        "type": "object",
+        "properties": {
+          "signedJwt": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "signedJwt"
+        ]
+      },
       "CreateAttestationDto": {
         "type": "object",
         "properties": {
@@ -639,6 +675,11 @@
       "ApiKeyScheme": {
         "type": "apiKey",
         "name": "X-API-KEY",
+        "in": "header"
+      },
+      "SessionIdScheme": {
+        "type": "apiKey",
+        "name": "SESSION",
         "in": "header"
       }
     }

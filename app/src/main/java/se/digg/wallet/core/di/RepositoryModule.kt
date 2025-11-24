@@ -19,7 +19,7 @@ object RepositoryModule {
     fun provideUserRepository(
         apiService: ApiService,
         userDao: UserDao,
-        gatewayClient: HttpClient
+        @GatewayHttpClient gatewayClient: HttpClient
     ): UserRepository =
         UserRepository(apiService = apiService, userDao = userDao, gatewayClient = gatewayClient)
 }

@@ -21,7 +21,21 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import se.digg.wallet.core.network.ApiService
+import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.network.authPlugin
+import se.digg.wallet.core.storage.user.UserDao
+import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
+import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class BaseHttpClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GatewayHttpClient
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,19 +45,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideGatewayClient(): HttpClient = HttpClient(OkHttp) {
-        defaultRequest {
-            url {
-                protocol = URLProtocol.HTTPS
-                host = "wallet.sandbox.digg.se/api"
-            }
-            header("X-API-KEY", "my_secret_key")
-        }
-
-//        install(authPlugin) {
-//            accountId = "33ba74eb-3ccc-4976-bed7-8c4e5f85184d"
-//        }
-
+    @BaseHttpClient
+    fun provideHttpClient(): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(
                 Json {
@@ -58,6 +61,37 @@ object NetworkModule {
         }
 
         install(Logging)
+    }
+
+    @Provides
+    @Singleton
+    @GatewayHttpClient
+    fun provideGatewayClient(
+        @BaseHttpClient
+        base: HttpClient,
+        userDao: UserDao
+    ): HttpClient {
+        val client = base.config {
+            defaultRequest {
+                url {
+                    protocol = URLProtocol.HTTPS
+                    host = "wallet.sandbox.digg.se/api"
+                }
+                header("X-API-KEY", "my_secret_key")
+            }
+        }
+
+        val sessionManager = SessionManager(
+            challengeClient = PublicAuthSessionChallengeClient(client),
+            validateClient = PublicAuthSessionResponseClient(client),
+            userDao = userDao
+        )
+
+        return client.config {
+            install(authPlugin) {
+                this.sessionManager = sessionManager
+            }
+        }
     }
 
     @Provides

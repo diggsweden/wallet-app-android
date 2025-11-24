@@ -11,6 +11,8 @@ import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AccountsV1Client
 import se.wallet.client.gateway.client.AccountsV1Client.CreateAccountResult
 import se.wallet.client.gateway.client.WuaClient
+import se.wallet.client.gateway.client.WuaV2Client
+import se.wallet.client.gateway.client.WuaV2Client.CreateWua_1Result
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateWuaDto
 import java.util.UUID
@@ -23,7 +25,7 @@ class UserRepository @Inject constructor(
 ) {
     val user: Flow<User?> = userDao.observe()
     val accountsClient = AccountsV1Client(gatewayClient)
-    val wuaClient = WuaClient(gatewayClient)
+    val wuaClient = WuaV2Client(gatewayClient)
 
     suspend fun fetchCredential(
         url: String,
@@ -37,8 +39,8 @@ class UserRepository @Inject constructor(
         )
     }
 
-    suspend fun fetchWua(request: CreateWuaDto): WuaClient.CreateWuaResult {
-        return wuaClient.createWua(request)
+    suspend fun fetchWua(request: CreateWuaDto): CreateWua_1Result {
+        return wuaClient.createWua_1(request)
     }
 
     suspend fun fetchNonce(url: String): NonceResponseModel {

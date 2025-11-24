@@ -38,10 +38,11 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.UserRepository
-import se.digg.wallet.feature.issuance.KeystoreManager
+import se.digg.wallet.core.services.KeystoreManager
 import timber.log.Timber
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -241,7 +242,7 @@ class PresentationViewModel @Inject constructor(private val userRepository: User
         sdJwt: String,
         authorization: ResolvedRequestObject.OpenId4VPAuthorization
     ): String {
-        val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
+        val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
         val nonce = authorization.nonce
         val aud = "x509_san_dns:" + authorization.client.id.originalClientId
         val sdJwtData: ByteArray = sdJwt.toByteArray(Charsets.US_ASCII)

@@ -28,6 +28,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import org.json.JSONArray
+import se.digg.wallet.core.services.KeyAlias
+import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
@@ -113,7 +115,7 @@ class IssuanceViewModel @Inject constructor(private val userRepository: UserRepo
         viewModelScope.launch {
             try {
                 val wua = userRepository.getWua() ?: ""
-                val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
+                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
                 val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value
 
                 val nonce = try {

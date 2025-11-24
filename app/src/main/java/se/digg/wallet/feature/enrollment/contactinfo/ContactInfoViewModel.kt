@@ -12,10 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import se.digg.wallet.data.CreateAccountRequestDTO
-import se.digg.wallet.data.Jwk
+import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.data.UserRepository
-import se.digg.wallet.feature.issuance.KeystoreManager
+import se.digg.wallet.core.services.KeystoreManager
 import se.wallet.client.gateway.client.AccountsV1Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.JwkDto
@@ -101,8 +100,8 @@ class ContactInfoViewModel @Inject constructor(private val userRepository: UserR
         if (phoneErr == null && emailErr == null && verifyEmailErr == null) {
             viewModelScope.launch {
                 try {
-                    val keyPair = KeystoreManager.getOrCreateEs256Key("alias")
-                    val jwk = KeystoreManager.exportJwk("alias", keyPair)
+                    val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+                    val jwk = KeystoreManager.exportJwk(keyPair)
 
                     val requestBody = CreateAccountRequestDto(
                         personalIdentityNumber = "12345678",
