@@ -1,12 +1,70 @@
 # Development Guide
 
+## Prerequisites
+
+- [mise](https://mise.jdx.dev/) - Tool version manager (for quality checks)
+- [just](https://github.com/casey/just) - Command runner (installed via mise)
+- Java 21
+- Android Studio
+
+## Quality Checks
+
+### Setup
+
+```shell
+# Install all development tools
+mise install
+
+# Setup shared linting tools
+just setup-devtools
+
+# Run all quality checks
+just verify
+```
+
+### Available Commands
+
+Run `just` to see all available commands. Key commands:
+
+| Command | Description |
+|---------|-------------|
+| `just verify` | Run all checks (lint + test) |
+| `just lint-all` | Run all linters |
+| `just lint-fix` | Auto-fix linting issues |
+| `just test` | Run tests |
+| `just build` | Build project |
+| `just clean` | Clean build artifacts |
+
+### Linting Commands
+
+| Command | Tool | Description |
+|---------|------|-------------|
+| `just lint-commits` | conform | Validate commit messages |
+| `just lint-secrets` | gitleaks | Scan for secrets |
+| `just lint-yaml` | yamlfmt | Lint YAML files |
+| `just lint-markdown` | rumdl | Lint markdown files |
+| `just lint-shell` | shellcheck | Lint shell scripts |
+| `just lint-shell-fmt` | shfmt | Check shell formatting |
+| `just lint-actions` | actionlint | Lint GitHub Actions |
+| `just lint-license` | reuse | Check license compliance |
+
+### Fix Commands
+
+| Command | Description |
+|---------|-------------|
+| `just lint-yaml-fix` | Fix YAML formatting |
+| `just lint-markdown-fix` | Fix markdown formatting |
+| `just lint-shell-fmt-fix` | Fix shell formatting |
+
+---
+
 ## Workflows Overview
 
 This project uses two main workflows for building and releasing Android applications.
 
 ## Workflow Comparison Matrix
 
-```
+```text
 ┌─────────────────────────────┬──────────────┬──────────────┐
 │ Feature                     │ release-dev  │ release      │
 ├─────────────────────────────┼──────────────┼──────────────┤
@@ -96,27 +154,32 @@ This project uses two main workflows for building and releasing Android applicat
 **Purpose:** Create test builds for internal QA and development testing.
 
 **When it runs:**
+
 - Manual trigger only (workflow_dispatch)
 - From GitHub Actions → Run workflow button
 
 **What it builds:**
+
 - Debug APK (unsigned, debuggable)
 - Release APK (unsigned)
 - AAB (Android App Bundle, unsigned)
 
 **Where artifacts go:**
+
 - GitHub Actions → Artifacts tab
 - Retention: 7 days
 - Access: Team members only
 
 **Artifact naming:**
-```
+
+```text
 2025-01-15 - testing_store - wallet-app - demo - APK debug
 2025-01-15 - testing_store - wallet-app - demo - APK release
 2025-01-15 - testing_store - wallet-app - demo - AAB release
 ```
 
 **How to use:**
+
 1. Go to GitHub Actions tab
 2. Select "Release Dev Workflow"
 3. Click "Run workflow" button
@@ -124,6 +187,7 @@ This project uses two main workflows for building and releasing Android applicat
 5. Download artifacts from the workflow run
 
 **Use cases:**
+
 - QA testing before release
 - Internal demos
 - Testing new features
@@ -136,6 +200,7 @@ This project uses two main workflows for building and releasing Android applicat
 **Purpose:** Create official production releases for public distribution.
 
 **When it runs:**
+
 - Automatically when you push a version tag
 - Examples:
   - `v1.0.0` (stable release)
@@ -144,15 +209,18 @@ This project uses two main workflows for building and releasing Android applicat
   - `v1.0.0-rc.1` (release candidate)
 
 **What it builds:**
+
 - Release APK (signed)
 - AAB (Android App Bundle, signed)
 
 **Where artifacts go:**
+
 - GitHub Releases page (permanent)
 - Public download links
 - Access: Everyone
 
 **What else it does:**
+
 1. Bumps version in `gradle.properties`
 2. Updates `CHANGELOG.md` with release notes
 3. Generates SBOM (Software Bill of Materials)
@@ -161,17 +229,21 @@ This project uses two main workflows for building and releasing Android applicat
 6. Creates GitHub Release with all artifacts
 
 **How to use:**
+
 1. Ensure code is ready for release
 2. Create and push version tag:
+
    ```bash
    git tag -s v1.0.0 -m "Release v1.0.0"
    git push origin v1.0.0
    ```
+
 3. Wait 15-25 minutes
 4. GitHub Release is created automatically
 5. Download APK/AAB from Releases page
 
 **Use cases:**
+
 - Production releases
 - Public distribution
 - Play Store publishing
@@ -186,6 +258,7 @@ This project uses two main workflows for building and releasing Android applicat
 **Storage:** GitHub Actions Artifacts tab
 
 **Access:**
+
 1. Go to repository → Actions tab
 2. Click on the workflow run
 3. Scroll down to "Artifacts" section
@@ -202,6 +275,7 @@ This project uses two main workflows for building and releasing Android applicat
 **Storage:** GitHub Releases page
 
 **Access:**
+
 1. Go to repository → Releases
 2. Find the version (e.g., v1.0.0)
 3. Download files from "Assets" section
@@ -219,6 +293,7 @@ This project uses two main workflows for building and releasing Android applicat
 ### Manual Play Store Publishing Process
 
 1. **Create production release:**
+
    ```bash
    git tag -s v1.0.0 -m "Release v1.0.0"
    git push origin v1.0.0
@@ -296,6 +371,7 @@ artifacts:
 ## Security Features
 
 ### Development Builds (release-dev-workflow)
+
 - ✗ No Android app signing
 - ✗ No GPG signing
 - ✗ No SBOM
@@ -305,6 +381,7 @@ artifacts:
 **Why:** Speed and simplicity for testing
 
 ### Production Releases (release-workflow)
+
 - ✓ Android app signing (keystore)
 - ✓ GPG signing (optional)
 - ✓ SBOM generation
@@ -333,45 +410,17 @@ Configure these in GitHub Settings → Secrets:
 
 ---
 
-## Troubleshooting
-
-### "Artifact not found" after release-dev-workflow
-
-**Problem:** No artifacts in workflow run
-
-**Solutions:**
-- Check workflow run logs for build errors
-- Ensure gradle build succeeds
-- Verify paths in configuration match actual build output
-
-### Release workflow fails on tag push
-
-**Problem:** Workflow fails with signing errors
-
-**Solutions:**
-- Verify all Android signing secrets are configured
-- Check keystore is valid and not expired
-- Ensure key alias and passwords are correct
-
-### AAB not appearing in release
-
-**Problem:** Only APK in release, no AAB
-
-**Solutions:**
-- Check `release.attachartifacts` configuration
-- Verify AAB path matches gradle output
-- Check build logs for AAB generation errors
-
----
 
 ## Best Practices
 
 ### Development workflow
+
 - Use release-dev-workflow frequently for testing
 - Always test debug builds before creating release
 - Keep artifact retention at 7 days to save storage
 
 ### Release workflow
+
 - Always create signed tags for releases
 - Follow semantic versioning (v1.0.0, v1.1.0, v2.0.0)
 - Update CHANGELOG before tagging
@@ -379,6 +428,7 @@ Configure these in GitHub Settings → Secrets:
 - Use pre-release tags for testing (v1.0.0-rc.1)
 
 ### Versioning
+
 - Stable releases: `v1.0.0`, `v1.1.0`, `v2.0.0`
 - Alpha releases: `v1.0.0-alpha.1`
 - Beta releases: `v1.0.0-beta.1`
@@ -389,29 +439,34 @@ Configure these in GitHub Settings → Secrets:
 ## Quick Reference
 
 ### Create dev build
+
 ```bash
 # Manual trigger via GitHub UI
 GitHub Actions → Release Dev Workflow → Run workflow
 ```
 
 ### Create production release
+
 ```bash
 git tag -s v1.0.0 -m "Release v1.0.0"
 git push origin v1.0.0
 ```
 
 ### Download dev builds
-```
+
+```text
 Repository → Actions → Workflow run → Artifacts
 ```
 
 ### Download production release
-```
+
+```text
 Repository → Releases → Version → Assets
 ```
 
 ### Publish to Play Store
-```
+
+```text
 Releases → Download AAB → Play Console → Upload
 ```
 

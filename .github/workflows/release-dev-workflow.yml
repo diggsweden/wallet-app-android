@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-android-variants.yml@1a7dcd9c5257495ebf141e4e4b4bac438a8aae56 # v2.0.0
+    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-android-variants.yml@e29145e720cef0b86ef147c72c2d001b5ac6c8b9 # v2.4.2
     permissions:
       contents: read
       packages: write
