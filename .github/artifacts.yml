@@ -4,15 +4,23 @@
 
 # Artifacts Configuration for wallet-app-android
 # Android application - APK/AAB files attached to GitHub Release
+# and published to Google Play internal track
 
 artifacts:
-  - name: wallet-android
+  - name: wallet-android-demo
     project-type: gradle-android
     working-directory: .
     build-type: application
-    publish-to: []
+    publish-to:
+      - google-play
     config:
       java-version: 21
       gradle-tasks: build assembleDemoRelease bundleDemoRelease
       build-module: app
       gradle-version-file: gradle.properties
+      # Signing configuration (requires secrets)
+      enable-android-signing: true
+      # Google Play configuration
+      package-name: se.digg.wallet.demo
+      google-play-track: internal
+      google-play-status: completed

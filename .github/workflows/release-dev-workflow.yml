@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
----
 name: Release Dev Workflow
 
 on:
@@ -12,19 +11,28 @@ permissions:
   contents: read
 
 jobs:
+  # Build Android app with signing
   build:
-    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-android-variants.yml@e29145e720cef0b86ef147c72c2d001b5ac6c8b9 # v2.4.2
+    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-app.yml@425ebfec93eed03cc0ec6040ee555257853d326b # v2.5.0
     permissions:
       contents: read
-      packages: write
     secrets: inherit
     with:
       java-version: "21"
-      jdk-distribution: "zulu"
       build-module: "app"
-      product-flavor: "demo"
-      build-types: "debug,release"
-      include-aab: true
-      artifact-name-prefix: "testing_store"
-      include-date-stamp: true
-      enable-signing: false
+      gradle-tasks: "assembleDemoRelease bundleDemoRelease"
+      enable-signing: true
+      artifact-name: "wallet-android-demo"
+
+  # Publish to Google Play internal track
+  publish-google-play:
+    needs: build
+    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@425ebfec93eed03cc0ec6040ee555257853d326b # v2.5.0
+    permissions:
+      contents: read
+    secrets: inherit
+    with:
+      aab-artifact-name: "wallet-android-demo"
+      package-name: "se.digg.wallet.demo"
+      track: "internal"
+      status: "completed"

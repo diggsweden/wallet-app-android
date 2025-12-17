@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Gitleaks ignore file
+#
+# This file contains fingerprints for secrets that gitleaks should ignore.
+# Each fingerprint uniquely identifies a specific finding in the git history.
+#
+# Format: commit:file:rule:line
+#
+# The entries below are test/example JWTs that were temporarily hardcoded during
+# development for testing the OpenID4VCI credential issuance flow. These JWTs:
+# - Were used only for local development and testing
+# - Have since been removed from the codebase
+# - Were never valid credentials for any production system
+# - Only exist in historical commits, not in the current code
+
+# Historical test JWT in IssuanceViewModel.kt (commit 0f404c2)
+0f404c212ab5f99dbe31d3b142b1f06d930bca3b:app/src/main/java/se/digg/wallet/feature/issuance/IssuanceViewModel.kt:jwt:120
+
+# Historical test JWT in IssuanceViewModel.kt (commit 5ec995b)
+5ec995bc2d4e4a18b0a365b06632610892a10df3:app/src/main/java/se/digg/wallet/feature/issuance/IssuanceViewModel.kt:jwt:196
