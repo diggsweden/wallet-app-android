@@ -101,6 +101,10 @@ fabrikt {
     }
 }
 
+tasks.named("preBuild") {
+    dependsOn("fabriktGenerate")
+}
+
 hilt {
     enableAggregatingTask = false
 }
