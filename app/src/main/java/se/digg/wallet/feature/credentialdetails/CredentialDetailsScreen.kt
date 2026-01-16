@@ -12,13 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,11 +28,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
@@ -43,7 +42,7 @@ import se.digg.wallet.data.DisclosureLocal
 @Composable
 fun CredentialDetailsScreen(
     navController: NavController,
-    viewModel: CredentialDetailsViewModel = viewModel()
+    viewModel: CredentialDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(Unit) { viewModel.matchDisclosures() }
@@ -53,12 +52,12 @@ fun CredentialDetailsScreen(
         {
             TopAppBar(title = {
                 Text(
-                    text = "PID details"
+                    text = ""
                 )
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(R.drawable.arrow_left),
                         contentDescription = ""
                     )
                 }
@@ -95,7 +94,7 @@ private fun Disclosures(disclosures: List<DisclosureLocal>, issuer: String?) {
     ) {
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.digg_primary).copy(
+                containerColor = MaterialTheme.colorScheme.onPrimary.copy(
                     alpha = 0.2f
                 )
             ),
@@ -119,7 +118,7 @@ private fun Disclosures(disclosures: List<DisclosureLocal>, issuer: String?) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    text = "Available disclosures:"
+                    text = "Attribut:"
                 )
                 Spacer(Modifier.height(16.dp))
                 disclosures.forEach { disclosure ->

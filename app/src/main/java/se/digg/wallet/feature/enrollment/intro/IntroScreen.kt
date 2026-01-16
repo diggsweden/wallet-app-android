@@ -6,25 +6,26 @@ package se.digg.wallet.feature.enrollment.intro
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -38,34 +39,30 @@ fun IntroScreen(navController: NavController, onContinue: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(96.dp))
         Image(
-            painter = painterResource(R.drawable.playstore_icon),
-            contentDescription = "Logo",
+            painter = painterResource(R.drawable.digg_intro),
+            contentDescription = stringResource(R.string.enrollment_intro_logo_description),
             modifier = Modifier
-                .width(120.dp)
-                .height(120.dp)
+                .width(333.dp)
+                .height(341.dp)
         )
-        Text("Välkommen!", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(48.dp))
         Text(
-            "Detta är ett demo för svenska identitetsplånboken. Gå vidare för att skapa ett konto och ladda ner ditt ID-bevis.",
-            style = MaterialTheme.typography.bodyMedium
+            stringResource(R.string.enrollment_intro_title),
+            style = DiggTextStyle.H1
         )
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Bottom,
-    ) {
-        Button(modifier = Modifier.fillMaxWidth(), onClick = {
-            onContinue.invoke()
-        }) {
-            Text("Fortsätt")
-        }
+        Spacer(modifier = Modifier.weight(1f))
+        PrimaryButton(
+            modifier = Modifier
+                .fillMaxWidth(),
+            text = stringResource(R.string.generic_next),
+            onClick = {
+                onContinue.invoke()
+            })
     }
 }
 

@@ -166,7 +166,7 @@ object DateAsLongSerializer : KSerializer<Date> {
         PrimitiveSerialDescriptor("DateAsLong", PrimitiveKind.LONG)
 
     override fun serialize(encoder: Encoder, value: Date) {
-        encoder.encodeLong(value.time) // epoch millis
+        encoder.encodeLong(value.time)
     }
 
     override fun deserialize(decoder: Decoder): Date {

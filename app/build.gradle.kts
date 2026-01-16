@@ -4,11 +4,14 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+    kotlin("kapt")
+    alias(libs.plugins.fabrikt)
 }
 
 android {
     namespace = "se.digg.wallet"
-    compileSdk = 35
+    compileSdk = 36
 
     //TODO this can be removed when eudi-libraries are removed.
     packaging {
@@ -18,7 +21,7 @@ android {
     defaultConfig {
         applicationId = "se.digg.wallet"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: 1
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -53,13 +56,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-        }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -75,6 +76,33 @@ android {
             applicationIdSuffix = ".demo"
         }
     }
+
+    sourceSets {
+        sourceSets["main"].java.srcDir("build/generated/sources/fabrikt/src/main")
+    }
+}
+
+fabrikt {
+    generate("client-gateway") {
+        apiFile = file("src/main/openapi/client-gateway.json")
+        basePackage = "se.wallet.client.gateway"
+        addFileDisclaimer = enabled
+        validationLibrary = NoValidation
+        typeOverrides {
+            uuid = String
+        }
+        client {
+            generate = enabled
+            target = Ktor
+        }
+        model {
+            serializationLibrary = Kotlinx
+        }
+    }
+}
+
+hilt {
+    enableAggregatingTask = false
 }
 
 dependencies {
@@ -102,9 +130,10 @@ dependencies {
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
     implementation(libs.bundles.storage)
+    implementation(libs.bundles.di)
+    kapt(libs.hilt.compiler)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
-    //implementation(libs.material.icons)
 }

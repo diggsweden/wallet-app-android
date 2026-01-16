@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Wallet"
 include(":app")
-include(":feature:home")
