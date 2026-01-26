@@ -45,7 +45,7 @@ import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.navigation.NavigationItem
 
-const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/prepare-credential-offer"
+const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/pid-issuer"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

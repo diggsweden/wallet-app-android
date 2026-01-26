@@ -11,14 +11,14 @@ import com.nimbusds.jose.jwk.Curve
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vci.AuthorizedRequest
 import eu.europa.ec.eudi.openid4vci.Claim
-import eu.europa.ec.eudi.openid4vci.Client
+import eu.europa.ec.eudi.openid4vci.ClientAuthentication
 import eu.europa.ec.eudi.openid4vci.CredentialConfiguration
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import eu.europa.ec.eudi.openid4vci.CredentialOffer
 import eu.europa.ec.eudi.openid4vci.CredentialResponseEncryptionPolicy
 import eu.europa.ec.eudi.openid4vci.Display
+import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
 import eu.europa.ec.eudi.openid4vci.Issuer
-import eu.europa.ec.eudi.openid4vci.KeyGenerationConfig
 import eu.europa.ec.eudi.openid4vci.MsoMdocCredential
 import eu.europa.ec.eudi.openid4vci.OpenId4VCIConfig
 import eu.europa.ec.eudi.openid4vci.SdJwtVcCredential
@@ -58,6 +58,7 @@ sealed interface IssuanceState {
     object Idle : IssuanceState
     data class IssuerFetched(val credentialOffer: CredentialOffer) : IssuanceState
     data class Authorized(val request: AuthorizedRequest) : IssuanceState
+    data class AuthPrepared(val url: String) : IssuanceState
     data class CredentialFetched(val credential: FetchedCredential) : IssuanceState
     object Loading : IssuanceState
     object Error : IssuanceState
@@ -66,12 +67,17 @@ sealed interface IssuanceState {
 @HiltViewModel
 class IssuanceViewModel @Inject constructor(private val userRepository: UserRepository) :
     ViewModel() {
+
     val openId4VCIConfig = OpenId4VCIConfig(
-        client = Client.Public("wallet-dev"),
-        authFlowRedirectionURI = URI.create("eudi-wallet//auth"),
-        keyGenerationConfig = KeyGenerationConfig.Companion.ecOnly(Curve.P_256),
-        credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
+        clientAuthentication = ClientAuthentication.None(id = "wallet-dev"),
+        authFlowRedirectionURI = URI.create("wallet-app://authorize"),
+        encryptionSupportConfig = EncryptionSupportConfig.Companion(
+            ecKeyCurve = Curve.P_256,
+            rcaKeySize = 256,
+            credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED
+        )
     )
+
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
     private var issuer: Issuer? = null
 
@@ -102,12 +108,15 @@ class IssuanceViewModel @Inject constructor(private val userRepository: UserRepo
         }
     }
 
-    fun authorize(input: Int) {
+    fun authorize() {
         viewModelScope.launch {
             try {
-                val authorizedRequest =
-                    issuer!!.authorizeWithPreAuthorizationCode(input.toString()).getOrThrow()
-                fetchCredential(authorizedRequest)
+                val prepareAuthorizationRequest = issuer!!.prepareAuthorizationRequest()
+                val authCodeUrl =
+                    prepareAuthorizationRequest.getOrThrow().authorizationCodeURL.value.toString()
+
+                _uiState.value = IssuanceState.AuthPrepared(authCodeUrl)
+                //fetchCredential(authorizedRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
                 Timber.d("IssuanceViewModel: Authorize error: ${e.message}")
@@ -344,8 +353,12 @@ class IssuanceViewModel @Inject constructor(private val userRepository: UserRepo
             }
             .flatMap { supportedCredential: CredentialConfiguration ->
                 when (supportedCredential) {
-                    is MsoMdocCredential -> supportedCredential.claims
-                    is SdJwtVcCredential -> supportedCredential.claims
+                    is MsoMdocCredential -> supportedCredential.credentialMetadata?.claims
+                        ?: emptyList()
+
+                    is SdJwtVcCredential -> supportedCredential.credentialMetadata?.claims
+                        ?: emptyList()
+
                     else -> emptyList()
                 }
             }

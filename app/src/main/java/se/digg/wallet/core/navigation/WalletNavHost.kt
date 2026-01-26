@@ -60,9 +60,10 @@ fun WalletNavHost(
                 }
             ),
             deepLinks = listOf(
+                //TODO look into uriPattern
                 navDeepLink {
                     uriPattern =
-                        "openid-credential-offer://credential_offer?credential_offer={credential_offer_uri}"
+                        "openid-credential-offer://?credential_offer={credential_offer_uri}"
                 }
             )
         ) { backStackEntry ->
@@ -134,7 +135,7 @@ fun WalletNavHost(
                         popUpTo(navController.graph.id) {
                             inclusive = true
                         }
-                        launchSingleTop = true
+                        //launchSingleTop = true
                     }
                 })
             }

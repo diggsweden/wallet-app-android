@@ -53,6 +53,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
+import se.digg.wallet.AuthEffect
+import se.digg.wallet.AuthViewModel
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
@@ -63,7 +65,8 @@ import timber.log.Timber
 fun IssuanceScreen(
     navController: NavController,
     credentialOfferUri: String?,
-    viewModel: IssuanceViewModel = hiltViewModel()
+    viewModel: IssuanceViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
@@ -101,7 +104,11 @@ fun IssuanceScreen(
 
                     is IssuanceState.IssuerFetched -> {
                         Timber.d("IssuanceState.IssuerFetched")
-                        viewModel.authorize(123456)
+                        PrimaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Logga in",
+                            onClick = { viewModel.authorize() }
+                        )
                     }
 
                     is IssuanceState.Authorized -> {
@@ -122,6 +129,10 @@ fun IssuanceScreen(
 
                     IssuanceState.Loading -> {
                         Timber.d("IssuanceState.Loading ")
+                    }
+
+                    is IssuanceState.AuthPrepared -> {
+                        authViewModel.startAuthTab(uri = state.url)
                     }
                 }
             }
