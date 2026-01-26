@@ -5,6 +5,7 @@
 package se.digg.wallet.feature.issuance
 
 import android.util.Base64
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.jwk.Curve
@@ -32,6 +33,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import org.json.JSONArray
+import se.digg.wallet.core.oauth.LaunchAuthTab
+import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.CredentialLocal
@@ -58,14 +61,16 @@ sealed interface IssuanceState {
     object Idle : IssuanceState
     data class IssuerFetched(val credentialOffer: CredentialOffer) : IssuanceState
     data class Authorized(val request: AuthorizedRequest) : IssuanceState
-    data class AuthPrepared(val url: String) : IssuanceState
     data class CredentialFetched(val credential: FetchedCredential) : IssuanceState
     object Loading : IssuanceState
     object Error : IssuanceState
 }
 
 @HiltViewModel
-class IssuanceViewModel @Inject constructor(private val userRepository: UserRepository) :
+class IssuanceViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val oAuthCoordinator: OAuthCoordinator
+) :
     ViewModel() {
 
     val openId4VCIConfig = OpenId4VCIConfig(
@@ -108,14 +113,18 @@ class IssuanceViewModel @Inject constructor(private val userRepository: UserRepo
         }
     }
 
-    fun authorize() {
+    fun authorize(launchAuthTab: LaunchAuthTab) {
         viewModelScope.launch {
             try {
                 val prepareAuthorizationRequest = issuer!!.prepareAuthorizationRequest()
                 val authCodeUrl =
-                    prepareAuthorizationRequest.getOrThrow().authorizationCodeURL.value.toString()
+                    prepareAuthorizationRequest.getOrThrow().authorizationCodeURL.toString().toUri()
+                val oAuthCallback = oAuthCoordinator.authorize(authCodeUrl, launchAuthTab)
 
-                _uiState.value = IssuanceState.AuthPrepared(authCodeUrl)
+                val authCode = oAuthCallback.getQueryParameter("code") ?: throw Exception("Failed OAuth callback")
+
+                Timber.d("Got authCode $authCode")
+
                 //fetchCredential(authorizedRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error

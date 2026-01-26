@@ -5,6 +5,7 @@
 package se.digg.wallet
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,25 +14,40 @@ import androidx.browser.auth.AuthTabIntent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.navigation.WalletNavHost
+import se.digg.wallet.core.oauth.OAuthCoordinator
+import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var OAuthCoordinator: OAuthCoordinator
+
+    private val authLauncher =
+        AuthTabIntent.registerActivityResultLauncher(this) { result ->
+            OAuthCoordinator.onResult(result)
+        }
+
+    private fun launchAuthTab(url: Uri) {
+        val authTabIntent = AuthTabIntent.Builder().build()
+
+        authTabIntent.launch(
+            authLauncher,
+            url,
+            "wallet-app"
+        )
+    }
 
     lateinit var navHostController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,11 +56,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             navHostController = rememberNavController()
-            WalletTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppRoot(navHostController = navHostController, onLaunchAuthTab = { url ->
-                        launchAuthTab(url)
-                    })
+            ProvideAuthTabLauncher(launcher = ::launchAuthTab) {
+                WalletTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        AppRoot(navHostController = navHostController)
+                    }
                 }
             }
         }
@@ -67,52 +83,14 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
-
-    private fun launchAuthTab(uri: String) {
-        val authTabIntent = AuthTabIntent.Builder().build()
-
-        authTabIntent.launch(
-            mLauncher,
-            uri.toUri(),
-            "wallet-app"
-        )
-    }
-
-    private val mLauncher =
-        AuthTabIntent.registerActivityResultLauncher(this, this::handleAuthResult)
-
-    private fun handleAuthResult(result: AuthTabIntent.AuthResult) {
-        var message = when (result.resultCode) {
-            AuthTabIntent.RESULT_OK -> "Received auth result."
-            AuthTabIntent.RESULT_CANCELED -> "AuthTab canceled."
-            AuthTabIntent.RESULT_VERIFICATION_FAILED -> "Verification failed."
-            AuthTabIntent.RESULT_VERIFICATION_TIMED_OUT -> "Verification timed out."
-            else -> "Unknown auth result."
-        }
-
-        if (result.resultCode == AuthTabIntent.RESULT_OK) {
-            message += " Uri: ${result.resultUri}"
-        }
-    }
 }
 
 @Composable
 fun AppRoot(
     navHostController: NavHostController,
     viewModel: MainActivityViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel(),
-    onLaunchAuthTab: (String) -> Unit
 ) {
     val app by viewModel.enrollmentState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        authViewModel.effects.collect { effect ->
-            when (effect) {
-                is AuthEffect.LaunchAuthTab ->
-                    onLaunchAuthTab.invoke(effect.uri)
-            }
-        }
-    }
 
     when (app.flow) {
         AppFlow.Enrollment -> WalletNavHost(
