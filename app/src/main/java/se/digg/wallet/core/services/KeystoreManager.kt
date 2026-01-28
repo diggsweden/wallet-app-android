@@ -6,26 +6,13 @@ package se.digg.wallet.core.services
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.JWSHeader
-import com.nimbusds.jose.JWSObject
-import com.nimbusds.jose.JWSSigner
-import com.nimbusds.jose.Payload
-import com.nimbusds.jose.crypto.impl.ECDSA
-import com.nimbusds.jose.jca.JCAContext
-import com.nimbusds.jose.jwk.Curve
-import com.nimbusds.jose.jwk.ECKey
-import com.nimbusds.jose.util.Base64URL
-import com.nimbusds.jose.util.JSONObjectUtils
 import timber.log.Timber
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
-import java.security.Signature
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
-import java.time.Instant
 
 enum class KeyAlias(val value: String) {
     DEVICE_KEY("device_key_alias"), WALLET_KEY("wallet_key_alias")
@@ -75,68 +62,9 @@ object KeystoreManager {
         }
     }
 
-    fun exportJwk(keyPair: KeyPair): ECKey {
-        val publicKey = keyPair.public as? ECPublicKey
-            ?: error("No publicKey")
-
-        val jwk: ECKey = ECKey.Builder(Curve.P_256, publicKey)
-            .keyID("testar")
-//            .keyIDFromThumbprint()
-            .build()
-        return jwk
-    }
-
-    fun createJWT(
-        keyPair: KeyPair,
-        payload: Map<String, Any?>,
-        headers: Map<String, Any>
-    ): String {
-        val now = Instant.now().epochSecond.toInt()
-        val claims = mapOf(
-            "iat" to now,
-            "nbf" to now,
-            "exp" to now + 600
-        ) + payload
-
-        val exportedECKey = exportJwk(keyPair)
-        val publicECKey = exportedECKey.toPublicJWK()
-
-        val header = JWSHeader.Builder(JWSAlgorithm.ES256).customParams(headers)
-            //.apply { this.type(JOSEObjectType(headers)) }
-            .jwk(publicECKey)
-            .build()
-
-        val jws = JWSObject(
-            header,
-            Payload(JSONObjectUtils.toJSONString(claims))
-        )
-
-        jws.sign(object : JWSSigner {
-            override fun sign(
-                header: JWSHeader?,
-                signingInput: ByteArray?
-            ): Base64URL {
-                val signature = Signature.getInstance("SHA256withECDSA").run {
-                    initSign(keyPair.private)
-                    update(signingInput)
-                    sign()
-                }
-                val signatureByteArrayLength = ECDSA.getSignatureByteArrayLength(JWSAlgorithm.ES256)
-                val joseSignature =
-                    ECDSA.transcodeSignatureToConcat(signature, signatureByteArrayLength)
-                return Base64URL.encode(joseSignature)
-            }
-
-            override fun supportedJWSAlgorithms(): Set<JWSAlgorithm?> {
-                return setOf(JWSAlgorithm.ES256)
-            }
-
-            override fun getJCAContext(): JCAContext {
-                return JCAContext()
-            }
-        }
-        )
-
-        return jws.serialize()
+    fun createSoftwareEcdhKey(): KeyPair {
+        val kpg = KeyPairGenerator.getInstance("EC")
+        kpg.initialize(ECGenParameterSpec("secp256r1"))
+        return kpg.generateKeyPair()
     }
 }

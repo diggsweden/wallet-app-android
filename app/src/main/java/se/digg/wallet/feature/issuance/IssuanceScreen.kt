@@ -57,7 +57,7 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
-import se.digg.wallet.data.FetchedCredential
+import se.digg.wallet.data.CredentialLocal
 import timber.log.Timber
 
 @Composable
@@ -112,6 +112,12 @@ fun IssuanceScreen(
 
                     is IssuanceState.Authorized -> {
                         Timber.d("IssuanceState.Authorized")
+                        val authorizedRequest = state.request
+                        PrimaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Logga in",
+                            onClick = { viewModel.fetchCredential(authorizedRequest) }
+                        )
                     }
 
                     is IssuanceState.CredentialFetched -> {
@@ -215,7 +221,7 @@ fun sanitize(input: String) = input.filter { it.isDigit() }
 
 
 @Composable
-private fun Disclosures(fetchedCredential: FetchedCredential, onCloseClicked: () -> Boolean) {
+private fun Disclosures(fetchedCredential: CredentialLocal, onCloseClicked: () -> Boolean) {
     Column {
         Card(
             colors = CardDefaults.cardColors(

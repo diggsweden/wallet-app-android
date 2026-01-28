@@ -2,10 +2,7 @@ package se.digg.wallet.data
 
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
-import okhttp3.RequestBody
 import se.digg.wallet.core.network.ApiService
-import se.digg.wallet.core.network.NonceResponseModel
-import se.digg.wallet.core.network.PresentationResponseModel
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AccountsV1Client
@@ -26,28 +23,8 @@ class UserRepository @Inject constructor(
     val accountsClient = AccountsV1Client(gatewayClient)
     val wuaClient = WuaV2Client(gatewayClient)
 
-    suspend fun fetchCredential(
-        url: String,
-        accessToken: String,
-        request: OldCredentialRequestModel
-    ): CredentialResponseModel {
-        return apiService.getOldCredential(
-            url = url,
-            accessToken = accessToken,
-            request = request
-        )
-    }
-
     suspend fun fetchWua(request: CreateWuaDto): CreateWua_1Result {
         return wuaClient.createWua_1(request)
-    }
-
-    suspend fun fetchNonce(url: String): NonceResponseModel {
-        return apiService.getNonce(url = url)
-    }
-
-    suspend fun postVpToken(url: String, request: RequestBody): PresentationResponseModel {
-        return apiService.postVpToken(url = url, request = request)
     }
 
     suspend fun createAccount(request: CreateAccountRequestDto): CreateAccountResult {

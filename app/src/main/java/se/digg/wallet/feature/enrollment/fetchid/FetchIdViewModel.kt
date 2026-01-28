@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
@@ -46,7 +47,7 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
-                val jwk = KeystoreManager.exportJwk(keyPair)
+                val jwk = JwtUtils.exportJwk(keyPair)
                 val email = userRepository.getEmail() ?: ""
                 val phone = userRepository.getPhone() ?: ""
 
@@ -85,7 +86,7 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val jwk = KeystoreManager.exportJwk(keyPair)
+                val jwk = JwtUtils.exportJwk(keyPair)
                 val uuid = UUID.randomUUID()
                 val request = CreateWuaDto(
                     walletId = uuid.toString(),

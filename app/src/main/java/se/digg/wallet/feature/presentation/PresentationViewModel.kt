@@ -8,13 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.JWEObject
-import com.nimbusds.jose.Payload
-import com.nimbusds.jose.crypto.ECDHEncrypter
-import com.nimbusds.jose.jwk.ECKey
-import com.nimbusds.jose.jwk.JWK
-import com.nimbusds.jose.util.JSONObjectUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.Resolution
@@ -40,10 +33,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
+import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
+import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.UserRepository
@@ -65,7 +58,10 @@ sealed interface UiEffect {
 }
 
 @HiltViewModel
-class PresentationViewModel @Inject constructor(private val userRepository: UserRepository) :
+class PresentationViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val openIdNetworkService: OpenIdNetworkService,
+) :
     ViewModel() {
     var walletConfig: SiopOpenId4VPConfig? = null
     var matchedClaims: List<DisclosureLocal> = emptyList()
@@ -195,14 +191,13 @@ class PresentationViewModel @Inject constructor(private val userRepository: User
                     }
                     responseUrl.let { it ->
                         try {
-                            val response = userRepository.postVpToken(
+                            val response = openIdNetworkService.postVpToken(
                                 url = it.toString(),
-                                request = createRequestBody(submissionPayload)
-                                    .toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
+                                body = createRequestBody(submissionPayload)
                             )
                             Timber.d("PresentationViewModel - Presentation: OK $response}")
-                            response.redirect_uri?.let {
-                                _effects.emit(UiEffect.OpenUrl(response.redirect_uri))
+                            response.redirectUri?.let {
+                                _effects.emit(UiEffect.OpenUrl(response.redirectUri))
                             } ?: run {
                                 _uiState.value = PresentationState.ShareSuccess
                             }
@@ -222,25 +217,6 @@ class PresentationViewModel @Inject constructor(private val userRepository: User
 
     private fun createRequestBody(payload: Map<String, Any?>): String {
         return payload.entries.joinToString("&") { "${it.key}=${it.value}" }
-    }
-
-    @Throws(Exception::class)
-    fun createJWE(
-        payload: Map<String, Any?>,
-        recipientKey: JWK?
-    ): String {
-        val header = JWEHeader.Builder(
-            JWEAlgorithm.ECDH_ES,
-            EncryptionMethod.A128GCM
-        ).build()
-
-        val jwe = JWEObject(
-            header,
-            Payload(JSONObjectUtils.toJSONString(payload))
-        )
-
-        jwe.encrypt(ECDHEncrypter(recipientKey as ECKey))
-        return jwe.serialize()
     }
 
     fun createVpToken(
@@ -266,14 +242,13 @@ class PresentationViewModel @Inject constructor(private val userRepository: User
         val sdJwtData: ByteArray = sdJwt.toByteArray(Charsets.US_ASCII)
         val hash = MessageDigest.getInstance("SHA-256").digest(sdJwtData)
         val base64Hash = Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
-        val payload = mapOf(
-            "aud" to aud,
-            "nonce" to nonce,
-            "sd_hash" to base64Hash
+        val payload = KeybindingPayload(
+            aud = aud,
+            nonce = nonce,
+            sdHash = base64Hash
         )
         val headers = mapOf("typ" to "kb+jwt")
-        val keybinding =
-            KeystoreManager.createJWT(keyPair = keyPair, payload = payload, headers = headers)
+        val keybinding = JwtUtils.signJWT(keyPair = keyPair, payload = payload, headers = headers)
         Timber.d("PresentationViewModel - SendDisclosures ")
         return keybinding
     }
@@ -284,7 +259,6 @@ class PresentationViewModel @Inject constructor(private val userRepository: User
         id: QueryId,
         nonce: String
     ): Map<String, Any?> {
-
         val vpJson = Json.encodeToString(mapOf(id to listOf(vpToken)))
 
         return mapOf(

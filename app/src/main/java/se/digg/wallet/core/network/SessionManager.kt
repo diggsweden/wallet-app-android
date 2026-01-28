@@ -1,5 +1,6 @@
 package se.digg.wallet.core.network
 
+import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.UserDao
@@ -45,7 +46,7 @@ class SessionManager(
     }
 
     suspend fun validateChallenge(keyId: String, key: KeyPair, nonce: String): String {
-        val jwt = KeystoreManager.createJWT(
+        val jwt = JwtUtils.signJWT(
             keyPair = key,
             payload = mapOf("nonce" to nonce),
             headers = mapOf("kid" to keyId)

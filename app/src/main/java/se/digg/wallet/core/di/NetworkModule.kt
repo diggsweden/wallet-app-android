@@ -1,5 +1,6 @@
 package se.digg.wallet.core.di
 
+import android.annotation.SuppressLint
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -23,11 +24,17 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import se.digg.wallet.core.network.ApiService
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
+import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import javax.inject.Qualifier
 import javax.inject.Singleton
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -36,6 +43,10 @@ annotation class BaseHttpClient
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class GatewayHttpClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class UnsafeHttpClient
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -61,6 +72,55 @@ object NetworkModule {
         }
 
         install(Logging)
+    }
+
+    @Provides
+    @Singleton
+    @UnsafeHttpClient
+    @SuppressLint("TrustAllX509TrustManager")
+    fun provideUnsafeHttpClient(): HttpClient {
+        val trustAllCerts = arrayOf<TrustManager>(
+            @SuppressLint("CustomX509TrustManager")
+            object : X509TrustManager {
+                override fun checkClientTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
+
+                override fun checkServerTrusted(
+                    chain: Array<out X509Certificate>?,
+                    authType: String?
+                ) {
+                }
+
+                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            }
+        )
+
+        val trustManager = trustAllCerts[0] as X509TrustManager
+
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, trustAllCerts, SecureRandom())
+        }
+
+        val unsafeOkHttp = OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
+
+        return HttpClient(OkHttp) {
+            engine {
+                preconfigured = unsafeOkHttp
+            }
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+        }
     }
 
     @Provides
@@ -124,4 +184,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideOpenIdNetworkService(@BaseHttpClient base: HttpClient) = OpenIdNetworkService(base)
 }
