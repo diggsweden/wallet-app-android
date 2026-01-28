@@ -1,8 +1,6 @@
 package se.digg.wallet.core.di
 
 import android.annotation.SuppressLint
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,10 +16,6 @@ import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import se.digg.wallet.core.network.ApiService
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
@@ -51,8 +45,6 @@ annotation class UnsafeHttpClient
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
-    private const val BASE_URL = "https://wallet.sandbox.digg.se/api/"
 
     @Provides
     @Singleton
@@ -153,37 +145,6 @@ object NetworkModule {
             }
         }
     }
-
-    @Provides
-    @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
-        OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(
-                MoshiConverterFactory.create(
-                    Moshi.Builder().addLast(
-                        KotlinJsonAdapterFactory()
-                    ).build()
-                )
-            )
-            .build()
-
-    @Provides
-    @Singleton
-    fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
 
     @Provides
     @Singleton

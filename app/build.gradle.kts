@@ -131,7 +131,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.timber)
-    implementation(libs.bundles.network.retrofit)
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
     implementation(libs.bundles.storage)

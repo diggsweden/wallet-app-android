@@ -2,7 +2,6 @@ package se.digg.wallet.data
 
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
-import se.digg.wallet.core.network.ApiService
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AccountsV1Client
@@ -15,7 +14,6 @@ import java.util.UUID
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
-    private val apiService: ApiService,
     private val userDao: UserDao,
     private val gatewayClient: HttpClient
 ) {
