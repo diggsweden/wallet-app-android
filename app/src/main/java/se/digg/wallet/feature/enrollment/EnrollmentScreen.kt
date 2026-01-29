@@ -45,6 +45,7 @@ import se.digg.wallet.feature.enrollment.consent.ConsentScreen
 import se.digg.wallet.feature.enrollment.email.EmailScreen
 import se.digg.wallet.feature.enrollment.emailverify.EmailVerifyScreen
 import se.digg.wallet.feature.enrollment.fetchid.FetchIdScreen
+import se.digg.wallet.feature.enrollment.login.LoginScreen
 import se.digg.wallet.feature.enrollment.phone.PhoneScreen
 import se.digg.wallet.feature.enrollment.phoneverify.PhoneVerifyScreen
 import se.digg.wallet.feature.enrollment.pin.PinSetupScreen
@@ -79,7 +80,8 @@ fun EnrollmentScreen(
         onBackClicked = { viewModel.goBack() },
         onSkipClicked = { viewModel.onSkip() },
         onCloseOnboardingClicked = { viewModel.closeOnboarding() },
-        onFinishOnboarding = { onFinish.invoke() })
+        onFinishOnboarding = { onFinish.invoke() },
+        onLoginSuccessful = { viewModel.setSessionId(it) })
 }
 
 
@@ -90,7 +92,8 @@ fun EnrollmentScreen(
     onBackClicked: () -> Unit,
     onSkipClicked: () -> Unit,
     onCloseOnboardingClicked: () -> Unit,
-    onFinishOnboarding: () -> Unit
+    onFinishOnboarding: () -> Unit,
+    onLoginSuccessful: (String) -> Unit
 ) {
     val currentStep = uiState.currentStep.ordinal + 1
     val progress = currentStep.toFloat() / uiState.totalSteps.toFloat()
@@ -166,7 +169,8 @@ fun EnrollmentScreen(
                         onNext = { onNextClicked.invoke() },
                         onBack = { onBackClicked.invoke() },
                         onSkip = { onSkipClicked.invoke() },
-                        onFinish = { onFinishOnboarding.invoke() }
+                        onFinish = { onFinishOnboarding.invoke() },
+                        onLoginSuccessful = { onLoginSuccessful.invoke(it) }
                     )
                 }
             }
@@ -179,10 +183,12 @@ fun OnboardingStepContent(
     onNext: () -> Unit,
     onBack: () -> Unit,
     onSkip: () -> Unit,
-    onFinish: () -> Unit
+    onFinish: () -> Unit,
+    onLoginSuccessful: (String) -> Unit
 ) {
     when (step) {
         EnrollmentStep.NOTIFICATION -> ConsentScreen(onNext = { onNext.invoke() })
+        EnrollmentStep.LOGIN -> LoginScreen(onLoginSuccessful = { onLoginSuccessful.invoke(it) })
         EnrollmentStep.PHONE_NUMBER -> PhoneScreen(
             onNext = { onNext.invoke() },
             onSkip = { onSkip.invoke() }
@@ -212,7 +218,8 @@ private fun EnrollmentPreview() {
                 onBackClicked = {},
                 onSkipClicked = {},
                 onCloseOnboardingClicked = {},
-                onFinishOnboarding = {}
+                onFinishOnboarding = {},
+                onLoginSuccessful = {}
             )
         }
     }

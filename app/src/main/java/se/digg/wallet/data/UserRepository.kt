@@ -4,10 +4,8 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
-import se.wallet.client.gateway.client.AccountsV1Client
-import se.wallet.client.gateway.client.AccountsV1Client.CreateAccountResult
-import se.wallet.client.gateway.client.WuaV2Client
-import se.wallet.client.gateway.client.WuaV2Client.CreateWua_1Result
+import se.wallet.client.gateway.client.OidcAccountsV1Client
+import se.wallet.client.gateway.client.WuaV3Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateWuaDto
 import java.util.UUID
@@ -18,15 +16,17 @@ class UserRepository @Inject constructor(
     private val gatewayClient: HttpClient
 ) {
     val user: Flow<User?> = userDao.observe()
-    val accountsClient = AccountsV1Client(gatewayClient)
-    val wuaClient = WuaV2Client(gatewayClient)
+    val accountsClient = OidcAccountsV1Client(gatewayClient)
+    val wuaClient = WuaV3Client(gatewayClient)
+    private var sessionId: String? = null
 
-    suspend fun fetchWua(request: CreateWuaDto): CreateWua_1Result {
+    suspend fun fetchWua(request: CreateWuaDto): WuaV3Client.CreateWua_1Result {
         return wuaClient.createWua_1(request)
     }
 
-    suspend fun createAccount(request: CreateAccountRequestDto): CreateAccountResult {
-        return accountsClient.createAccount(request)
+    suspend fun createAccount(request: CreateAccountRequestDto): OidcAccountsV1Client.CreateAccountResult {
+        val session = sessionId ?: throw IllegalStateException("SessionId is null")
+        return accountsClient.createAccount(createAccountRequestDto = request, sESSION = session)
     }
 
     suspend fun getPin(): String? = userDao.get()?.pin
@@ -44,6 +44,9 @@ class UserRepository @Inject constructor(
     suspend fun setCredential(credential: String) = updateUser { it.copy(credential = credential) }
     suspend fun setEmail(email: String) = updateUser { it.copy(email = email) }
     suspend fun setPhone(phone: String) = updateUser { it.copy(phone = phone) }
+    fun setSessionId(id: String) {
+        sessionId = id
+    }
 
     suspend fun wipeAll() = userDao.clear()
 

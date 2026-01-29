@@ -18,6 +18,7 @@ sealed interface EnrollmentUiEffect {
 
 enum class EnrollmentStep(val stepTitle: String) {
     NOTIFICATION("Notification"),
+    LOGIN("Login"),
     PHONE_NUMBER("Phone number"),
     VERIFY_PHONE("Verify phone"),
     EMAIL("Email"),
