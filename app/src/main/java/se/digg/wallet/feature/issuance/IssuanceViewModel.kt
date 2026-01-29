@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.json.JSONArray
+import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll

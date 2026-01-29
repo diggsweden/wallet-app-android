@@ -11,7 +11,7 @@ class AuthPluginConfig {
 
 val authPlugin = createClientPlugin("AuthPlugin", ::AuthPluginConfig) {
     on(Send) { request ->
-        if (request.url.encodedPath.startsWith("/oidc") ) {
+        if (request.url.encodedPath.startsWith("/oidc")) {
             return@on proceed(request)
         }
 

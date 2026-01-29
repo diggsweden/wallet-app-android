@@ -65,7 +65,7 @@ private fun PhoneVerifyScreen(
         Spacer(Modifier.height(24.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "3. Bekräfta telefonnummer",
+            text = "4. Bekräfta telefonnummer",
             style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))

@@ -135,7 +135,7 @@ fun WalletNavHost(
                         popUpTo(navController.graph.id) {
                             inclusive = true
                         }
-                        //launchSingleTop = true
+                        launchSingleTop = true
                     }
                 })
             }

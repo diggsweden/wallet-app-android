@@ -31,7 +31,8 @@ class LoginViewModel @Inject constructor(
                 launchAuthTab
             )
             val sessionId =
-                oAuthCallback.getQueryParameter("session_id") ?: throw IllegalStateException("YOLO")
+                oAuthCallback.getQueryParameter("session_id")
+                    ?: throw IllegalStateException("sessionId query parameter missing")
             _effects.emit(LoginUiEffect.OnLoginSuccessful(sessionId))
         }
     }

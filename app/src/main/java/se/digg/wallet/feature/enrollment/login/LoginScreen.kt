@@ -13,10 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
@@ -41,6 +39,11 @@ fun LoginScreen(
         }
     }
 
+    LoginScreen(onLoginClicked = { viewModel.authorize(launchAuthTab) })
+}
+
+@Composable
+private fun LoginScreen(onLoginClicked: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -63,7 +66,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             text = "Logga in",
             onClick = {
-                viewModel.authorize(launchAuthTab)
+                onLoginClicked.invoke()
             }
         )
     }
@@ -71,10 +74,10 @@ fun LoginScreen(
 
 @Composable
 @WalletPreview
-private fun LoginScreen() {
+private fun LoginScreenPreview() {
     WalletTheme {
         Surface {
-            LoginScreen({})
+            LoginScreen(onLoginClicked = {})
         }
     }
 }

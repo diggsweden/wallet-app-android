@@ -16,9 +16,6 @@ import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import se.digg.wallet.feature.issuance.DefaultJwtClaims
-import se.digg.wallet.feature.issuance.JwtClaims
-import se.digg.wallet.feature.issuance.jwtClaimsSerializer
 import java.security.KeyPair
 import java.security.interfaces.ECPublicKey
 import java.time.Instant

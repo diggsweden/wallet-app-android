@@ -89,7 +89,7 @@ private fun EmailScreen(
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "4. Din e-postadress", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
+            "5. Din e-postadress", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {

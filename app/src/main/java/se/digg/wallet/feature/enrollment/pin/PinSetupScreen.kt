@@ -73,9 +73,9 @@ private fun PinSetupScreen(
         Spacer(Modifier.height(24.dp))
         Text(
             if (verifyPin) {
-                "7. Bekräfta pinkod för identifiering"
+                "8. Bekräfta pinkod för identifiering"
             } else {
-                "6. Ange pinkod för identifiering"
+                "7. Ange pinkod för identifiering"
             },
             style = DiggTextStyle.H1,
         )

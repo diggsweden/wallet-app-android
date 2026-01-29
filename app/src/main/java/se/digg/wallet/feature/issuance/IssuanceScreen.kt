@@ -105,7 +105,7 @@ fun IssuanceScreen(
                         Timber.d("IssuanceState.IssuerFetched")
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Logga in",
+                            text = "Hämta ID-handling",
                             onClick = { viewModel.authorize(launchAuthTab) }
                         )
                     }
