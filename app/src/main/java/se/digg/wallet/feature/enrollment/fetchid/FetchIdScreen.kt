@@ -110,7 +110,7 @@ private fun Content(
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "8. Hämta personuppgifter", style = DiggTextStyle.H1,
+            "9. Hämta personuppgifter", style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         Column(

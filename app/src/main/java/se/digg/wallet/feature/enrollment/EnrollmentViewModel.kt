@@ -58,5 +58,10 @@ class EnrollmentViewModel @Inject constructor(private val userRepository: UserRe
             }
         }
     }
+
+    fun setSessionId(sessionId: String) {
+        userRepository.setSessionId(sessionId)
+        goNext()
+    }
 }
 

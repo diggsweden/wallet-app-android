@@ -5,10 +5,12 @@
 package se.digg.wallet
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.browser.auth.AuthTabIntent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -22,19 +24,43 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.navigation.WalletNavHost
+import se.digg.wallet.core.oauth.OAuthCoordinator
+import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
+import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var OAuthCoordinator: OAuthCoordinator
+
+    private val authLauncher =
+        AuthTabIntent.registerActivityResultLauncher(this) { result ->
+            OAuthCoordinator.onResult(result)
+        }
+
+    private fun launchAuthTab(url: Uri) {
+        val authTabIntent = AuthTabIntent.Builder().build()
+
+        authTabIntent.launch(
+            authLauncher,
+            url,
+            "wallet-app"
+        )
+    }
 
     lateinit var navHostController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
             navHostController = rememberNavController()
-            WalletTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppRoot(navHostController)
+            ProvideAuthTabLauncher(launcher = ::launchAuthTab) {
+                WalletTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        AppRoot(navHostController = navHostController)
+                    }
                 }
             }
         }
@@ -62,7 +88,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRoot(
     navHostController: NavHostController,
-    viewModel: MainActivityViewModel = hiltViewModel()
+    viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
     val app by viewModel.enrollmentState.collectAsState()
 

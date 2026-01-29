@@ -66,7 +66,7 @@ private fun EmailVerifyScreen(
         Spacer(Modifier.height(24.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "5. Bekräfta e-postadress",
+            text = "6. Bekräfta e-postadress",
             style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))

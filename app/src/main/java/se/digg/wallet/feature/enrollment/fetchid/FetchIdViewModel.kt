@@ -13,11 +13,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
-import se.wallet.client.gateway.client.AccountsV1Client
-import se.wallet.client.gateway.client.WuaV2Client.CreateWua_1Result
+import se.wallet.client.gateway.client.OidcAccountsV1Client
+import se.wallet.client.gateway.client.WuaV3Client.CreateWua_1Result
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateWuaDto
 import se.wallet.client.gateway.models.JwkDto
@@ -46,7 +47,7 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
-                val jwk = KeystoreManager.exportJwk(keyPair)
+                val jwk = JwtUtils.exportJwk(keyPair)
                 val email = userRepository.getEmail() ?: ""
                 val phone = userRepository.getPhone() ?: ""
 
@@ -59,16 +60,16 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                         crv = jwk.curve.name,
                         x = jwk.x.toString(),
                         y = jwk.y.toString(),
-                        kid = "myKey"
+                        kid = jwk.keyID
                     )
                 )
                 val response = userRepository.createAccount(requestBody)
                 val accountId = when (response) {
-                    is AccountsV1Client.CreateAccountResult.Failure -> {
+                    is OidcAccountsV1Client.CreateAccountResult.Failure -> {
                         throw Exception("Kunde inte skapa konto")
                     }
 
-                    is AccountsV1Client.CreateAccountResult.Success -> {
+                    is OidcAccountsV1Client.CreateAccountResult.Success -> {
                         response.data.accountId ?: ""
                     }
                 }
@@ -85,7 +86,7 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val jwk = KeystoreManager.exportJwk(keyPair)
+                val jwk = JwtUtils.exportJwk(keyPair)
                 val uuid = UUID.randomUUID()
                 val request = CreateWuaDto(
                     walletId = uuid.toString(),

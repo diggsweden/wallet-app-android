@@ -60,9 +60,10 @@ fun WalletNavHost(
                 }
             ),
             deepLinks = listOf(
+                //TODO look into uriPattern
                 navDeepLink {
                     uriPattern =
-                        "openid-credential-offer://credential_offer?credential_offer={credential_offer_uri}"
+                        "openid-credential-offer://?credential_offer={credential_offer_uri}"
                 }
             )
         ) { backStackEntry ->

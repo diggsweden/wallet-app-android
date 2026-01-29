@@ -35,7 +35,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="credential_offer"
                     android:scheme="openid-credential-offer" />
             </intent-filter>
             <intent-filter android:autoVerify="false">

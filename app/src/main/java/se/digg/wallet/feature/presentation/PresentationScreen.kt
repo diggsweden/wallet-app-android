@@ -234,7 +234,7 @@ private fun Disclosures(onSendClick: () -> Unit, matchedClaims: List<DisclosureL
                 Spacer(Modifier.height(16.dp))
                 PrimaryButton(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.generic_close),
+                    text = stringResource(R.string.generic_ok),
                     onClick = { onSendClick.invoke() }
                 )
                 Spacer(Modifier.height(12.dp))

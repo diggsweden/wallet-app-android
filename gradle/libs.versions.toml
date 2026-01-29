@@ -16,7 +16,7 @@ okHttp = "5.1.0"
 okhttp3Logger = "5.1.0"
 timber = "5.0.1"
 moshi = "1.15.2"
-eudi-openid4vci = "0.8.0"
+eudi-openid4vci = "0.9.1"
 eudi-openid4vp = "0.11.1"
 ktor = "3.3.0"
 nimbus = "10.5"
@@ -28,6 +28,7 @@ ksp = "2.2.10-2.0.2"
 hilt = "2.57.2"
 hiltNavigationCompose = "1.3.0"
 fabrikt = "1.24.0"
+androidBrowser = "1.9.0"
 
 [libraries]
 #Test
@@ -49,8 +50,10 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidBrowser" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
 
 #Storage
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
@@ -58,14 +61,6 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-
-#Network - Retrofit
-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-moshiconverter = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
-okHttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp" }
-okHttp-logger = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3Logger" }
-moshi = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
-moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", version.ref = "moshi" }
 
 #Network - Ktor
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -92,7 +87,6 @@ hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.re
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 [bundles]
-network-retrofit = ["retrofit", "retrofit-moshiconverter", "okHttp", "okHttp-logger", "moshi", "moshi-adapters"]
 images = ["coil-compose", "coil-network"]
 eudi = ["eudi-openid4vci", "eudi-openid4vp", "nimbus", "ktor-okhttp", "ktor-core", "ktor-logging", "ktor-content-negotiation", "ktor-serialization"]
 storage = ["datastore", "kotlinx-serialization-json"]
@@ -105,6 +99,6 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-fabrikt = { id = "ch.acanda.gradle.fabrikt", version.ref = "fabrikt"}
+fabrikt = { id = "ch.acanda.gradle.fabrikt", version.ref = "fabrikt" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 

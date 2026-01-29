@@ -4,10 +4,9 @@
 
 package se.digg.wallet.data
 
-import com.squareup.moshi.Json
 import eu.europa.ec.eudi.openid4vci.Claim
-import eu.europa.ec.eudi.openid4vci.Display
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -18,85 +17,34 @@ import java.net.URI
 import java.util.Date
 import java.util.Locale
 
-data class CredentialOfferResponseModel(
-    @Json(name = "credential_issuer")
-    val credentialIssuer: String,
-    @Json(name = "credential_configuration_ids")
-    val credentialConfigurationIds: List<String>,
-    @Json(name = "grants")
-    val grants: Map<String, Grant>
-)
-
-data class Grant(
-    @Json(name = "pre-authorized_code")
-    val preAuthorizedCode: String,
-    @Json(name = "authorization_server")
-    val authorizationServer: String,
-    @Json(name = "tx_code")
-    val txCode: TxCodeInputMode
-)
-
-data class TxCodeInputMode(
-    @Json(name = "input_mode")
-    val inputMode: String,
-    @Json(name = "length")
-    val length: Int,
-    @Json(name = "description")
-    val description: String,
-)
-
+@Serializable
 data class CredentialRequestModel(
-    val format: String,
-    val credential_configuration_id: String,
-    val proofs: Proof
+    @SerialName("credential_configuration_id")
+    val credentialConfigurationId: String,
+    val proofs: Proof,
+    @SerialName("credential_response_encryption")
+    val credentialResponseEncryption: CredentialResponseEncryptionModel? = null
 )
 
-data class OldCredentialRequestModel(
-    val format: String,
-    val credential_configuration_id: String,
-    val proof: OldProof
+@Serializable
+data class CredentialResponseEncryptionModel(
+    val jwk: JwkModel,
+    val enc: String
 )
 
+@Serializable
 data class Proof(
     val jwt: List<String>
 )
 
-data class OldProof(
-    val jwt: String,
-    val proof_type: String
-)
-
+@Serializable
 data class CredentialResponseModel(
     val credentials: List<Credential>
 )
 
+@Serializable
 data class Credential(
     val credential: String
-)
-
-data class TokenModel(
-    val accessToken: String,
-    val tokenType: String,
-    val expiresIn: String
-)
-
-data class GrantModel(
-    val salt: String,
-    val parameter: String,
-    val value: String
-)
-
-data class FetchedCredential(
-    val issuer: Display?,
-    val sdJwt: String,
-    val disclosures: Map<String, Disclosure>,
-    val issuedAt: Date = Date()
-)
-
-data class Disclosure(
-    val base64: String,
-    val claim: Claim,
-    val value: String
 )
 
 @Serializable

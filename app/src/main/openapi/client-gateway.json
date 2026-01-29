@@ -42,10 +42,6 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "Not authorized",
-            "content": {}
-          },
           "500": {
             "description": "Could not create Wua",
             "content": {}
@@ -59,6 +55,63 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {}
+          },
+          "201": {
+            "description": "Wua created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WuaDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wua/v3": {
+      "post": {
+        "tags": [
+          "wua-controller"
+        ],
+        "operationId": "createWua_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "walletId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "jwk": {
+                  "kty": "EC",
+                  "crv": "P-256",
+                  "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
+                  "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "500": {
+            "description": "Could not create Wua",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {}
           },
           "201": {
             "description": "Wua created",
@@ -76,9 +129,9 @@
     "/wua/v2": {
       "post": {
         "tags": [
-          "wua-controller"
+          "wua-controller-v-2"
         ],
-        "operationId": "createWua_1",
+        "operationId": "createWua_2",
         "requestBody": {
           "content": {
             "application/json": {
@@ -99,10 +152,6 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "Not authorized",
-            "content": {}
-          },
           "500": {
             "description": "Could not create Wua",
             "content": {}
@@ -116,6 +165,10 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {}
           },
           "201": {
             "description": "Wua created",
@@ -151,9 +204,6 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Unknown error",
             "content": {}
@@ -168,8 +218,91 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
           "200": {
-            "description": "Session created"
+            "description": "Session created",
+            "headers": {
+              "session": {
+                "description": "Session ID",
+                "required": true,
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oidc/accounts/v1": {
+      "post": {
+        "tags": [
+          "account-controller-v-1"
+        ],
+        "operationId": "createAccount",
+        "parameters": [
+          {
+            "name": "SESSION",
+            "in": "header",
+            "description": "OIDC session identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountRequestDto"
+              },
+              "example": {
+                "personalIdentityNumber": "01234",
+                "emailAdress": "digg@example.com",
+                "telephoneNumber": "070 007",
+                "publicKey": {
+                  "kty": "EC",
+                  "crv": "P-256",
+                  "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
+                  "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40",
+                  "kid": "myKey"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "500": {
+            "description": "Could not create account, server error",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad input, unable to create account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "201": {
+            "description": "Account created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAccountResponseDto"
+                }
+              }
+            }
           }
         }
       }
@@ -192,9 +325,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Unknown error",
             "content": {
@@ -214,6 +344,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "200": {
             "description": "Attestation found",
@@ -248,9 +381,6 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Could not create attestation, server error",
             "content": {}
@@ -264,6 +394,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "201": {
             "description": "Attestation created",
@@ -283,7 +416,7 @@
         "tags": [
           "account-controller"
         ],
-        "operationId": "createAccount",
+        "operationId": "createAccount_1",
         "requestBody": {
           "content": {
             "application/json": {
@@ -307,9 +440,6 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Could not create account, server error",
             "content": {}
@@ -323,6 +453,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "201": {
             "description": "Account created",
@@ -349,8 +482,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             }
           },
           {
@@ -358,15 +490,11 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             }
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Unknown error",
             "content": {
@@ -387,12 +515,51 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
           "200": {
             "description": "Challenge issued",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthChallengeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oidc/auth": {
+      "get": {
+        "tags": [
+          "oidc-auth-controller"
+        ],
+        "operationId": "getAppDeeplink",
+        "responses": {
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -418,9 +585,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Unknown error",
             "content": {
@@ -440,6 +604,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "200": {
             "description": "Attestation found",
@@ -553,6 +720,37 @@
           "signedJwt"
         ]
       },
+      "CreateAccountRequestDto": {
+        "type": "object",
+        "properties": {
+          "personalIdentityNumber": {
+            "type": "string"
+          },
+          "emailAdress": {
+            "type": "string",
+            "minLength": 1
+          },
+          "telephoneNumber": {
+            "type": "string"
+          },
+          "publicKey": {
+            "$ref": "#/components/schemas/JwkDto"
+          }
+        },
+        "required": [
+          "emailAdress",
+          "publicKey"
+        ]
+      },
+      "CreateAccountResponseDto": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "CreateAttestationDto": {
         "type": "object",
         "properties": {
@@ -592,39 +790,6 @@
           },
           "attestationData": {
             "type": "string"
-          }
-        }
-      },
-      "CreateAccountRequestDto": {
-        "type": "object",
-        "properties": {
-          "personalIdentityNumber": {
-            "type": "string",
-            "minLength": 1
-          },
-          "emailAdress": {
-            "type": "string",
-            "minLength": 1
-          },
-          "telephoneNumber": {
-            "type": "string"
-          },
-          "publicKey": {
-            "$ref": "#/components/schemas/JwkDto"
-          }
-        },
-        "required": [
-          "emailAdress",
-          "personalIdentityNumber",
-          "publicKey"
-        ]
-      },
-      "CreateAccountResponseDto": {
-        "type": "object",
-        "properties": {
-          "accountId": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       },

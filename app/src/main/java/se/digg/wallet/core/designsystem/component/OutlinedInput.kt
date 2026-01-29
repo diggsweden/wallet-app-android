@@ -137,7 +137,11 @@ fun OutLinedInput(
                     tint = MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.width(width = 6.dp))
-                Text(text = errorText ?: "Error", style = DiggTextStyle.BodySM, color = errorTextColor)
+                Text(
+                    text = errorText ?: "Error",
+                    style = DiggTextStyle.BodySM,
+                    color = errorTextColor
+                )
             }
         }
     }

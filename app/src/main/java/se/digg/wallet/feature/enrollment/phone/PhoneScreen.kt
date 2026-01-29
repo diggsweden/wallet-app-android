@@ -73,7 +73,7 @@ private fun PhoneScreen(
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "2. Ditt telefonnummer", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
+            "3. Ditt telefonnummer", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         OutLinedInput(

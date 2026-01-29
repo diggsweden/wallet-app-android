@@ -1,5 +1,6 @@
 package se.digg.wallet.core.network
 
+import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.UserDao
@@ -23,8 +24,8 @@ class SessionManager(
 
     suspend fun initSession(): String {
         val accountId = userDao.get()?.accountId ?: throw Exception("No account")
-        val keyId = "myKey"
         val key = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+        val keyId = JwtUtils.exportJwk(key).keyID
         val nonce = getChallenge(accountId, keyId)
         val sessionToken = validateChallenge(keyId = keyId, key = key, nonce = nonce)
 
@@ -45,7 +46,7 @@ class SessionManager(
     }
 
     suspend fun validateChallenge(keyId: String, key: KeyPair, nonce: String): String {
-        val jwt = KeystoreManager.createJWT(
+        val jwt = JwtUtils.signJWT(
             keyPair = key,
             payload = mapOf("nonce" to nonce),
             headers = mapOf("kid" to keyId)
@@ -58,7 +59,6 @@ class SessionManager(
 
             is PublicAuthSessionResponseClient.ValidateChallengeResult.Success -> {
                 result.response.headers["session"] ?: throw Exception("Could not get session ID")
-
             }
         }
     }
