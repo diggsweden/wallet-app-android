@@ -24,8 +24,8 @@ class SessionManager(
 
     suspend fun initSession(): String {
         val accountId = userDao.get()?.accountId ?: throw Exception("No account")
-        val keyId = "myKey"
         val key = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+        val keyId = JwtUtils.exportJwk(key).keyID
         val nonce = getChallenge(accountId, keyId)
         val sessionToken = validateChallenge(keyId = keyId, key = key, nonce = nonce)
 
@@ -59,7 +59,6 @@ class SessionManager(
 
             is PublicAuthSessionResponseClient.ValidateChallengeResult.Success -> {
                 result.response.headers["session"] ?: throw Exception("Could not get session ID")
-
             }
         }
     }

@@ -129,7 +129,6 @@ object NetworkModule {
                     protocol = URLProtocol.HTTPS
                     host = "wallet.sandbox.digg.se/api"
                 }
-                header("X-API-KEY", "my_secret_key")
             }
         }
 

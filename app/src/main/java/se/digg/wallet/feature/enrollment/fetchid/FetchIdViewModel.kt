@@ -60,7 +60,7 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                         crv = jwk.curve.name,
                         x = jwk.x.toString(),
                         y = jwk.y.toString(),
-                        kid = "myKey"
+                        kid = jwk.keyID
                     )
                 )
                 val response = userRepository.createAccount(requestBody)
