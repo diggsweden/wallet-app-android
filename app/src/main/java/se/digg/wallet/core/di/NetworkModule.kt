@@ -13,6 +13,13 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.inject.Qualifier
+import javax.inject.Singleton
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import se.digg.wallet.core.network.SessionManager
@@ -21,13 +28,6 @@ import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
-import javax.inject.Qualifier
-import javax.inject.Singleton
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -44,7 +44,6 @@ annotation class UnsafeHttpClient
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides
     @Singleton
     @BaseHttpClient
@@ -53,7 +52,7 @@ object NetworkModule {
             json(
                 Json {
                     ignoreUnknownKeys = true
-                }
+                },
             )
         }
 
@@ -70,35 +69,39 @@ object NetworkModule {
     @UnsafeHttpClient
     @SuppressLint("TrustAllX509TrustManager")
     fun provideUnsafeHttpClient(): HttpClient {
-        val trustAllCerts = arrayOf<TrustManager>(
-            @SuppressLint("CustomX509TrustManager")
-            object : X509TrustManager {
-                override fun checkClientTrusted(
-                    chain: Array<out X509Certificate>?,
-                    authType: String?
-                ) {
-                }
+        val trustAllCerts =
+            arrayOf<TrustManager>(
+                @SuppressLint("CustomX509TrustManager")
+                object : X509TrustManager {
+                    override fun checkClientTrusted(
+                        chain: Array<out X509Certificate>?,
+                        authType: String?,
+                    ) {
+                    }
 
-                override fun checkServerTrusted(
-                    chain: Array<out X509Certificate>?,
-                    authType: String?
-                ) {
-                }
+                    override fun checkServerTrusted(
+                        chain: Array<out X509Certificate>?,
+                        authType: String?,
+                    ) {
+                    }
 
-                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-            }
-        )
+                    override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+                },
+            )
 
         val trustManager = trustAllCerts[0] as X509TrustManager
 
-        val sslContext = SSLContext.getInstance("TLS").apply {
-            init(null, trustAllCerts, SecureRandom())
-        }
+        val sslContext =
+            SSLContext.getInstance("TLS").apply {
+                init(null, trustAllCerts, SecureRandom())
+            }
 
-        val unsafeOkHttp = OkHttpClient.Builder()
-            .sslSocketFactory(sslContext.socketFactory, trustManager)
-            .hostnameVerifier { _, _ -> true }
-            .build()
+        val unsafeOkHttp =
+            OkHttpClient
+                .Builder()
+                .sslSocketFactory(sslContext.socketFactory, trustManager)
+                .hostnameVerifier { _, _ -> true }
+                .build()
 
         return HttpClient(OkHttp) {
             engine {
@@ -108,7 +111,7 @@ object NetworkModule {
                 json(
                     Json {
                         ignoreUnknownKeys = true
-                    }
+                    },
                 )
             }
         }
@@ -120,22 +123,24 @@ object NetworkModule {
     fun provideGatewayClient(
         @BaseHttpClient
         base: HttpClient,
-        userDao: UserDao
+        userDao: UserDao,
     ): HttpClient {
-        val client = base.config {
-            defaultRequest {
-                url {
-                    protocol = URLProtocol.HTTPS
-                    host = "wallet.sandbox.digg.se/api"
+        val client =
+            base.config {
+                defaultRequest {
+                    url {
+                        protocol = URLProtocol.HTTPS
+                        host = "wallet.sandbox.digg.se/api"
+                    }
                 }
             }
-        }
 
-        val sessionManager = SessionManager(
-            challengeClient = PublicAuthSessionChallengeClient(client),
-            validateClient = PublicAuthSessionResponseClient(client),
-            userDao = userDao
-        )
+        val sessionManager =
+            SessionManager(
+                challengeClient = PublicAuthSessionChallengeClient(client),
+                validateClient = PublicAuthSessionResponseClient(client),
+                userDao = userDao,
+            )
 
         return client.config {
             install(authPlugin) {

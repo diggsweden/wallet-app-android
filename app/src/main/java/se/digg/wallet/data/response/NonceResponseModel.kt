@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NonceResponseModel(
     @SerialName("c_nonce")
-    val nonce: String
+    val nonce: String,
 )

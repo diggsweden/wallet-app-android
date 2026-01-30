@@ -64,6 +64,7 @@ import timber.log.Timber
 fun IssuanceScreen(
     navController: NavController,
     credentialOfferUri: String?,
+    modifier: Modifier = Modifier,
     viewModel: IssuanceViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -72,27 +73,29 @@ fun IssuanceScreen(
     LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri ?: "error") }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         {
             TopAppBar(title = {
                 Text(
-                    text = "Hämta attributsintyg"
+                    text = "Hämta attributsintyg",
                 )
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_left),
-                        contentDescription = ""
+                        contentDescription = "",
                     )
                 }
             })
-        }) { innerPadding ->
+        },
+    ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
             Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp)
+                modifier =
+                    Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
             ) {
                 Header(metadata = issuerMetadata)
 
@@ -104,9 +107,9 @@ fun IssuanceScreen(
                     is IssuanceState.IssuerFetched -> {
                         Timber.d("IssuanceState.IssuerFetched")
                         PrimaryButton(
-                            modifier = Modifier.fillMaxWidth(),
                             text = "Hämta ID-handling",
-                            onClick = { viewModel.authorize(launchAuthTab) }
+                            onClick = { viewModel.authorize(launchAuthTab) },
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
 
@@ -114,9 +117,9 @@ fun IssuanceScreen(
                         Timber.d("IssuanceState.Authorized")
                         val authorizedRequest = state.request
                         PrimaryButton(
-                            modifier = Modifier.fillMaxWidth(),
                             text = "Logga in",
-                            onClick = { viewModel.fetchCredential(authorizedRequest) }
+                            onClick = { viewModel.fetchCredential(authorizedRequest) },
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
 
@@ -125,7 +128,8 @@ fun IssuanceScreen(
                         val fetchedCredential = state.credential
                         Disclosures(
                             fetchedCredential = fetchedCredential,
-                            onCloseClicked = { navController.navigateUp() })
+                            onClose = { navController.navigateUp() },
+                        )
                     }
 
                     IssuanceState.Error -> {
@@ -143,94 +147,115 @@ fun IssuanceScreen(
 
 @Composable
 private fun Header(metadata: CredentialIssuerMetadata?) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.onPrimary.copy(
-                alpha = 0.2f
-            )
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        SelectionContainer {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Box(
-                    modifier = Modifier
-                        .height(200.dp)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AsyncImage(
-                        model = metadata?.display?.first()?.logo?.uri.toString(),
-                        contentDescription = "-",
-                        modifier = Modifier.size(200.dp)
-                    )
+    Column {
+        Card(
+            colors =
+                CardDefaults.cardColors(
+                    containerColor =
+                        MaterialTheme.colorScheme.onPrimary.copy(
+                            alpha = 0.2f,
+                        ),
+                ),
+            modifier =
+                Modifier
+                    .fillMaxWidth(),
+        ) {
+            SelectionContainer {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .height(200.dp)
+                                .fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AsyncImage(
+                            model =
+                                metadata
+                                    ?.display
+                                    ?.first()
+                                    ?.logo
+                                    ?.uri
+                                    .toString(),
+                            contentDescription = "-",
+                            modifier = Modifier.size(200.dp),
+                        )
+                    }
+                    Text("Utfärdare:", fontWeight = FontWeight.Bold)
+                    Text(metadata?.display?.first()?.name ?: "-")
                 }
-                Text("Utfärdare:", fontWeight = FontWeight.Bold)
-                Text(metadata?.display?.first()?.name ?: "-")
             }
         }
+        Spacer(Modifier.height(12.dp))
     }
-    Spacer(Modifier.height(12.dp))
 }
 
 @Composable
 private fun PreAuthInput(onSubmit: (Int) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.digg_primary).copy(
-                alpha = 0.2f
-            )
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = sanitize(it) },
-                label = { Text("Enter authorization code") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
+    Column {
+        Card(
+            colors =
+                CardDefaults.cardColors(
+                    containerColor =
+                        colorResource(id = R.color.digg_primary).copy(
+                            alpha = 0.2f,
+                        ),
                 ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        text.toIntOrNull()?.let { input -> onSubmit.invoke(input) }
-                    }
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+            modifier =
+                Modifier
+                    .fillMaxWidth(),
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = sanitize(it) },
+                    label = { Text("Enter authorization code") },
+                    singleLine = true,
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                text.toIntOrNull()?.let { input -> onSubmit.invoke(input) }
+                            },
+                        ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
-            Button(
-                onClick = { text.toIntOrNull()?.let { input -> onSubmit.invoke(input) } },
-                enabled = text.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Verify")
+                Button(
+                    onClick = { text.toIntOrNull()?.let { input -> onSubmit.invoke(input) } },
+                    enabled = text.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Verify")
+                }
             }
         }
+        Spacer(Modifier.height(12.dp))
     }
-    Spacer(Modifier.height(12.dp))
 }
 
 fun sanitize(input: String) = input.filter { it.isDigit() }
 
-
 @Composable
-private fun Disclosures(fetchedCredential: CredentialLocal, onCloseClicked: () -> Boolean) {
+private fun Disclosures(fetchedCredential: CredentialLocal, onClose: () -> Boolean) {
     Column {
         Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.onPrimary.copy(
-                    alpha = 0.2f
-                )
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
+            colors =
+                CardDefaults.cardColors(
+                    containerColor =
+                        MaterialTheme.colorScheme.onPrimary.copy(
+                            alpha = 0.2f,
+                        ),
+                ),
+            modifier =
+                Modifier
+                    .fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text("Attribut:", fontWeight = FontWeight.Bold)
@@ -241,31 +266,35 @@ private fun Disclosures(fetchedCredential: CredentialLocal, onCloseClicked: () -
                         onValueChange = { },
                         label = {
                             Text(
-                                item.value.claim.display.first().name ?: "No name", maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                item.value.claim.display
+                                    .first()
+                                    .name ?: "No name",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                         singleLine = true,
                         readOnly = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(Modifier.height(12.dp))
                 }
             }
         }
+
         Spacer(Modifier.height(12.dp))
+
+        PrimaryButton(
+            text = stringResource(R.string.generic_ok),
+            onClick = { onClose.invoke() },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
-    PrimaryButton(
-        modifier = Modifier.fillMaxWidth(),
-        text = stringResource(R.string.generic_ok),
-        onClick = { onCloseClicked.invoke() }
-    )
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun IssuancePreview() {
     WalletTheme {
-
     }
 }

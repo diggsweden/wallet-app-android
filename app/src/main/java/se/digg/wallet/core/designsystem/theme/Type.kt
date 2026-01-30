@@ -26,7 +26,7 @@ val ubuntuFontFamily = FontFamily(
 
 private val DefaultM3 = Typography()
 
-//https://developer.android.com/develop/ui/compose/designsystems/material2-material3#typography
+// https://developer.android.com/develop/ui/compose/designsystems/material2-material3#typography
 val UbuntuTypography = Typography(
     displayLarge = DefaultM3.displayLarge.copy(fontFamily = ubuntuFontFamily),
     displayMedium = DefaultM3.displayMedium.copy(fontFamily = ubuntuFontFamily),
@@ -54,60 +54,60 @@ object DiggTextStyle {
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 32.sp,
-        lineHeight = 32.sp
+        lineHeight = 32.sp,
     )
     val H2 = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 24.sp,
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
     )
     val H3 = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        lineHeight = 20.sp
+        lineHeight = 20.sp,
     )
     val H4 = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
-        lineHeight = 18.sp
+        lineHeight = 18.sp,
     )
     val H5 = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
-        lineHeight = 16.sp
+        lineHeight = 16.sp,
     )
     val H6 = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
-        lineHeight = 16.sp
+        lineHeight = 16.sp,
     )
     val BodyPreamble = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
-        lineHeight = 20.sp
+        lineHeight = 20.sp,
     )
     val BodyLG = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
-        lineHeight = 32.sp
+        lineHeight = 32.sp,
     )
     val BodyMD = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
     )
     val BodySM = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 20.sp
+        lineHeight = 20.sp,
     )
 }

@@ -3,6 +3,8 @@ package se.digg.wallet.feature.enrollment.fetchid
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,13 +25,12 @@ import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateWuaDto
 import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
-import java.util.UUID
-import javax.inject.Inject
 
 @HiltViewModel
-class FetchIdViewModel @Inject constructor(private val userRepository: UserRepository) :
+class FetchIdViewModel
+@Inject
+constructor(private val userRepository: UserRepository) :
     ViewModel() {
-
     init {
         setupAccount()
     }
@@ -40,8 +41,10 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
     private val _effects = MutableSharedFlow<FetchIdUiEffect>()
     val effects: SharedFlow<FetchIdUiEffect> = _effects.asSharedFlow()
 
-    val credential = userRepository.user.map { it?.credential }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val credential =
+        userRepository.user
+            .map { it?.credential }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setupAccount() {
         viewModelScope.launch {
@@ -51,28 +54,31 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                 val email = userRepository.getEmail() ?: ""
                 val phone = userRepository.getPhone() ?: ""
 
-                val requestBody = CreateAccountRequestDto(
-                    personalIdentityNumber = "12345678",
-                    emailAdress = email,
-                    telephoneNumber = phone,
-                    publicKey = JwkDto(
-                        kty = jwk.keyType.value,
-                        crv = jwk.curve.name,
-                        x = jwk.x.toString(),
-                        y = jwk.y.toString(),
-                        kid = jwk.keyID
+                val requestBody =
+                    CreateAccountRequestDto(
+                        personalIdentityNumber = "12345678",
+                        emailAdress = email,
+                        telephoneNumber = phone,
+                        publicKey =
+                            JwkDto(
+                                kty = jwk.keyType.value,
+                                crv = jwk.curve.name,
+                                x = jwk.x.toString(),
+                                y = jwk.y.toString(),
+                                kid = jwk.keyID,
+                            ),
                     )
-                )
                 val response = userRepository.createAccount(requestBody)
-                val accountId = when (response) {
-                    is OidcAccountsV1Client.CreateAccountResult.Failure -> {
-                        throw Exception("Kunde inte skapa konto")
-                    }
+                val accountId =
+                    when (response) {
+                        is OidcAccountsV1Client.CreateAccountResult.Failure -> {
+                            throw Exception("Kunde inte skapa konto")
+                        }
 
-                    is OidcAccountsV1Client.CreateAccountResult.Success -> {
-                        response.data.accountId ?: ""
+                        is OidcAccountsV1Client.CreateAccountResult.Success -> {
+                            response.data.accountId ?: ""
+                        }
                     }
-                }
                 Timber.d("ContactInfo - Response: $response")
                 userRepository.setAccountId(accountId)
                 requestWua()
@@ -88,29 +94,31 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
                 val jwk = JwtUtils.exportJwk(keyPair)
                 val uuid = UUID.randomUUID()
-                val request = CreateWuaDto(
-                    walletId = uuid.toString(),
-                    jwk = JwkDto(
-                        kty = jwk.keyType.value,
-                        crv = jwk.curve.name,
-                        x = jwk.x.toString(),
-                        y = jwk.y.toString()
+                val request =
+                    CreateWuaDto(
+                        walletId = uuid.toString(),
+                        jwk =
+                            JwkDto(
+                                kty = jwk.keyType.value,
+                                crv = jwk.curve.name,
+                                x = jwk.x.toString(),
+                                y = jwk.y.toString(),
+                            ),
                     )
-                )
                 val response = userRepository.fetchWua(request)
-                val jwt = when (response) {
-                    is CreateWua_1Result.Failure -> {
-                        throw Exception("Could not get WUA")
-                    }
+                val jwt =
+                    when (response) {
+                        is CreateWua_1Result.Failure -> {
+                            throw Exception("Could not get WUA")
+                        }
 
-                    is CreateWua_1Result.Success -> {
-                        response.data.jwt ?: ""
+                        is CreateWua_1Result.Success -> {
+                            response.data.jwt ?: ""
+                        }
                     }
-                }
                 Timber.d("Wallet activation ok - $response")
                 storeWuaLocally(jwt = jwt, uuid = uuid)
                 _uiState.value = FetchIdUiState.Idle
-
             } catch (e: Exception) {
                 Timber.d("Wallet activation error - ${e.message}")
                 _uiState.value = FetchIdUiState.Error

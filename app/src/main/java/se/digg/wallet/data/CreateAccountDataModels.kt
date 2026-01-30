@@ -4,9 +4,7 @@ data class CreateAccountRequestDTO(
     val personalIdentityNumber: String,
     val emailAdress: String,
     val telephoneNumber: String,
-    val publicKey: Jwk
+    val publicKey: Jwk,
 )
 
-data class CreateAccountResponseDTO(
-    val accountId: String
-)
+data class CreateAccountResponseDTO(val accountId: String)

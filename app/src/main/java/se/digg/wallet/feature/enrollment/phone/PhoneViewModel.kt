@@ -3,6 +3,7 @@ package se.digg.wallet.feature.enrollment.phone
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class PhoneViewModel @Inject constructor(private val userRepository: UserRepository) :
@@ -27,8 +27,12 @@ class PhoneViewModel @Inject constructor(private val userRepository: UserReposit
 
     fun onEvent(event: PhoneUiEvent) {
         when (event) {
-            is PhoneUiEvent.PhoneChanged -> updatePhone(event.value)
+            is PhoneUiEvent.PhoneChanged -> {
+                updatePhone(event.value)
+            }
+
             is PhoneUiEvent.PhoneFocusedChanged -> {}
+
             PhoneUiEvent.NextClicked -> {
                 validatePhoneNumber()
             }
@@ -80,5 +84,4 @@ class PhoneViewModel @Inject constructor(private val userRepository: UserReposit
         val regex = Regex("^\\+?\\d{7,15}$")
         return regex.matches(cleaned)
     }
-
 }

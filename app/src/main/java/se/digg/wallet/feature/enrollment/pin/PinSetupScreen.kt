@@ -27,14 +27,14 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PinSetupScreen(
     onNext: () -> Unit,
     onBack: () -> Unit,
     verifyPin: Boolean = false,
-    viewModel: PinSetupViewModel = hiltViewModel()
+    viewModel: PinSetupViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
@@ -50,16 +50,17 @@ fun PinSetupScreen(
     PinSetupScreen(
         uiState = uiState,
         verifyPin = verifyPin,
-        onNextClicked = { viewModel.setPin(it) },
-        onVerifyClicked = { viewModel.checkIfValid(isVerifyScreen = verifyPin, code = it) })
+        onNext = { viewModel.setPin(it) },
+        onVerify = { viewModel.checkIfValid(isVerifyScreen = verifyPin, code = it) },
+    )
 }
 
 @Composable
 private fun PinSetupScreen(
     uiState: PinSetupUiState,
     verifyPin: Boolean,
-    onNextClicked: (String) -> Unit,
-    onVerifyClicked: (String) -> Unit
+    onNext: (String) -> Unit,
+    onVerify: (String) -> Unit,
 ) {
     var pinCode by rememberSaveable { mutableStateOf("") }
 
@@ -68,7 +69,7 @@ private fun PinSetupScreen(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
@@ -87,37 +88,38 @@ private fun PinSetupScreen(
             style = DiggTextStyle.BodyLG,
         )
         Spacer(Modifier.height(16.dp))
-        PinInput(onPinChange = {
-            pinCode = it
-        })
-
+        PinInput(
+            onPinChange = {
+                pinCode = it
+            },
+        )
 
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.generic_next),
             onClick = {
                 if (verifyPin) {
-                    onVerifyClicked.invoke(pinCode)
+                    onVerify.invoke(pinCode)
                 } else {
-                    onNextClicked.invoke(pinCode)
+                    onNext.invoke(pinCode)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
-
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun PinSetupScreenPreview() {
     WalletTheme {
         Surface {
             PinSetupScreen(
                 uiState = PinSetupUiState(),
                 verifyPin = true,
-                onNextClicked = {},
-                onVerifyClicked = {})
+                onNext = {},
+                onVerify = {},
+            )
         }
     }
 }

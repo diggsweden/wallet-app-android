@@ -42,7 +42,7 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CredentialCard
 import se.digg.wallet.core.designsystem.component.NewCredentialCard
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.navigation.NavigationItem
 
 const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/pid-issuer"
@@ -51,22 +51,21 @@ const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/pid-issuer"
 @Composable
 fun DashboardScreen(
     navController: NavController,
-    viewModel: DashboardViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    viewModel: DashboardViewModel = hiltViewModel(),
 ) {
-
     val credentialDetails by viewModel.credentialDetails.collectAsState()
     val context = LocalContext.current
 
-
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
                 ),
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -75,35 +74,39 @@ fun DashboardScreen(
                             contentDescription = "Logo",
                             modifier = Modifier
                                 .width(24.dp)
-                                .height(24.dp)
+                                .height(24.dp),
 
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
                             stringResource(R.string.dashboard_title),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        navController.navigate(
-                            NavigationItem.Settings.route
-                        )
-                    }) {
+                    IconButton(
+                        onClick = {
+                            navController.navigate(
+                                NavigationItem.Settings.route,
+                            )
+                        },
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.settings_24px),
-                            contentDescription = ""
+                            contentDescription = "",
                         )
                     }
-                })
-        }) { innerPadding ->
+                },
+            )
+        },
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
         ) {
             Header()
             Spacer(modifier = Modifier.height(12.dp))
@@ -111,19 +114,22 @@ fun DashboardScreen(
                 CredentialCard(
                     onClick = {
                         navController.navigate(
-                            NavigationItem.CredentialDetails.route
+                            NavigationItem.CredentialDetails.route,
                         )
                     },
                     issuer = credentialDetails?.issuer,
                     disclosureCount = credentialDetails?.disclosureCount,
-                    issueDate = credentialDetails?.issueDate
+                    issueDate = credentialDetails?.issueDate,
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
-            NewCredentialCard(text = stringResource(R.string.dashboard_add_credential), onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
-                context.startActivity(intent)
-            })
+            NewCredentialCard(
+                text = stringResource(R.string.dashboard_add_credential),
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
+                    context.startActivity(intent)
+                },
+            )
         }
     }
 }
@@ -135,22 +141,22 @@ private fun Header() {
             .padding(top = 16.dp, bottom = 8.dp)
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             style = MaterialTheme.typography.titleLarge,
             text = stringResource(R.string.dashboard_welcome),
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp),
         )
         Text(
             fontSize = 16.sp,
-            text = stringResource(R.string.dashboard_description)
+            text = stringResource(R.string.dashboard_description),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         DashboardScreen(navController = rememberNavController())

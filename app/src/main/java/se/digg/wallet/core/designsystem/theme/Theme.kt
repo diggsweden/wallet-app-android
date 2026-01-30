@@ -21,7 +21,7 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Pink80,
     surface = ContainerDarkMode,
     background = DefaultBackgroundDarkMode,
-    errorContainer = ErrorContainerDarkMode
+    errorContainer = ErrorContainerDarkMode,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -31,7 +31,7 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Pink40,
     surface = Container,
     background = DefaultBackground,
-    errorContainer = ErrorContainer
+    errorContainer = ErrorContainer,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -41,14 +41,14 @@ private val LightColorScheme = lightColorScheme(
     onTertiary = Color.White,
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
-    */
+     */
 )
 
 @Composable
 fun WalletTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -56,13 +56,18 @@ fun WalletTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> {
+            DarkColorScheme
+        }
+
+        else -> {
+            LightColorScheme
+        }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = UbuntuTypography,
-        content = content
+        content = content,
     )
 }

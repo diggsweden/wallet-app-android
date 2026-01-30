@@ -14,75 +14,57 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 
 @Serializable
-data class DefaultJwtClaims(
-    val iat: Int,
-    val nbf: Int,
-    val exp: Int,
-)
+data class DefaultJwtClaims(val iat: Int, val nbf: Int, val exp: Int)
 
 @Serializable
-data class JwtClaims<T>(
-    val defaults: DefaultJwtClaims,
-    val payload: T,
-)
+data class JwtClaims<T>(val defaults: DefaultJwtClaims, val payload: T)
 
-data class CryptoSpec(
-    val jwk: JWK,
-    val encryptionMethod: EncryptionMethod
-)
+data class CryptoSpec(val jwk: JWK, val encryptionMethod: EncryptionMethod)
 
-class JwtClaimsSerializer<T>(
-    private val payloadSerializer: KSerializer<T>,
-) : KSerializer<JwtClaims<T>> {
+class JwtClaimsSerializer<T>(private val payloadSerializer: KSerializer<T>) :
+    KSerializer<JwtClaims<T>> {
 
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("JwtClaims")
 
-    override fun serialize(
-        encoder: Encoder,
-        value: JwtClaims<T>,
-    ) {
+    override fun serialize(encoder: Encoder, value: JwtClaims<T>) {
         require(encoder is JsonEncoder)
 
         val defaultsJson = encoder.json.encodeToJsonElement(
             DefaultJwtClaims.serializer(),
-            value.defaults
+            value.defaults,
         ).jsonObject
 
         val payloadJson = encoder.json.encodeToJsonElement(
             payloadSerializer,
-            value.payload
+            value.payload,
         ).jsonObject
 
         val merged = JsonObject(defaultsJson + payloadJson)
         encoder.encodeJsonElement(merged)
     }
 
-    override fun deserialize(
-        decoder: Decoder,
-    ): JwtClaims<T> {
+    override fun deserialize(decoder: Decoder): JwtClaims<T> {
         require(decoder is JsonDecoder)
 
         val obj = decoder.decodeJsonElement().jsonObject
 
         val defaults = decoder.json.decodeFromJsonElement(
             DefaultJwtClaims.serializer(),
-            obj
+            obj,
         )
 
         val payload = decoder.json.decodeFromJsonElement(
             payloadSerializer,
-            obj
+            obj,
         )
 
         return JwtClaims(
             defaults = defaults,
-            payload = payload
+            payload = payload,
         )
     }
 }
 
-fun <T> jwtClaimsSerializer(
-    payloadSerializer: KSerializer<T>
-): KSerializer<JwtClaims<T>> =
+fun <T> jwtClaimsSerializer(payloadSerializer: KSerializer<T>): KSerializer<JwtClaims<T>> =
     JwtClaimsSerializer(payloadSerializer)

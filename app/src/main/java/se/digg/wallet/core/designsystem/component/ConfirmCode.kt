@@ -31,16 +31,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun ConfirmCode(
-    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
-    length: Int = 6,
-    keyboardType: KeyboardType = KeyboardType.Number,
     onDone: (() -> Unit),
+    modifier: Modifier = Modifier,
+    keyboardType: KeyboardType = KeyboardType.Number,
+    length: Int = 6,
     imeAction: ImeAction = ImeAction.Done,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -56,7 +56,7 @@ fun ConfirmCode(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         BasicTextField(
             modifier = Modifier
@@ -84,39 +84,39 @@ fun ConfirmCode(
                         )
                     }
                 }
-            }
+            },
         )
     }
 }
 
 @Composable
-fun NumberCell(char: String) {
+fun NumberCell(char: String, modifier: Modifier = Modifier) {
     val rectColor = MaterialTheme.colorScheme.onSurface
-    Column(modifier = Modifier.height(48.dp)) {
+    Column(modifier = modifier.height(48.dp)) {
         Text(
             text = char.ifEmpty { "" },
             style = DiggTextStyle.H2,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .width(30.dp)
-                .height(24.dp)
+                .height(24.dp),
         )
         Spacer(modifier = Modifier.height(4.dp))
         Spacer(
             modifier = Modifier
                 .width(30.dp)
                 .height(3.dp)
-                .drawBehind { drawRect(rectColor) })
+                .drawBehind { drawRect(rectColor) },
+        )
     }
 }
 
-
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {
-            ConfirmCode(onValueChange = {}, onDone = {}, value = "123456")
+            ConfirmCode(value = "123456", onValueChange = {}, onDone = {})
         }
     }
 }

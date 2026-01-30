@@ -30,13 +30,13 @@ import se.digg.wallet.core.designsystem.component.OutLinedInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PhoneScreen(
     onNext: () -> Unit,
     onSkip: () -> Unit,
-    viewModel: PhoneViewModel = hiltViewModel()
+    viewModel: PhoneViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
@@ -51,58 +51,59 @@ fun PhoneScreen(
 
     PhoneScreen(
         uiState = uiState,
-        onInputChanged = { viewModel.onEvent(PhoneUiEvent.PhoneChanged(it)) },
-        onNextClicked = { viewModel.onEvent(PhoneUiEvent.NextClicked) },
-        onSkipClicked = { viewModel.onEvent(PhoneUiEvent.SkipClicked) }
+        onInputChange = { viewModel.onEvent(PhoneUiEvent.PhoneChanged(it)) },
+        onNext = { viewModel.onEvent(PhoneUiEvent.NextClicked) },
+        onSkip = { viewModel.onEvent(PhoneUiEvent.SkipClicked) },
     )
 }
 
 @Composable
 private fun PhoneScreen(
     uiState: PhoneUiState,
-    onInputChanged: (String) -> Unit,
-    onNextClicked: () -> Unit,
-    onSkipClicked: () -> Unit
+    onInputChange: (String) -> Unit,
+    onNext: () -> Unit,
+    onSkip: () -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "3. Ditt telefonnummer", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
+            "3. Ditt telefonnummer",
+            textAlign = TextAlign.Center,
+            style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         OutLinedInput(
-            modifier = Modifier.onFocusChanged { state ->
-
-            },
             value = uiState.phone,
-            onValueChange = { onInputChanged.invoke(it) },
-            isError = uiState.showError,
-            errorText = "Ogiltigt telefonnummer",
             labelText = stringResource(R.string.contact_info_phone_label),
+            onValueChange = { onInputChange.invoke(it) },
+            modifier = Modifier.onFocusChanged { state ->
+            },
             hintText = stringResource(R.string.contact_info_phone_placeholder),
+            errorText = "Ogiltigt telefonnummer",
+            isError = uiState.showError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
-            )
+                imeAction = ImeAction.Next,
+            ),
         )
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.generic_next),
-            onClick = { onNextClicked.invoke() }
+            onClick = { onNext.invoke() },
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(16.dp))
         Text(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onSkipClicked.invoke()
+                    onSkip.invoke()
                 },
             text = "Hoppa över",
             textDecoration = TextDecoration.Underline,
@@ -113,15 +114,16 @@ private fun PhoneScreen(
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun PhoneScreenPreview() {
     WalletTheme {
         Surface {
             PhoneScreen(
                 uiState = PhoneUiState(),
-                onInputChanged = {},
-                onNextClicked = {},
-                onSkipClicked = {})
+                onInputChange = {},
+                onNext = {},
+                onSkip = {},
+            )
         }
     }
 }

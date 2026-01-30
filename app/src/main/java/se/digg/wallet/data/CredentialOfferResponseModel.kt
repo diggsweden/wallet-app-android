@@ -5,6 +5,9 @@
 package se.digg.wallet.data
 
 import eu.europa.ec.eudi.openid4vci.Claim
+import java.net.URI
+import java.util.Date
+import java.util.Locale
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,9 +16,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.net.URI
-import java.util.Date
-import java.util.Locale
 
 @Serializable
 data class CredentialRequestModel(
@@ -23,29 +23,20 @@ data class CredentialRequestModel(
     val credentialConfigurationId: String,
     val proofs: Proof,
     @SerialName("credential_response_encryption")
-    val credentialResponseEncryption: CredentialResponseEncryptionModel? = null
+    val credentialResponseEncryption: CredentialResponseEncryptionModel? = null,
 )
 
 @Serializable
-data class CredentialResponseEncryptionModel(
-    val jwk: JwkModel,
-    val enc: String
-)
+data class CredentialResponseEncryptionModel(val jwk: JwkModel, val enc: String)
 
 @Serializable
-data class Proof(
-    val jwt: List<String>
-)
+data class Proof(val jwt: List<String>)
 
 @Serializable
-data class CredentialResponseModel(
-    val credentials: List<Credential>
-)
+data class CredentialResponseModel(val credentials: List<Credential>)
 
 @Serializable
-data class Credential(
-    val credential: String
-)
+data class Credential(val credential: String)
 
 @Serializable
 data class CredentialLocal(
@@ -53,7 +44,7 @@ data class CredentialLocal(
     val sdJwt: String,
     val disclosures: Map<String, DisclosureLocal>,
     @Serializable(with = DateAsLongSerializer::class)
-    val issuedAt: Date = Date()
+    val issuedAt: Date = Date(),
 )
 
 @Serializable
@@ -75,11 +66,7 @@ data class DisplayLocal(
 }
 
 @Serializable
-data class DisclosureLocal(
-    val base64: String,
-    val claim: Claim,
-    val value: String
-)
+data class DisclosureLocal(val base64: String, val claim: Claim, val value: String)
 
 object LocaleSerializer : KSerializer<Locale> {
     override val descriptor: SerialDescriptor =
@@ -104,9 +91,7 @@ object JavaUriSerializer : KSerializer<URI> {
         encoder.encodeString(value.toString())
     }
 
-    override fun deserialize(decoder: Decoder): URI {
-        return URI.create(decoder.decodeString())
-    }
+    override fun deserialize(decoder: Decoder): URI = URI.create(decoder.decodeString())
 }
 
 object DateAsLongSerializer : KSerializer<Date> {
@@ -117,9 +102,7 @@ object DateAsLongSerializer : KSerializer<Date> {
         encoder.encodeLong(value.time)
     }
 
-    override fun deserialize(decoder: Decoder): Date {
-        return Date(decoder.decodeLong())
-    }
+    override fun deserialize(decoder: Decoder): Date = Date(decoder.decodeLong())
 }
 
 data class CredentialData(val jwt: String)

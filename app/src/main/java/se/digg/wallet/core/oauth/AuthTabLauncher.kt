@@ -12,9 +12,6 @@ val LocalAuthTabLauncher = staticCompositionLocalOf<LaunchAuthTab> {
 }
 
 @Composable
-fun ProvideAuthTabLauncher(
-    launcher: LaunchAuthTab,
-    content: @Composable () -> Unit
-) {
+fun ProvideAuthTabLauncher(launcher: LaunchAuthTab, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalAuthTabLauncher provides launcher, content)
 }

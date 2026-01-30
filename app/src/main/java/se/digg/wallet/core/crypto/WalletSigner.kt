@@ -10,10 +10,7 @@ import java.security.KeyPair
 import java.security.Signature
 
 class WalletSigner(val keyPair: KeyPair) : JWSSigner {
-    override fun sign(
-        header: JWSHeader?,
-        signingInput: ByteArray?
-    ): Base64URL {
+    override fun sign(header: JWSHeader?, signingInput: ByteArray?): Base64URL {
         val signature = Signature.getInstance("SHA256withECDSA").run {
             initSign(keyPair.private)
             update(signingInput)
@@ -25,11 +22,7 @@ class WalletSigner(val keyPair: KeyPair) : JWSSigner {
         return Base64URL.encode(joseSignature)
     }
 
-    override fun supportedJWSAlgorithms(): Set<JWSAlgorithm?> {
-        return setOf(JWSAlgorithm.ES256)
-    }
+    override fun supportedJWSAlgorithms(): Set<JWSAlgorithm?> = setOf(JWSAlgorithm.ES256)
 
-    override fun getJCAContext(): JCAContext {
-        return JCAContext()
-    }
+    override fun getJCAContext(): JCAContext = JCAContext()
 }

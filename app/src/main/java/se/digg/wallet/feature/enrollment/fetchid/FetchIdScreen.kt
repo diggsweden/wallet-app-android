@@ -35,15 +35,11 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.feature.dashboard.CREDENTIAL_URL
 
 @Composable
-fun FetchIdScreen(
-    onNext: () -> Unit,
-    viewModel: FetchIdViewModel = hiltViewModel()
-) {
-
+fun FetchIdScreen(onNext: () -> Unit, viewModel: FetchIdViewModel = hiltViewModel()) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -63,20 +59,17 @@ fun FetchIdScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     FetchIdScreen(
-        uiState = uiState
+        uiState = uiState,
     )
-
 }
 
 @Composable
-private fun FetchIdScreen(
-    uiState: FetchIdUiState
-) {
-
+private fun FetchIdScreen(uiState: FetchIdUiState) {
     when (uiState) {
         FetchIdUiState.Error -> Error()
+
         FetchIdUiState.Idle -> Content(
-            uiState = uiState
+            uiState = uiState,
         )
 
         FetchIdUiState.Loading -> Loading()
@@ -88,7 +81,7 @@ private fun Error() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("Error", style = DiggTextStyle.H2)
         Text("Något gick fel, försök igen.", style = DiggTextStyle.BodyMD)
@@ -96,9 +89,7 @@ private fun Error() {
 }
 
 @Composable
-private fun Content(
-    uiState: FetchIdUiState
-) {
+private fun Content(uiState: FetchIdUiState) {
     val context = LocalContext.current
 
     Column(
@@ -106,36 +97,38 @@ private fun Content(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "9. Hämta personuppgifter", style = DiggTextStyle.H1,
+            "9. Hämta personuppgifter",
+            style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
                 painter = painterResource(R.drawable.pinphone),
                 contentDescription = "",
                 modifier = Modifier
                     .width(135.dp)
-                    .height(161.dp)
+                    .height(161.dp),
             )
         }
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Varför?",
             style = DiggTextStyle.BodyMD,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "För att kunna använda plånboken behöver vi hämta uppgifter om dig. Uppgifterna som hämtas används som ett id-kort.",
-            style = DiggTextStyle.BodyMD
+            text = @Suppress("ktlint:standard:max-line-length")
+            "För att kunna använda plånboken behöver vi hämta uppgifter om dig. Uppgifterna som hämtas används som ett id-kort.",
+            style = DiggTextStyle.BodyMD,
         )
         Spacer(modifier = Modifier.height(24.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -143,24 +136,24 @@ private fun Content(
                 text = "Läs mer om de uppgifter vi hämtar",
                 style = DiggTextStyle.BodyMD,
                 textDecoration = TextDecoration.Underline,
-                color = Color(0xFF556951)
+                color = Color(0xFF556951),
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 painter = painterResource(R.drawable.open_in_new),
                 contentDescription = null,
-                tint = Color(0xFF556951)
+                tint = Color(0xFF556951),
             )
         }
 
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = "Hämta personuppgifter",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
                 context.startActivity(intent)
-            }
+            },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -170,20 +163,19 @@ private fun Loading() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("Loading...", style = DiggTextStyle.H2)
     }
-
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun FetchIdScreenPreview() {
     WalletTheme {
         Surface {
             FetchIdScreen(
-                uiState = FetchIdUiState.Idle
+                uiState = FetchIdUiState.Idle,
             )
         }
     }

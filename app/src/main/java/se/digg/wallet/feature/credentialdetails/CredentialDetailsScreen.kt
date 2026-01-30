@@ -42,33 +42,35 @@ import se.digg.wallet.data.DisclosureLocal
 @Composable
 fun CredentialDetailsScreen(
     navController: NavController,
-    viewModel: CredentialDetailsViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    viewModel: CredentialDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(Unit) { viewModel.matchDisclosures() }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         {
             TopAppBar(title = {
                 Text(
-                    text = ""
+                    text = "",
                 )
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_left),
-                        contentDescription = ""
+                        contentDescription = "",
                     )
                 }
             })
-        }) { innerPadding ->
+        },
+    ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 12.dp)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.dp),
             ) {
                 when (val state = uiState) {
                     is CredentialDetailsState.Disclosures -> {
@@ -90,16 +92,16 @@ fun CredentialDetailsScreen(
 private fun Disclosures(disclosures: List<DisclosureLocal>, issuer: String?) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.onPrimary.copy(
-                    alpha = 0.2f
-                )
+                    alpha = 0.2f,
+                ),
             ),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             Column(
                 modifier = Modifier
@@ -111,23 +113,21 @@ private fun Disclosures(disclosures: List<DisclosureLocal>, issuer: String?) {
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = issuer,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Spacer(Modifier.height(12.dp))
                 }
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    text = "Attribut:"
+                    text = "Attribut:",
                 )
                 Spacer(Modifier.height(16.dp))
                 disclosures.forEach { disclosure ->
                     LockedFieldWithCheckbox(
-                        modifier = Modifier,
-                        label = disclosure.claim.display.first().name ?: "-",
                         value = disclosure.value,
-                        checked = true,
-                        onCheckedChange = {}
+                        label = disclosure.claim.display.first().name ?: "-",
+                        onCheckedChange = {},
                     )
                     Spacer(Modifier.height(12.dp))
                 }
@@ -140,13 +140,13 @@ private fun Disclosures(disclosures: List<DisclosureLocal>, issuer: String?) {
 private fun Error(errorMessage: String?) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = "Error",
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Text(text = errorMessage ?: "No error message available")
     }

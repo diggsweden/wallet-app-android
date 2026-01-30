@@ -1,11 +1,10 @@
 package se.digg.wallet.feature.enrollment
 
-
 data class EnrollmentUiState(
     val currentStep: EnrollmentStep = EnrollmentStep.NOTIFICATION,
     val totalSteps: Int = EnrollmentStep.totalSteps,
     val enableBack: List<EnrollmentStep> =
-        listOf(EnrollmentStep.VERIFY_EMAIL, EnrollmentStep.VERIFY_PHONE, EnrollmentStep.VERIFY_PIN)
+        listOf(EnrollmentStep.VERIFY_EMAIL, EnrollmentStep.VERIFY_PHONE, EnrollmentStep.VERIFY_PIN),
 )
 
 sealed interface EnrollmentUiEvent {
@@ -25,7 +24,8 @@ enum class EnrollmentStep(val stepTitle: String) {
     VERIFY_EMAIL("Verify email"),
     PIN("PIN"),
     VERIFY_PIN("Verify PIN"),
-    FETCH_PID("PID");
+    FETCH_PID("PID"),
+    ;
 
     companion object {
         val totalSteps: Int get() = entries.size

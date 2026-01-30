@@ -4,6 +4,7 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import se.digg.wallet.data.UserRepository
-import javax.inject.Inject
 
 @HiltViewModel
 class EmailViewModel @Inject constructor(private val userRepository: UserRepository) :
@@ -34,9 +34,15 @@ class EmailViewModel @Inject constructor(private val userRepository: UserReposit
     fun onEvent(event: EmailUiEvent) {
         when (event) {
             is EmailUiEvent.EmailChanged -> updateEmail(event.value)
+
             is EmailUiEvent.VerifyEmailChanged -> updateVerifyEmail(event.value)
+
             is EmailUiEvent.EmailFocusedChanged -> checkIfShouldValidateEmail(event.isFocused)
-            is EmailUiEvent.VerifyEmailFocusedChanged -> checkIfShouldValidateVerifyEmail(event.isFocused)
+
+            is EmailUiEvent.VerifyEmailFocusedChanged -> checkIfShouldValidateVerifyEmail(
+                event.isFocused,
+            )
+
             EmailUiEvent.NextClicked -> onNextClicked()
         }
     }
@@ -74,14 +80,14 @@ class EmailViewModel @Inject constructor(private val userRepository: UserReposit
             _uiState.update {
                 it.copy(
                     emailError = null,
-                    verifyEmailError = null
+                    verifyEmailError = null,
                 )
             }
         } else if (isBothEmailsValid() && !isBothEmailsSame()) {
             _uiState.update {
                 it.copy(
                     emailError = EmailValidationError.NOT_SAME,
-                    verifyEmailError = EmailValidationError.NOT_SAME
+                    verifyEmailError = EmailValidationError.NOT_SAME,
                 )
             }
         } else {
@@ -127,6 +133,10 @@ class EmailViewModel @Inject constructor(private val userRepository: UserReposit
         if (value.isBlank()) return EmailValidationError.EMPTY
         return if (Patterns.EMAIL_ADDRESS.matcher(value)
                 .matches()
-        ) null else EmailValidationError.NOT_VALID_EMAIL
+        ) {
+            null
+        } else {
+            EmailValidationError.NOT_VALID_EMAIL
+        }
     }
 }

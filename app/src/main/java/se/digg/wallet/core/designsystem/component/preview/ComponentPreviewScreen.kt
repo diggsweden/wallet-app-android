@@ -26,7 +26,7 @@ import se.digg.wallet.core.designsystem.component.CredentialCard
 import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
 import se.digg.wallet.core.designsystem.component.NewCredentialCard
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 private fun ComponentPreviewScreen() {
@@ -36,11 +36,12 @@ private fun ComponentPreviewScreen() {
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PreviewCategoryDivider("Cards")
-            CredentialCard(issuer = "Issuer", disclosureCount = 7, issueDate = "29 aug 2025") { }
-            NewCredentialCard("Add new credential") { }
+            CredentialCard(issuer = "Issuer", disclosureCount = 7, onClick = {
+            }, issueDate = "29 aug 2025")
+            NewCredentialCard("Add new credential", onClick = {})
 
             PreviewCategoryDivider("Buttons")
             Button(onClick = {}) {
@@ -60,13 +61,13 @@ private fun ComponentPreviewScreen() {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             PreviewCategoryDivider("Locked textfield")
-            LockedFieldWithCheckbox(label = "Label", value = "Value") { }
+            LockedFieldWithCheckbox(value = "Value", label = "Label", { })
         }
     }
 }
@@ -77,9 +78,8 @@ private fun PreviewCategoryDivider(categoryName: String) {
     HorizontalDivider()
 }
 
-
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {

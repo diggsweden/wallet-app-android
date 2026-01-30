@@ -28,7 +28,7 @@ import se.digg.wallet.core.designsystem.component.ConfirmCode
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PhoneVerifyScreen(onNext: () -> Unit, viewModel: PhoneVerifyViewModel = hiltViewModel()) {
@@ -45,22 +45,23 @@ fun PhoneVerifyScreen(onNext: () -> Unit, viewModel: PhoneVerifyViewModel = hilt
 
     PhoneVerifyScreen(
         uiState = uiState,
-        onNextClicked = { viewModel.onEvent(PhoneVerifyUiEvent.NextClicked) },
-        onConfirmCodeChanged = { viewModel.onEvent(PhoneVerifyUiEvent.CodeChanged(it)) })
+        onNext = { viewModel.onEvent(PhoneVerifyUiEvent.NextClicked) },
+        onConfirmCodeChange = { viewModel.onEvent(PhoneVerifyUiEvent.CodeChanged(it)) },
+    )
 }
 
 @Composable
 private fun PhoneVerifyScreen(
     uiState: PhoneVerifyUiState,
-    onNextClicked: () -> Unit,
-    onConfirmCodeChanged: (String) -> Unit
+    onNext: () -> Unit,
+    onConfirmCodeChange: (String) -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
@@ -71,9 +72,10 @@ private fun PhoneVerifyScreen(
         Spacer(Modifier.height(70.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Text(
-                text = "En kod för att bekräfta ditt telefonnummer  har skickats till ${uiState.phone}.",
+                text =
+                    "En kod för att bekräfta ditt telefonnummer  har skickats till ${uiState.phone}.",
                 style = DiggTextStyle.BodyMD,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Image(
@@ -81,38 +83,37 @@ private fun PhoneVerifyScreen(
                 contentDescription = "",
                 modifier = Modifier
                     .width(135.dp)
-                    .height(161.dp)
+                    .height(161.dp),
             )
         }
         Spacer(Modifier.height(16.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Det kan ta några minuter innan du får din kod, den är aktiv i en timme. \n" +
-                    "Kom inte koden gå ett steg tillbaka",
-            style = DiggTextStyle.BodySM
+                "Kom inte koden gå ett steg tillbaka",
+            style = DiggTextStyle.BodySM,
         )
         Spacer(Modifier.height(64.dp))
 
         ConfirmCode(
             value = uiState.code,
-            onValueChange = { onConfirmCodeChanged.invoke(it) },
-            length = 6,
-            onDone = { /* submit code */ }
+            onValueChange = { onConfirmCodeChange.invoke(it) },
+            onDone = { /* submit code */ },
         )
 
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.generic_next),
             onClick = {
-                onNextClicked.invoke()
-            }
+                onNext.invoke()
+            },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun PhoneVerifyScreenPreview() {
     WalletTheme {
         Surface {
@@ -120,10 +121,11 @@ private fun PhoneVerifyScreenPreview() {
                 uiState = PhoneVerifyUiState(
                     code = "124574",
                     showError = false,
-                    phone = "12345678"
+                    phone = "12345678",
                 ),
-                onNextClicked = {},
-                onConfirmCodeChanged = {})
+                onNext = {},
+                onConfirmCodeChange = {},
+            )
         }
     }
 }

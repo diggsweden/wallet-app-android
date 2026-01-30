@@ -15,42 +15,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun LockedFieldWithCheckbox(
-    modifier: Modifier = Modifier,
-    label: String,
     value: String,
+    label: String,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
     checked: Boolean = true,
-    onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedTextField(
             value = value,
             label = {
                 Text(
-                    label, maxLines = 1,
+                    label,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             },
             onValueChange = {},
             readOnly = true,
             singleLine = true,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {
-            LockedFieldWithCheckbox(label = "Label", value = "Value") { }
+            LockedFieldWithCheckbox(value = "Value", label = "Label", { })
         }
     }
 }

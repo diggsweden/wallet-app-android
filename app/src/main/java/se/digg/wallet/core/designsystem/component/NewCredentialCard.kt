@@ -20,10 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
-fun NewCredentialCard(text: String, onClick: () -> Unit) {
+fun NewCredentialCard(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val isDarkMode = isSystemInDarkTheme()
 
     Card(
@@ -31,10 +31,10 @@ fun NewCredentialCard(text: String, onClick: () -> Unit) {
             onClick.invoke()
         },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = MaterialTheme.colorScheme.primary,
         ),
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier
@@ -42,7 +42,7 @@ fun NewCredentialCard(text: String, onClick: () -> Unit) {
                 .height(150.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(text = text)
         }
@@ -50,7 +50,7 @@ fun NewCredentialCard(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {

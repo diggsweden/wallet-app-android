@@ -26,6 +26,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import java.security.MessageDigest
+import java.util.Base64
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -41,9 +44,6 @@ import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
-import java.security.MessageDigest
-import java.util.Base64
-import javax.inject.Inject
 
 sealed interface PresentationState {
     object Initial : PresentationState
@@ -61,14 +61,13 @@ sealed interface UiEffect {
 class PresentationViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
-) :
-    ViewModel() {
+) : ViewModel() {
     var walletConfig: SiopOpenId4VPConfig? = null
     var matchedClaims: List<DisclosureLocal> = emptyList()
     var presentationUri: String = ""
     var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
 
-    val _uiState = MutableStateFlow<PresentationState>(PresentationState.Initial)
+    private val _uiState = MutableStateFlow<PresentationState>(PresentationState.Initial)
     val uiState: StateFlow<PresentationState> = _uiState
 
     private val _effects = MutableSharedFlow<UiEffect>()
@@ -86,24 +85,28 @@ class PresentationViewModel @Inject constructor(
                 jarConfiguration = JarConfiguration.Default,
                 responseEncryptionConfiguration = ResponseEncryptionConfiguration.Supported(
                     supportedMethods = listOf(EncryptionMethod.A128GCM),
-                    supportedAlgorithms = listOf(JWEAlgorithm.RSA_OAEP_256, JWEAlgorithm.ECDH_ES)
+                    supportedAlgorithms = listOf(JWEAlgorithm.RSA_OAEP_256, JWEAlgorithm.ECDH_ES),
                 ),
                 vpConfiguration = VPConfiguration(
                     knownDCQLQueriesPerScope = emptyMap(),
                     vpFormatsSupported = VpFormatsSupported(
-                        sdJwtVc = VpFormatsSupported.SdJwtVc.HAIP, msoMdoc = null
+                        sdJwtVc = VpFormatsSupported.SdJwtVc.HAIP,
+                        msoMdoc = null,
                     ),
-                    supportedTransactionDataTypes = emptyList()
+                    supportedTransactionDataTypes = emptyList(),
                 ),
                 supportedClientIdPrefixes = listOf<SupportedClientIdPrefix>(
-                    SupportedClientIdPrefix.X509SanDns { true }
-                )
+                    SupportedClientIdPrefix.X509SanDns { true },
+                ),
             )
             try {
                 val resolution = SiopOpenId4Vp.invoke(walletConfig!!, provideKtorClient())
                     .resolveRequestUri(presentationUri)
                 when (resolution) {
-                    is Resolution.Invalid -> throw resolution.error.asException()
+                    is Resolution.Invalid -> {
+                        throw resolution.error.asException()
+                    }
+
                     is Resolution.Success -> {
                         authorization =
                             resolution.requestObject as ResolvedRequestObject.OpenId4VPAuthorization
@@ -118,15 +121,13 @@ class PresentationViewModel @Inject constructor(
         }
     }
 
-    fun provideKtorClient(): HttpClient {
-        return HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(Json { ignoreUnknownKeys = true })
-            }
-            engine {
-                config {
-                    retryOnConnectionFailure(true)
-                }
+    fun provideKtorClient(): HttpClient = HttpClient(OkHttp) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
+        }
+        engine {
+            config {
+                retryOnConnectionFailure(true)
             }
         }
     }
@@ -143,10 +144,15 @@ class PresentationViewModel @Inject constructor(
                     val query = auth.query.credentials.value[0]
 
                     matchedClaims = when (val claims = query.claims) {
-                        null -> credential.disclosures.values.toList()
-                        else -> claims
-                            .map { it.path.value.joinToString(".") }
-                            .mapNotNull(credential.disclosures::get)
+                        null -> {
+                            credential.disclosures.values.toList()
+                        }
+
+                        else -> {
+                            claims
+                                .map { it.path.value.joinToString(".") }
+                                .mapNotNull(credential.disclosures::get)
+                        }
                     }
                     _uiState.value =
                         PresentationState.SelectDisclosures(disclosures = matchedClaims)
@@ -173,7 +179,7 @@ class PresentationViewModel @Inject constructor(
                         createVpToken(credential = credential, auth),
                         auth.state,
                         query.id,
-                        auth.nonce
+                        auth.nonce,
                     )
                     val responseUrl = when (val responseMode = auth.responseMode) {
                         is ResponseMode.DirectPost -> {
@@ -184,16 +190,27 @@ class PresentationViewModel @Inject constructor(
                             responseMode.responseURI
                         }
 
-                        is ResponseMode.Fragment -> TODO()
-                        is ResponseMode.FragmentJwt -> TODO()
-                        is ResponseMode.Query -> TODO()
-                        is ResponseMode.QueryJwt -> TODO()
+                        is ResponseMode.Fragment -> {
+                            TODO()
+                        }
+
+                        is ResponseMode.FragmentJwt -> {
+                            TODO()
+                        }
+
+                        is ResponseMode.Query -> {
+                            TODO()
+                        }
+
+                        is ResponseMode.QueryJwt -> {
+                            TODO()
+                        }
                     }
                     responseUrl.let { it ->
                         try {
                             val response = openIdNetworkService.postVpToken(
                                 url = it.toString(),
-                                body = createRequestBody(submissionPayload)
+                                body = createRequestBody(submissionPayload),
                             )
                             Timber.d("PresentationViewModel - Presentation: OK $response}")
                             response.redirectUri?.let {
@@ -201,7 +218,6 @@ class PresentationViewModel @Inject constructor(
                             } ?: run {
                                 _uiState.value = PresentationState.ShareSuccess
                             }
-
                         } catch (e: Exception) {
                             Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
                             _uiState.value = PresentationState.Error(errorMessage = e.message)
@@ -215,13 +231,14 @@ class PresentationViewModel @Inject constructor(
         }
     }
 
-    private fun createRequestBody(payload: Map<String, Any?>): String {
-        return payload.entries.joinToString("&") { "${it.key}=${it.value}" }
-    }
+    private fun createRequestBody(payload: Map<String, Any?>): String =
+        payload.entries.joinToString("&") {
+            "${it.key}=${it.value}"
+        }
 
     fun createVpToken(
         credential: CredentialLocal?,
-        authorization: ResolvedRequestObject.OpenId4VPAuthorization
+        authorization: ResolvedRequestObject.OpenId4VPAuthorization,
     ): String {
         val header = credential?.sdJwt
         val body = matchedClaims.map { it.base64 }
@@ -234,7 +251,7 @@ class PresentationViewModel @Inject constructor(
 
     private fun createKeyBinding(
         sdJwt: String,
-        authorization: ResolvedRequestObject.OpenId4VPAuthorization
+        authorization: ResolvedRequestObject.OpenId4VPAuthorization,
     ): String {
         val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
         val nonce = authorization.nonce
@@ -245,7 +262,7 @@ class PresentationViewModel @Inject constructor(
         val payload = KeybindingPayload(
             aud = aud,
             nonce = nonce,
-            sdHash = base64Hash
+            sdHash = base64Hash,
         )
         val headers = mapOf("typ" to "kb+jwt")
         val keybinding = JwtUtils.signJWT(keyPair = keyPair, payload = payload, headers = headers)
@@ -257,14 +274,14 @@ class PresentationViewModel @Inject constructor(
         vpToken: String,
         state: String?,
         id: QueryId,
-        nonce: String
+        nonce: String,
     ): Map<String, Any?> {
         val vpJson = Json.encodeToString(mapOf(id to listOf(vpToken)))
 
         return mapOf(
             "state" to state,
             "vp_token" to vpJson,
-            "nonce" to nonce
+            "nonce" to nonce,
         )
     }
 }

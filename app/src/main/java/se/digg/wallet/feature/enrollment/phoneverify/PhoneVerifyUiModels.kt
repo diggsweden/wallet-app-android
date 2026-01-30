@@ -3,7 +3,7 @@ package se.digg.wallet.feature.enrollment.phoneverify
 data class PhoneVerifyUiState(
     val phone: String = "",
     val code: String = "",
-    val showError: Boolean = false
+    val showError: Boolean = false,
 )
 
 sealed interface PhoneVerifyUiEvent {

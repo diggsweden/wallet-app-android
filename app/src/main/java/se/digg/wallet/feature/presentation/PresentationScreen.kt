@@ -50,7 +50,8 @@ import se.digg.wallet.data.DisclosureLocal
 fun PresentationScreen(
     navController: NavController,
     fullUri: String,
-    viewModel: PresentationViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    viewModel: PresentationViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val uriHandler = LocalUriHandler.current
@@ -69,31 +70,32 @@ fun PresentationScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         {
             TopAppBar(title = {
                 Text(
-                    text = "Presenting"
+                    text = "Presenting",
                 )
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_left),
-                        contentDescription = ""
+                        contentDescription = "",
                     )
                 }
             })
-        }) { innerPadding ->
+        },
+    ) { innerPadding ->
         Surface(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.dp),
             ) {
                 when (val state = uiState) {
                     is PresentationState.Error -> {
@@ -101,20 +103,20 @@ fun PresentationScreen(
                     }
 
                     PresentationState.Initial -> {
-                        //Header()
+                        // Header()
                     }
 
                     PresentationState.Loading -> {
-                        //Header()
+                        // Header()
                     }
 
                     is PresentationState.SelectDisclosures -> {
                         val matchedClaims = state.disclosures
-                        //Header()
+                        // Header()
                         Spacer(Modifier.height(4.dp))
                         Disclosures(
                             onSendClick = { viewModel.sendData() },
-                            matchedClaims = matchedClaims
+                            matchedClaims = matchedClaims,
                         )
                     }
 
@@ -122,23 +124,24 @@ fun PresentationScreen(
                         ShareSuccess(onFinishClick = { navController.navigateUp() })
                     }
                 }
+
+                Spacer(Modifier.height(4.dp))
             }
         }
     }
-    Spacer(Modifier.height(4.dp))
 }
 
 @Composable
 private fun Error(errorMessage: String?) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = "Error",
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Text(text = errorMessage ?: "No error message available")
     }
@@ -148,14 +151,15 @@ private fun Error(errorMessage: String?) {
 private fun ShareSuccess(onFinishClick: () -> Boolean) {
     Column(
         modifier = Modifier
-            .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = "Delning av data lyckades!",
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -163,7 +167,7 @@ private fun ShareSuccess(onFinishClick: () -> Boolean) {
             text = "Please continue the flow in your browser or on your other device.",
         )
         Button(
-            onClick = { onFinishClick.invoke() }
+            onClick = { onFinishClick.invoke() },
         ) {
             Text(stringResource(R.string.generic_close))
         }
@@ -175,16 +179,16 @@ private fun Header() {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.onPrimary.copy(
-                    alpha = 0.2f
-                )
+                    alpha = 0.2f,
+                ),
             ),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             Column(
                 modifier = Modifier
@@ -201,16 +205,16 @@ private fun Header() {
 private fun Disclosures(onSendClick: () -> Unit, matchedClaims: List<DisclosureLocal>) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.onPrimary.copy(
-                    alpha = 0.2f
-                )
+                    alpha = 0.2f,
+                ),
             ),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             Column(
                 modifier = Modifier
@@ -221,21 +225,20 @@ private fun Disclosures(onSendClick: () -> Unit, matchedClaims: List<DisclosureL
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     text = "Vill du dela följande data?",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 matchedClaims.forEach { matchedClaim ->
                     LockedFieldWithCheckbox(
-                        modifier = Modifier,
-                        label = matchedClaim.claim.display.first().name ?: "-",
                         value = matchedClaim.value,
-                        checked = true,
-                        onCheckedChange = {})
+                        label = matchedClaim.claim.display.first().name ?: "-",
+                        onCheckedChange = {},
+                    )
                 }
                 Spacer(Modifier.height(16.dp))
                 PrimaryButton(
-                    modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.generic_ok),
-                    onClick = { onSendClick.invoke() }
+                    onClick = { onSendClick.invoke() },
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(12.dp))
             }
@@ -247,6 +250,5 @@ private fun Disclosures(onSendClick: () -> Unit, matchedClaims: List<DisclosureL
 @Composable
 private fun PresentationPreview() {
     WalletTheme {
-
     }
 }

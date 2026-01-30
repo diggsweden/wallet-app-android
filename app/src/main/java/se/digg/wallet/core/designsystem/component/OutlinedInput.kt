@@ -45,14 +45,14 @@ import se.digg.wallet.core.designsystem.theme.PlaceholderTextDarkMode
 import se.digg.wallet.core.designsystem.theme.TextColor
 import se.digg.wallet.core.designsystem.theme.TextColorDarkMode
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun OutLinedInput(
-    modifier: Modifier = Modifier,
     value: String,
-    onValueChange: (String) -> Unit,
     labelText: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     hintText: String? = null,
     errorText: String? = null,
     isError: Boolean = false,
@@ -60,7 +60,6 @@ fun OutLinedInput(
     cornerRadius: Dp = 10.dp,
     keyboardOptions: KeyboardOptions? = null,
 ) {
-
     var isFocused by remember { mutableStateOf(false) }
 
     val isDarkMode = isSystemInDarkTheme()
@@ -74,27 +73,32 @@ fun OutLinedInput(
 
     val borderThickness = if (isFocused) 2.dp else 1.dp
     val borderColor = when {
-        isError -> errorOutlineColor
+        isError -> {
+            errorOutlineColor
+        }
+
         isFocused -> {
             if (isDarkMode) FocusedOutlineDarkMode else FocusedOutline
         }
 
-        else -> if (isDarkMode) FocusedOutlineDarkMode else FocusedOutline
+        else -> {
+            if (isDarkMode) FocusedOutlineDarkMode else FocusedOutline
+        }
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth(),
     ) {
         Text(text = labelText, style = DiggTextStyle.H6)
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .border(
                     width = borderThickness,
                     color = borderColor,
-                    shape = RoundedCornerShape(cornerRadius)
+                    shape = RoundedCornerShape(cornerRadius),
                 )
                 .onFocusChanged { focusState ->
                     isFocused = focusState.isFocused
@@ -126,7 +130,7 @@ fun OutLinedInput(
                 focusedContainerColor = containerColor,
                 disabledContainerColor = Color.Transparent,
             ),
-            keyboardOptions = keyboardOptions ?: KeyboardOptions.Default
+            keyboardOptions = keyboardOptions ?: KeyboardOptions.Default,
         )
         if (isError) {
             Spacer(modifier = Modifier.height(height = 6.dp))
@@ -134,13 +138,13 @@ fun OutLinedInput(
                 Icon(
                     painter = painterResource(R.drawable.error_outline),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
                 Spacer(modifier = Modifier.width(width = 6.dp))
                 Text(
                     text = errorText ?: "Error",
                     style = DiggTextStyle.BodySM,
-                    color = errorTextColor
+                    color = errorTextColor,
                 )
             }
         }
@@ -148,40 +152,39 @@ fun OutLinedInput(
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
-    WalletTheme() {
-        Surface() {
-            Column() {
-
+    WalletTheme {
+        Surface {
+            Column {
                 OutLinedInput(
                     value = "",
-                    onValueChange = {},
                     labelText = "Label text goes here",
-                    hintText = "Hint text goes here"
+                    onValueChange = {},
+                    hintText = "Hint text goes here",
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutLinedInput(
                     value = "Agagag",
-                    onValueChange = {},
                     labelText = "Label text goes here",
-                    hintText = "Hint text goes here"
+                    onValueChange = {},
+                    hintText = "Hint text goes here",
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutLinedInput(
                     value = "Halloj",
-                    onValueChange = {},
                     labelText = "Label text goes here",
+                    onValueChange = {},
                     hintText = "Hint text goes here",
-                    errorText = "Error error error asd aopsdi iojsdoi joiajsdo ijaosidj oij adosijaoisdj oijas doija",
-                    isError = true
+                    errorText = @Suppress("ktlint:standard:max-line-length")
+                    "Error error error asd aopsdi iojsdoi joiajsdo ijaosidj oij adosijaoisdj oijas doija",
+                    isError = true,
                 )
             }
-
         }
     }
 }

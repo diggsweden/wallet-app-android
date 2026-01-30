@@ -45,13 +45,13 @@ import se.digg.wallet.core.designsystem.theme.DiggBlack
 import se.digg.wallet.core.designsystem.theme.DiggBrown
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PinInput(
+    onPinChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     keyboardHeight: Dp = 360.dp,
-    onPinChange: (String) -> Unit
 ) {
     var pin by rememberSaveable { mutableStateOf("") }
     val configuration = LocalConfiguration.current
@@ -59,45 +59,45 @@ fun PinInput(
 
     if (isLandscape) {
         Landscape(
-            modifier = modifier,
             pin = pin,
             minLengthToSubmit = 6,
             onPinChange = {
                 if (it.length <= 6) {
                     pin = it
                     onPinChange.invoke(it)
-
                 }
             },
-            onPinReset = { pin = "" })
+            onPinReset = { pin = "" },
+            modifier = modifier,
+        )
     } else {
         Portrait(
-            modifier = modifier,
             pin = pin,
             minLengthToSubmit = 6,
+            onPinReset = { pin = "" },
             onPinChange = {
                 if (it.length <= 6) {
                     pin = it
                     onPinChange.invoke(it)
-
                 }
             },
-            onPinReset = { pin = "" })
+            modifier = modifier,
+        )
     }
 }
 
 @Composable
 private fun Portrait(
-    modifier: Modifier,
     pin: String,
     minLengthToSubmit: Int,
+    onPinReset: () -> Unit,
     onPinChange: (String) -> Unit,
-    onPinReset: () -> Unit
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
     ) {
         PinBalls(requiredLength = minLengthToSubmit, pinLength = pin.length)
         Spacer(Modifier.height(32.dp))
@@ -105,24 +105,24 @@ private fun Portrait(
             value = pin,
             onValueChange = onPinChange,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
         )
     }
 }
 
 @Composable
 private fun Landscape(
-    modifier: Modifier,
     pin: String,
     minLengthToSubmit: Int,
     onPinChange: (String) -> Unit,
-    onPinReset: () -> Unit
+    onPinReset: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxHeight()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         PinBalls(requiredLength = minLengthToSubmit, pinLength = pin.length)
         Spacer(Modifier.height(16.dp))
@@ -130,7 +130,7 @@ private fun Landscape(
             value = pin,
             onValueChange = onPinChange,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
         )
     }
 }
@@ -141,9 +141,9 @@ private fun PinBalls(requiredLength: Int, pinLength: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(
             space = 24.dp,
-            alignment = Alignment.CenterHorizontally
+            alignment = Alignment.CenterHorizontally,
         ),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(requiredLength) { index ->
             val filled = index < pinLength
@@ -153,10 +153,7 @@ private fun PinBalls(requiredLength: Int, pinLength: Int) {
 }
 
 @Composable
-private fun PinCircle(
-    filled: Boolean,
-    size: Dp
-) {
+private fun PinCircle(filled: Boolean, size: Dp) {
     val borderColor = DiggBrown
     val fillColor: Color =
         if (filled) DiggBrown else Color.Transparent
@@ -167,21 +164,17 @@ private fun PinCircle(
             .border(
                 width = 1.dp,
                 color = DiggBrown,
-                shape = CircleShape
+                shape = CircleShape,
             )
             .background(
                 color = fillColor,
-                shape = CircleShape
-            )
+                shape = CircleShape,
+            ),
     )
 }
 
 @Composable
-private fun PinPad(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun PinPad(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
     val haptic = LocalHapticFeedback.current
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == ORIENTATION_PORTRAIT
@@ -198,58 +191,64 @@ private fun PinPad(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(buttonSpacer)
+        verticalArrangement = Arrangement.spacedBy(buttonSpacer),
     ) {
         KeyRow(
             labels = listOf(
                 Numerics(number = "1", letters = ""),
                 Numerics(number = "2", letters = "ABC"),
-                Numerics(number = "3", letters = "DEF")
-            ), current = value, onValueChange = onValueChange
+                Numerics(number = "3", letters = "DEF"),
+            ),
+            current = value,
+            onValueChange = onValueChange,
         )
         Spacer(Modifier.height(8.dp))
         KeyRow(
             labels = listOf(
                 Numerics(number = "4", letters = "GHI"),
                 Numerics(number = "5", letters = "JKL"),
-                Numerics(number = "6", letters = "MNO")
-            ), current = value, onValueChange = onValueChange
+                Numerics(number = "6", letters = "MNO"),
+            ),
+            current = value,
+            onValueChange = onValueChange,
         )
         Spacer(Modifier.height(8.dp))
         KeyRow(
             labels = listOf(
                 Numerics(number = "7", letters = "PQRS"),
                 Numerics(number = "8", letters = "TUV"),
-                Numerics(number = "9", letters = "WXYZ")
-            ), current = value, onValueChange = onValueChange
+                Numerics(number = "9", letters = "WXYZ"),
+            ),
+            current = value,
+            onValueChange = onValueChange,
         )
         Spacer(Modifier.height(8.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
+            horizontalArrangement = Arrangement.SpaceAround,
         ) {
             T9IconButton(
                 painterResource = painterResource(R.drawable.backspace_24px),
                 showBackground = false,
-                onClick = { if (value.isNotEmpty()) onValueChange(value.dropLast(1)) })
+                onClick = { if (value.isNotEmpty()) onValueChange(value.dropLast(1)) },
+            )
             NumericButton(number = "0", text = "", onClick = { onValueChange(value + "0") })
             Box(modifier = buttonModifier)
         }
     }
 }
 
-
 @Composable
 private fun KeyRow(
     labels: List<Numerics>,
     current: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround
+        horizontalArrangement = Arrangement.SpaceAround,
     ) {
         labels.forEach { label ->
             NumericButton(
@@ -257,7 +256,7 @@ private fun KeyRow(
                 text = label.letters,
                 onClick = {
                     onValueChange(current + label.number)
-                }
+                },
             )
         }
     }
@@ -268,7 +267,7 @@ private fun T9IconButton(
     painterResource: Painter,
     contentDescription: String = "",
     showBackground: Boolean = true,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
     val configuration = LocalConfiguration.current
@@ -282,26 +281,29 @@ private fun T9IconButton(
         contentPadding = PaddingValues(0.dp),
         modifier = buttonModifier,
         colors = ButtonDefaults.buttonColors(
-            containerColor = (if (!showBackground) {
-                Color.Transparent
-            } else {
-                MaterialTheme.colorScheme.primary
-            })
+            containerColor = (
+                if (!showBackground) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
+                ),
         ),
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
             onClick.invoke()
-        }) {
+        },
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Icon(
                 modifier = Modifier.size(32.dp),
                 painter = painterResource,
                 contentDescription = contentDescription,
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
@@ -312,7 +314,7 @@ private fun NumericButton(
     number: String,
     text: String,
     onClick: () -> Unit,
-    showBackground: Boolean = true
+    showBackground: Boolean = true,
 ) {
     val haptic = LocalHapticFeedback.current
     val configuration = LocalConfiguration.current
@@ -329,27 +331,30 @@ private fun NumericButton(
         contentPadding = PaddingValues(0.dp),
         modifier = buttonModifier,
         colors = ButtonDefaults.buttonColors(
-            containerColor = (if (!showBackground) {
-                Color.Transparent
-            } else {
-                MaterialTheme.colorScheme.primary
-            })
+            containerColor = (
+                if (!showBackground) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
+                ),
         ),
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
             onClick.invoke()
-        }) {
+        },
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = number,
                 fontSize = 28.sp,
                 fontFamily = ubuntuFontFamily,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onPrimary,
             )
             if (fontScale <= 1.2f) {
                 Text(
@@ -362,21 +367,17 @@ private fun NumericButton(
                         MaterialTheme.colorScheme.onPrimary
                     } else {
                         DiggBlack
-                    }
+                    },
                 )
             }
         }
     }
 }
 
-data class Numerics(
-    val number: String,
-    val letters: String
-)
-
+data class Numerics(val number: String, val letters: String)
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {

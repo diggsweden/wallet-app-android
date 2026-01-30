@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun CredentialCard(
@@ -27,6 +27,7 @@ fun CredentialCard(
     disclosureCount: Int?,
     issueDate: String?,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val isDarkMode = isSystemInDarkTheme()
 
@@ -35,21 +36,21 @@ fun CredentialCard(
             onClick.invoke()
         },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
+            containerColor = MaterialTheme.colorScheme.errorContainer,
         ),
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier
                 .padding(12.dp)
                 .height(150.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             issuer?.let {
                 Text(
                     text = it,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(Modifier.height(16.dp))
             }
@@ -65,7 +66,7 @@ fun CredentialCard(
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {
@@ -73,7 +74,7 @@ private fun Preview() {
                 onClick = {},
                 issuer = "DIGG issuer",
                 disclosureCount = 14,
-                issueDate = "29 Aug 2025"
+                issueDate = "29 Aug 2025",
             )
         }
     }

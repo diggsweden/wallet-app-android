@@ -27,6 +27,8 @@ import eu.europa.ec.eudi.openid4vci.MsoMdocCredential
 import eu.europa.ec.eudi.openid4vci.OpenId4VCIConfig
 import eu.europa.ec.eudi.openid4vci.SdJwtVcCredential
 import io.ktor.client.HttpClient
+import java.net.URI
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -51,8 +53,6 @@ import se.digg.wallet.data.Proof
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.toJwkModel
 import timber.log.Timber
-import java.net.URI
-import javax.inject.Inject
 
 sealed interface IssuanceState {
     object Idle : IssuanceState
@@ -68,7 +68,7 @@ class IssuanceViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val oAuthCoordinator: OAuthCoordinator,
     private val openIdNetworkService: OpenIdNetworkService,
-    @param:BaseHttpClient private val httpClient: HttpClient
+    @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
     val openId4VCIConfig = OpenId4VCIConfig(
@@ -77,8 +77,8 @@ class IssuanceViewModel @Inject constructor(
         encryptionSupportConfig = EncryptionSupportConfig.Companion(
             ecKeyCurve = Curve.P_256,
             rcaKeySize = 256,
-            credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED
-        )
+            credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
+        ),
     )
 
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
@@ -97,7 +97,7 @@ class IssuanceViewModel @Inject constructor(
                 val issuerFetched = Issuer.make(
                     config = openId4VCIConfig,
                     httpClient = httpClient,
-                    credentialOfferUri = uri
+                    credentialOfferUri = uri,
                 ).getOrThrow()
                 claimsMetadata = getClaimsMetadata(issuerFetched.credentialOffer)
                 _issuerMetadata.value = issuerFetched.credentialOffer.credentialIssuerMetadata
@@ -123,7 +123,8 @@ class IssuanceViewModel @Inject constructor(
                     ?: throw Exception("Failed OAuth callback")
                 val authRequest = with(issuer) {
                     prepareAuthorizationRequest.authorizeWithAuthorizationCode(
-                        AuthorizationCode(code = authCode), prepareAuthorizationRequest.state
+                        AuthorizationCode(code = authCode),
+                        prepareAuthorizationRequest.state,
                     )
                 }.getOrThrow()
                 _uiState.value = IssuanceState.Authorized(authRequest)
@@ -145,11 +146,11 @@ class IssuanceViewModel @Inject constructor(
 
                 val payload = IssuanceProofPayload(
                     aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString(),
-                    nonce = nonce
+                    nonce = nonce,
                 )
 
                 val headers = mapOf(
-                    "typ" to "openid4vci-proof+jwt"
+                    "typ" to "openid4vci-proof+jwt",
                 )
                 val jwtProof = JwtUtils.signJWT(keyPair, payload, headers)
                 val proofs = Proof(listOf(jwtProof))
@@ -167,13 +168,13 @@ class IssuanceViewModel @Inject constructor(
                         proof = proofs,
                         credentialConfigurationId = credentialConfigurationId,
                         requestEncryption = encryption,
-                        accessToken = accessToken
+                        accessToken = accessToken,
                     )
                 } else {
                     fetchUnEncryptedCredential(
                         proof = proofs,
                         credentialConfigurationId = credentialConfigurationId,
-                        accessToken = accessToken
+                        accessToken = accessToken,
                     )
                 }
                 handleCredential(response)
@@ -188,7 +189,7 @@ class IssuanceViewModel @Inject constructor(
         proof: Proof,
         credentialConfigurationId: String,
         requestEncryption: CryptoSpec,
-        accessToken: String
+        accessToken: String,
     ): CredentialResponseModel {
         val softwareKeyPair = KeystoreManager.createSoftwareEcdhKey()
         val credentialRequest = CredentialRequestModel(
@@ -196,19 +197,19 @@ class IssuanceViewModel @Inject constructor(
             proofs = proof,
             credentialResponseEncryption = CredentialResponseEncryptionModel(
                 jwk = JwtUtils.exportJwk(softwareKeyPair).toJwkModel(),
-                enc = EncryptionMethod.A128GCM.name
-            )
+                enc = EncryptionMethod.A128GCM.name,
+            ),
         )
 
         val encrypted = JwtUtils.encryptJwe(
             payload = credentialRequest,
             recipientKey = requestEncryption.jwk,
-            encryptionMethod = requestEncryption.encryptionMethod
+            encryptionMethod = requestEncryption.encryptionMethod,
         )
         val response = openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
             accessToken = accessToken,
-            jweBody = encrypted
+            jweBody = encrypted,
         )
 
         val credentialResponseModel: CredentialResponseModel =
@@ -219,36 +220,35 @@ class IssuanceViewModel @Inject constructor(
     private suspend fun fetchUnEncryptedCredential(
         proof: Proof,
         credentialConfigurationId: String,
-        accessToken: String
+        accessToken: String,
     ): CredentialResponseModel {
-
         val credentialRequest = CredentialRequestModel(
             credentialConfigurationId = credentialConfigurationId,
-            proofs = proof
+            proofs = proof,
         )
 
         val response = openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
             accessToken = accessToken,
-            request = credentialRequest
+            request = credentialRequest,
         )
         return response
     }
 
-    private fun getCryptoSpec(credentialRequestEncryption: CredentialRequestEncryption?): CryptoSpec? {
-        return when (credentialRequestEncryption) {
-            is CredentialRequestEncryption.Required -> {
-                letAll(
-                    credentialRequestEncryption.encryptionParameters.encryptionKeys.keys.firstOrNull(),
-                    credentialRequestEncryption.encryptionParameters.encryptionMethods.firstOrNull()
-                ) { key, method ->
-                    CryptoSpec(key, method)
-                }
+    private fun getCryptoSpec(
+        credentialRequestEncryption: CredentialRequestEncryption?,
+    ): CryptoSpec? = when (credentialRequestEncryption) {
+        is CredentialRequestEncryption.Required -> {
+            letAll(
+                credentialRequestEncryption.encryptionParameters.encryptionKeys.keys.firstOrNull(),
+                credentialRequestEncryption.encryptionParameters.encryptionMethods.firstOrNull(),
+            ) { key, method ->
+                CryptoSpec(key, method)
             }
+        }
 
-            else -> {
-                null
-            }
+        else -> {
+            null
         }
     }
 
@@ -291,7 +291,7 @@ class IssuanceViewModel @Inject constructor(
                     disclosures[claimId] = DisclosureLocal(
                         base64 = part,
                         claim = claim,
-                        value = claimValue
+                        value = claimValue,
                     )
                 }
             } catch (e: Exception) {
@@ -302,43 +302,46 @@ class IssuanceViewModel @Inject constructor(
         return CredentialLocal(
             issuer = displayToDisplayLocal(issuerMetadata.value?.display?.firstOrNull()),
             sdJwt = sdJwt,
-            disclosures = disclosures
+            disclosures = disclosures,
         )
     }
 
-    private fun displayToDisplayLocal(display: Display?): DisplayLocal? {
-        return display?.let {
-            DisplayLocal(
-                name = display.name,
-                locale = display.locale,
-                logo = DisplayLocal.Logo(
-                    uri = display.logo?.uri,
-                    alternativeText = display.logo?.alternativeText
-                ),
-                description = display.description,
-                backgroundImage = display.backgroundImage
-            )
-        }
+    private fun displayToDisplayLocal(display: Display?): DisplayLocal? = display?.let {
+        DisplayLocal(
+            name = display.name,
+            locale = display.locale,
+            logo = DisplayLocal.Logo(
+                uri = display.logo?.uri,
+                alternativeText = display.logo?.alternativeText,
+            ),
+            description = display.description,
+            backgroundImage = display.backgroundImage,
+        )
     }
 
-    private fun getClaimsMetadata(credentialOffer: CredentialOffer): Map<String, Claim> {
-        return credentialOffer.credentialConfigurationIdentifiers
+    private fun getClaimsMetadata(credentialOffer: CredentialOffer): Map<String, Claim> =
+        credentialOffer.credentialConfigurationIdentifiers
             .mapNotNull { id ->
                 credentialOffer.credentialIssuerMetadata.credentialConfigurationsSupported[id]
             }
             .flatMap { supportedCredential: CredentialConfiguration ->
                 when (supportedCredential) {
-                    is MsoMdocCredential -> supportedCredential.credentialMetadata?.claims
-                        ?: emptyList()
+                    is MsoMdocCredential -> {
+                        supportedCredential.credentialMetadata?.claims
+                            ?: emptyList()
+                    }
 
-                    is SdJwtVcCredential -> supportedCredential.credentialMetadata?.claims
-                        ?: emptyList()
+                    is SdJwtVcCredential -> {
+                        supportedCredential.credentialMetadata?.claims
+                            ?: emptyList()
+                    }
 
-                    else -> emptyList()
+                    else -> {
+                        emptyList()
+                    }
                 }
             }
             .associateBy { claim ->
                 claim.path.value.joinToString(".") { it.toString() }
             }
-    }
 }
