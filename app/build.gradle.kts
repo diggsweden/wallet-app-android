@@ -1,3 +1,6 @@
+import org.jmailen.gradle.kotlinter.tasks.FormatTask
+import org.jmailen.gradle.kotlinter.tasks.LintTask
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,13 +10,14 @@ plugins {
     alias(libs.plugins.hilt)
     kotlin("kapt")
     alias(libs.plugins.fabrikt)
+    alias(libs.plugins.kotlinter)
 }
 
 android {
     namespace = "se.digg.wallet"
     compileSdk = 36
 
-    //TODO this can be removed when eudi-libraries are removed.
+    // TODO this can be removed when eudi-libraries are removed.
     packaging {
         resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
@@ -45,7 +49,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // Use release signing config if available (CI), otherwise use debug
             signingConfig = if (System.getenv("ANDROID_KEYSTORE_PATH") != null) {
@@ -82,35 +86,7 @@ android {
     }
 }
 
-fabrikt {
-    generate("client-gateway") {
-        apiFile = file("src/main/openapi/client-gateway.json")
-        basePackage = "se.wallet.client.gateway"
-        addFileDisclaimer = enabled
-        validationLibrary = NoValidation
-        typeOverrides {
-            uuid = String
-        }
-        client {
-            generate = enabled
-            target = Ktor
-        }
-        model {
-            serializationLibrary = Kotlinx
-        }
-    }
-}
-
-tasks.named("preBuild") {
-    dependsOn("fabriktGenerate")
-}
-
-hilt {
-    enableAggregatingTask = false
-}
-
 dependencies {
-
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.compose)
@@ -140,4 +116,46 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+}
+
+kotlinter {
+    ktlintVersion = libs.versions.ktlint.get()
+    dependencies {
+        ktlint(libs.ktlint.compose)
+    }
+}
+
+tasks.withType<LintTask> {
+    exclude { it.file.path.contains("/build/generated") }
+}
+
+tasks.withType<FormatTask> {
+    exclude { it.file.path.contains("/build/generated") }
+}
+
+fabrikt {
+    generate("client-gateway") {
+        apiFile = file("src/main/openapi/client-gateway.json")
+        basePackage = "se.wallet.client.gateway"
+        addFileDisclaimer = enabled
+        validationLibrary = NoValidation
+        typeOverrides {
+            uuid = String
+        }
+        client {
+            generate = enabled
+            target = Ktor
+        }
+        model {
+            serializationLibrary = Kotlinx
+        }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("fabriktGenerate")
+}
+
+hilt {
+    enableAggregatingTask = false
 }
