@@ -72,18 +72,21 @@ fun PresentationScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         {
-            TopAppBar(title = {
-                Text(
-                    text = "Presenting",
-                )
-            }, navigationIcon = {
-                IconButton(onClick = { navController.navigateUp() }) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_left),
-                        contentDescription = "",
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Presenting",
                     )
-                }
-            })
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_left),
+                            contentDescription = "",
+                        )
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         Surface(

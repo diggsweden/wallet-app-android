@@ -66,10 +66,12 @@ fun ConfirmCode(
             onValueChange = { onValueChange.invoke(sanitize(it)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            keyboardActions = KeyboardActions(onDone = {
-                onDone.invoke()
-                focusManager.clearFocus()
-            }),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onDone.invoke()
+                    focusManager.clearFocus()
+                },
+            ),
             cursorBrush = SolidColor(Color.Transparent),
             textStyle = TextStyle(color = Color.Transparent),
             decorationBox = { innerTextField ->

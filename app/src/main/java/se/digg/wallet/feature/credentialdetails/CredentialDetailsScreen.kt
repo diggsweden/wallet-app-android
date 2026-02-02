@@ -51,18 +51,21 @@ fun CredentialDetailsScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         {
-            TopAppBar(title = {
-                Text(
-                    text = "",
-                )
-            }, navigationIcon = {
-                IconButton(onClick = { navController.navigateUp() }) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_left),
-                        contentDescription = "",
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "",
                     )
-                }
-            })
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_left),
+                            contentDescription = "",
+                        )
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {

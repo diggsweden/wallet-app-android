@@ -27,9 +27,7 @@ import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
 
 @HiltViewModel
-class FetchIdViewModel
-@Inject
-constructor(private val userRepository: UserRepository) :
+class FetchIdViewModel @Inject constructor(private val userRepository: UserRepository) :
     ViewModel() {
     init {
         setupAccount()

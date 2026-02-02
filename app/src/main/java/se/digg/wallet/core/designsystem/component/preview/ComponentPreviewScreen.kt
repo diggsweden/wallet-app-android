@@ -39,8 +39,13 @@ private fun ComponentPreviewScreen() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PreviewCategoryDivider("Cards")
-            CredentialCard(issuer = "Issuer", disclosureCount = 7, onClick = {
-            }, issueDate = "29 aug 2025")
+            CredentialCard(
+                issuer = "Issuer",
+                disclosureCount = 7,
+                onClick = {
+                },
+                issueDate = "29 aug 2025",
+            )
             NewCredentialCard("Add new credential", onClick = {})
 
             PreviewCategoryDivider("Buttons")

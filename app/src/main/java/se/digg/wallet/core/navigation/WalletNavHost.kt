@@ -134,19 +134,25 @@ fun WalletNavHost(
             route = RootGraph.ENROLLMENT,
         ) {
             composable(EnrollmentNavItem.Intro.route) {
-                IntroScreen(navController = navController, onContinue = {
-                    navController.navigate(EnrollmentNavItem.Onboarding.route)
-                })
+                IntroScreen(
+                    navController = navController,
+                    onContinue = {
+                        navController.navigate(EnrollmentNavItem.Onboarding.route)
+                    },
+                )
             }
             composable(EnrollmentNavItem.Onboarding.route) {
-                EnrollmentScreen(navController = navController, onFinish = {
-                    navController.navigate(NavigationItem.Home.route) {
-                        popUpTo(navController.graph.id) {
-                            inclusive = true
+                EnrollmentScreen(
+                    navController = navController,
+                    onFinish = {
+                        navController.navigate(NavigationItem.Home.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
-                    }
-                })
+                    },
+                )
             }
         }
     }
