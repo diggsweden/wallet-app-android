@@ -6,10 +6,13 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
+import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.OidcAccountsV1Client
 import se.wallet.client.gateway.client.WuaV3Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
+import se.wallet.client.gateway.models.CreateAccountResponseDto
 import se.wallet.client.gateway.models.CreateWuaDto
+import se.wallet.client.gateway.models.WuaDto
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
@@ -20,12 +23,12 @@ class UserRepository @Inject constructor(
     val wuaClient = WuaV3Client(gatewayClient)
     private var sessionId: String? = null
 
-    suspend fun fetchWua(request: CreateWuaDto): WuaV3Client.CreateWua_1Result =
-        wuaClient.createWua_1(request)
+    suspend fun fetchWua(request: CreateWuaDto): NetworkResult<WuaDto> =
+        wuaClient.createWua1(request)
 
     suspend fun createAccount(
         request: CreateAccountRequestDto,
-    ): OidcAccountsV1Client.CreateAccountResult {
+    ): NetworkResult<CreateAccountResponseDto> {
         val session = sessionId ?: throw IllegalStateException("SessionId is null")
         return accountsClient.createAccount(createAccountRequestDto = request, sESSION = session)
     }
