@@ -8,7 +8,7 @@ import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
-import se.wallet.client.gateway.models.AuthChallengeResponseDto
+import se.wallet.client.gateway.models.ValidateAuthChallengeRequestDto
 
 class SessionManager(
     val challengeClient: PublicAuthSessionChallengeClient,
@@ -52,15 +52,16 @@ class SessionManager(
                 payload = mapOf("nonce" to nonce),
                 headers = mapOf("kid" to keyId),
             )
-        val result = validateClient.validateChallenge(AuthChallengeResponseDto(signedJwt = jwt))
+        val result = validateClient.validateChallenge(
+            ValidateAuthChallengeRequestDto(signedJwt = jwt),
+        )
         return when (result) {
             is NetworkResult.Failure -> {
                 throw Exception("Failed validating challenge")
             }
 
             is NetworkResult.Success -> {
-                "REGENERATE"
-                // result.headers["session"] ?: throw Exception("Could not get session ID")
+                result.data.sessionId
             }
         }
     }
