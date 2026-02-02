@@ -17,7 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 private fun TypePreviewScreen() {
@@ -27,7 +27,7 @@ private fun TypePreviewScreen() {
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text("Display Large", style = MaterialTheme.typography.displayLarge)
             Text("Display Medium", style = MaterialTheme.typography.displayMedium)
@@ -61,7 +61,7 @@ private fun TypePreviewScreen() {
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         TypePreviewScreen()

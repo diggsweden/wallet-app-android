@@ -22,21 +22,20 @@ import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.navigation.WalletNavHost
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
-import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
-    lateinit var OAuthCoordinator: OAuthCoordinator
+    lateinit var oAuthCoordinator: OAuthCoordinator
 
     private val authLauncher =
         AuthTabIntent.registerActivityResultLauncher(this) { result ->
-            OAuthCoordinator.onResult(result)
+            oAuthCoordinator.onResult(result)
         }
 
     private fun launchAuthTab(url: Uri) {
@@ -45,11 +44,12 @@ class MainActivity : ComponentActivity() {
         authTabIntent.launch(
             authLauncher,
             url,
-            "wallet-app"
+            "wallet-app",
         )
     }
 
     lateinit var navHostController: NavHostController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -74,12 +74,13 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent() {
         intent.data?.let { uri ->
-            val request = NavDeepLinkRequest.Builder
-                .fromUri(uri)
-                .build()
+            val request =
+                NavDeepLinkRequest.Builder
+                    .fromUri(uri)
+                    .build()
 
             navHostController.navigate(
-                request
+                request,
             )
         }
     }
@@ -93,14 +94,19 @@ fun AppRoot(
     val app by viewModel.enrollmentState.collectAsState()
 
     when (app.flow) {
-        AppFlow.Enrollment -> WalletNavHost(
-            navController = navHostController,
-            isEnrolled = false
-        ) { viewModel.goToDashboard() }
+        AppFlow.Enrollment -> {
+            WalletNavHost(
+                { viewModel.goToDashboard() },
+                navController = navHostController,
+            )
+        }
 
-        AppFlow.Dashboard -> WalletNavHost(
-            navController = navHostController,
-            isEnrolled = true
-        ) { viewModel.goToEnrollment() }
+        AppFlow.Dashboard -> {
+            WalletNavHost(
+                { viewModel.goToEnrollment() },
+                navController = navHostController,
+                isEnrolled = true,
+            )
+        }
     }
 }

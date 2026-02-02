@@ -1,5 +1,6 @@
 package se.digg.wallet.core.network
 
+import java.security.KeyPair
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
@@ -7,12 +8,11 @@ import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
 import se.wallet.client.gateway.models.AuthChallengeResponseDto
-import java.security.KeyPair
 
 class SessionManager(
     val challengeClient: PublicAuthSessionChallengeClient,
     val validateClient: PublicAuthSessionResponseClient,
-    val userDao: UserDao
+    val userDao: UserDao,
 ) {
     private var sessionToken: String? = null
 
@@ -33,8 +33,8 @@ class SessionManager(
         return sessionToken
     }
 
-    suspend fun getChallenge(accountId: String, keyId: String): String {
-        return when (val result = challengeClient.initChallenge(accountId, keyId)) {
+    suspend fun getChallenge(accountId: String, keyId: String): String =
+        when (val result = challengeClient.initChallenge(accountId, keyId)) {
             is PublicAuthSessionChallengeClient.InitChallengeResult.Failure -> {
                 throw Exception("Failed getting challenge")
             }
@@ -43,14 +43,14 @@ class SessionManager(
                 result.data.nonce ?: ""
             }
         }
-    }
 
     suspend fun validateChallenge(keyId: String, key: KeyPair, nonce: String): String {
-        val jwt = JwtUtils.signJWT(
-            keyPair = key,
-            payload = mapOf("nonce" to nonce),
-            headers = mapOf("kid" to keyId)
-        )
+        val jwt =
+            JwtUtils.signJWT(
+                keyPair = key,
+                payload = mapOf("nonce" to nonce),
+                headers = mapOf("kid" to keyId),
+            )
         val result = validateClient.validateChallenge(AuthChallengeResponseDto(signedJwt = jwt))
         return when (result) {
             is PublicAuthSessionResponseClient.ValidateChallengeResult.Failure -> {

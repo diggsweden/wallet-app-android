@@ -1,6 +1,8 @@
 package se.digg.wallet.data
 
 import io.ktor.client.HttpClient
+import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
@@ -8,23 +10,22 @@ import se.wallet.client.gateway.client.OidcAccountsV1Client
 import se.wallet.client.gateway.client.WuaV3Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateWuaDto
-import java.util.UUID
-import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
-    private val gatewayClient: HttpClient
+    private val gatewayClient: HttpClient,
 ) {
     val user: Flow<User?> = userDao.observe()
     val accountsClient = OidcAccountsV1Client(gatewayClient)
     val wuaClient = WuaV3Client(gatewayClient)
     private var sessionId: String? = null
 
-    suspend fun fetchWua(request: CreateWuaDto): WuaV3Client.CreateWua_1Result {
-        return wuaClient.createWua_1(request)
-    }
+    suspend fun fetchWua(request: CreateWuaDto): WuaV3Client.CreateWua_1Result =
+        wuaClient.createWua_1(request)
 
-    suspend fun createAccount(request: CreateAccountRequestDto): OidcAccountsV1Client.CreateAccountResult {
+    suspend fun createAccount(
+        request: CreateAccountRequestDto,
+    ): OidcAccountsV1Client.CreateAccountResult {
         val session = sessionId ?: throw IllegalStateException("SessionId is null")
         return accountsClient.createAccount(createAccountRequestDto = request, sESSION = session)
     }
@@ -50,9 +51,7 @@ class UserRepository @Inject constructor(
 
     suspend fun wipeAll() = userDao.clear()
 
-    private suspend inline fun updateUser(
-        crossinline transform: (User) -> User
-    ) {
+    private suspend inline fun updateUser(crossinline transform: (User) -> User) {
         val current = userDao.get() ?: User(
             id = 0,
             pin = null,
@@ -66,6 +65,4 @@ class UserRepository @Inject constructor(
         val next = transform(current)
         userDao.upsert(next)
     }
-
-
 }

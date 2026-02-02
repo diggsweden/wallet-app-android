@@ -14,11 +14,11 @@ import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import java.security.KeyPair
 import java.security.interfaces.ECPublicKey
 import java.time.Instant
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 object JwtUtils {
     fun exportJwk(keyPair: KeyPair, algorithm: Algorithm = JWEAlgorithm.ECDH_ES): ECKey {
@@ -36,7 +36,7 @@ object JwtUtils {
         payload: T,
         recipientKey: JWK,
         encryptionMethod: EncryptionMethod,
-        algorithm: JWEAlgorithm = JWEAlgorithm.ECDH_ES
+        algorithm: JWEAlgorithm = JWEAlgorithm.ECDH_ES,
     ): String {
         val jweHeader = JWEHeader.Builder(algorithm, encryptionMethod).build()
         val json = Json.encodeToString(payload)
@@ -46,10 +46,7 @@ object JwtUtils {
         return jweBody.serialize()
     }
 
-    inline fun <reified T> decryptJwe(
-        compactString: String,
-        decryptionKeyPair: KeyPair
-    ): T {
+    inline fun <reified T> decryptJwe(compactString: String, decryptionKeyPair: KeyPair): T {
         val jwe = JWEObject.parse(compactString)
         val decrypter =
             ECDHDecrypter(decryptionKeyPair.private, null, Curve.P_256)
@@ -62,20 +59,20 @@ object JwtUtils {
     inline fun <reified T> signJWT(
         keyPair: KeyPair,
         payload: T,
-        headers: Map<String, Any>
+        headers: Map<String, Any>,
     ): String {
         val now = Instant.now().epochSecond.toInt()
 
         val defaultJwtClaims = DefaultJwtClaims(
             iat = now,
             nbf = now,
-            exp = now + 600
+            exp = now + 600,
         )
 
         val claimsSerializer = jwtClaimsSerializer(serializer<T>())
         val encoded = Json.encodeToString(
             claimsSerializer,
-            JwtClaims(defaults = defaultJwtClaims, payload = payload)
+            JwtClaims(defaults = defaultJwtClaims, payload = payload),
         )
         val algorithm = JWSAlgorithm.ES256
 
@@ -88,7 +85,7 @@ object JwtUtils {
 
         val jws = JWSObject(
             header,
-            Payload(encoded)
+            Payload(encoded),
         )
 
         jws.sign(WalletSigner(keyPair))

@@ -5,7 +5,10 @@
 package se.digg.wallet.core.navigation
 
 enum class AppNavigation {
-    HOME, CREDENTIAL_DETAILS, SETTINGS, ISSUANCE
+    HOME,
+    CREDENTIAL_DETAILS,
+    SETTINGS,
+    ISSUANCE,
 }
 
 sealed class NavigationItem(val route: String) {
@@ -15,7 +18,8 @@ sealed class NavigationItem(val route: String) {
 }
 
 enum class EnrollmentNavigation {
-    INTRO, ONBOARDING
+    INTRO,
+    ONBOARDING,
 }
 
 sealed class EnrollmentNavItem(val route: String) {
@@ -24,6 +28,6 @@ sealed class EnrollmentNavItem(val route: String) {
 }
 
 object RootGraph {
-    const val Enrollment = "enrollment_graph"
-    const val Dashboard = "dashboard_graph"
+    const val ENROLLMENT = "enrollment_graph"
+    const val DASHBOARD = "dashboard_graph"
 }

@@ -7,6 +7,7 @@ package se.digg.wallet.feature.credentialdetails
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,7 +16,6 @@ import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
-import javax.inject.Inject
 
 sealed interface CredentialDetailsState {
     object Loading : CredentialDetailsState
@@ -42,12 +42,15 @@ class CredentialDetailsViewModel @Inject constructor(private val userRepository:
                 val disclosures = credential.disclosures.values.toList()
                 _uiState.value = CredentialDetailsState.Disclosures(
                     disclosures = disclosures,
-                    issuer = credential.issuer?.name
+                    issuer = credential.issuer?.name,
                 )
             } catch (e: Exception) {
                 Timber.d("CredentialDetailsViewModel - Error: ${e.message}")
                 _uiState.value =
-                    CredentialDetailsState.Error(errorMessage = "Error with loading locally stored PID - Error: ${e.message}")
+                    CredentialDetailsState.Error(
+                        errorMessage =
+                            "Error with loading locally stored PID - Error: ${e.message}",
+                    )
             }
         }
     }

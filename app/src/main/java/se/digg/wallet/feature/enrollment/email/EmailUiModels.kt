@@ -1,6 +1,5 @@
 package se.digg.wallet.feature.enrollment.email
 
-
 data class EmailUiState(
     val email: String = "",
     val verifyEmail: String = "",
@@ -21,5 +20,7 @@ sealed interface EmailUiEffect {
 }
 
 enum class EmailValidationError {
-    EMPTY, NOT_VALID_EMAIL, NOT_SAME
+    EMPTY,
+    NOT_VALID_EMAIL,
+    NOT_SAME,
 }

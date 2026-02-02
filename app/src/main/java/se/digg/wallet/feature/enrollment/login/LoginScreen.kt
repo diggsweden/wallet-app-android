@@ -18,15 +18,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 
 @Composable
-fun LoginScreen(
-    onLoginSuccessful: (String) -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
-) {
-
+fun LoginScreen(onLoginSuccessful: (String) -> Unit, viewModel: LoginViewModel = hiltViewModel()) {
     val launchAuthTab = LocalAuthTabLauncher.current
 
     LaunchedEffect(Unit) {
@@ -39,46 +35,46 @@ fun LoginScreen(
         }
     }
 
-    LoginScreen(onLoginClicked = { viewModel.authorize(launchAuthTab) })
+    LoginScreen(onLogin = { viewModel.authorize(launchAuthTab) })
 }
 
 @Composable
-private fun LoginScreen(onLoginClicked: () -> Unit) {
+private fun LoginScreen(onLogin: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "2. Logga in", style = DiggTextStyle.H1,
+            "2. Logga in",
+            style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "För att kunna registrera ett konto behöver du först logga in",
-            style = DiggTextStyle.BodyMD
+            style = DiggTextStyle.BodyMD,
         )
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = "Logga in",
             onClick = {
-                onLoginClicked.invoke()
-            }
+                onLogin.invoke()
+            },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun LoginScreenPreview() {
     WalletTheme {
         Surface {
-            LoginScreen(onLoginClicked = {})
+            LoginScreen(onLogin = {})
         }
     }
 }
-

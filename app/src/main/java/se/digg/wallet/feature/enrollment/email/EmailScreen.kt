@@ -33,11 +33,10 @@ import se.digg.wallet.core.designsystem.component.OutLinedInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun EmailScreen(onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel()) {
-
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -50,21 +49,24 @@ fun EmailScreen(onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel())
 
     EmailScreen(
         uiState = uiState,
-        onNextClicked = { viewModel.onEvent(EmailUiEvent.NextClicked) },
-        onEmailChanged = { viewModel.onEvent(EmailUiEvent.EmailChanged(it)) },
-        onEmailFocusedChanged = { viewModel.onEvent(EmailUiEvent.EmailFocusedChanged(it)) },
-        onVerifyEmailChanged = { viewModel.onEvent(EmailUiEvent.VerifyEmailChanged(it)) },
-        onVerifyEmailFocusedChanged = { viewModel.onEvent(EmailUiEvent.VerifyEmailFocusedChanged(it)) })
+        onNext = { viewModel.onEvent(EmailUiEvent.NextClicked) },
+        onEmailChange = { viewModel.onEvent(EmailUiEvent.EmailChanged(it)) },
+        onEmailFocusChange = { viewModel.onEvent(EmailUiEvent.EmailFocusedChanged(it)) },
+        onVerifyEmailChange = { viewModel.onEvent(EmailUiEvent.VerifyEmailChanged(it)) },
+        onVerifyEmailFocusChange = {
+            viewModel.onEvent(EmailUiEvent.VerifyEmailFocusedChanged(it))
+        },
+    )
 }
 
 @Composable
 private fun EmailScreen(
     uiState: EmailUiState,
-    onNextClicked: () -> Unit,
-    onEmailChanged: (String) -> Unit,
-    onEmailFocusedChanged: (Boolean) -> Unit,
-    onVerifyEmailChanged: (String) -> Unit,
-    onVerifyEmailFocusedChanged: (Boolean) -> Unit
+    onNext: () -> Unit,
+    onEmailChange: (String) -> Unit,
+    onEmailFocusChange: (Boolean) -> Unit,
+    onVerifyEmailChange: (String) -> Unit,
+    onVerifyEmailFocusChange: (Boolean) -> Unit,
 ) {
     val emailErrorCopy = when (uiState.emailError) {
         EmailValidationError.EMPTY -> "Tom epost ej giltig"
@@ -85,11 +87,13 @@ private fun EmailScreen(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "5. Din e-postadress", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
+            "5. Din e-postadress",
+            textAlign = TextAlign.Center,
+            style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
@@ -98,69 +102,70 @@ private fun EmailScreen(
                 contentDescription = "",
                 modifier = Modifier
                     .width(135.dp)
-                    .height(161.dp)
+                    .height(161.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Vi behöver din e-postadress för att skapa ett konto. \n" +
-                        "Kontot används för att administrera din plånbok om du till exempel skulle tappa din enhet.",
+                    "Kontot används för att administrera din plånbok om du till exempel skulle tappa din enhet.",
                 style = DiggTextStyle.BodyMD,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
         Spacer(Modifier.height(48.dp))
         OutLinedInput(
-            modifier = Modifier.onFocusChanged { state ->
-                onEmailFocusedChanged.invoke(state.isFocused)
-            },
             value = uiState.email,
-            onValueChange = { onEmailChanged.invoke(it) },
-            isError = uiState.emailError != null,
-            errorText = emailErrorCopy,
             labelText = "Din e-postadress",
+            onValueChange = { onEmailChange.invoke(it) },
+            modifier = Modifier.onFocusChanged { state ->
+                onEmailFocusChange.invoke(state.isFocused)
+            },
             hintText = stringResource(R.string.contact_info_email_placeholder),
+            errorText = emailErrorCopy,
+            isError = uiState.emailError != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
+                imeAction = ImeAction.Next,
+            ),
         )
         Spacer(modifier = Modifier.height(16.dp))
         OutLinedInput(
-            modifier = Modifier.onFocusChanged { state ->
-                onVerifyEmailFocusedChanged.invoke(state.isFocused)
-            },
             value = uiState.verifyEmail,
-            onValueChange = { onVerifyEmailChanged.invoke(it) },
-            isError = uiState.verifyEmailError != null,
-            errorText = verifyEmailErrorCopy,
             labelText = "Din e-postadress igen",
+            onValueChange = { onVerifyEmailChange.invoke(it) },
+            modifier = Modifier.onFocusChanged { state ->
+                onVerifyEmailFocusChange.invoke(state.isFocused)
+            },
             hintText = stringResource(R.string.contact_info_email_placeholder),
+            errorText = verifyEmailErrorCopy,
+            isError = uiState.verifyEmailError != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
+                imeAction = ImeAction.Next,
+            ),
         )
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.generic_next),
-            onClick = { onNextClicked.invoke() }
+            onClick = { onNext.invoke() },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun PhoneScreenPreview() {
     WalletTheme {
         Surface {
             EmailScreen(
                 uiState = EmailUiState(),
-                onNextClicked = {},
-                onEmailChanged = {},
-                onEmailFocusedChanged = {},
-                onVerifyEmailChanged = {},
-                onVerifyEmailFocusedChanged = {})
+                onNext = {},
+                onEmailChange = {},
+                onEmailFocusChange = {},
+                onVerifyEmailChange = {},
+                onVerifyEmailFocusChange = {},
+            )
         }
     }
 }

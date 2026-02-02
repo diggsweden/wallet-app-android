@@ -11,38 +11,36 @@ import androidx.compose.ui.tooling.preview.Preview
     name = "1 Dark Mode - Text size: Normal",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     device = "spec:parent=pixel_9,orientation=portrait",
-    showBackground = true
+    showBackground = true,
 )
 @Preview(
     name = "1 Light Mode - Text size: Normal",
     uiMode = Configuration.UI_MODE_NIGHT_NO,
     device = "spec:parent=pixel_9,orientation=portrait",
-    showBackground = true
+    showBackground = true,
 )
 @Preview(
     name = "Dark Mode - Landscape - Text size: Normal",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     device = "spec:parent=pixel_9,orientation=landscape",
-    showBackground = true
+    showBackground = true,
 )
-
 @Preview(
     name = "Light Mode - Landscape -  Text size: Normal",
     uiMode = Configuration.UI_MODE_NIGHT_NO,
     device = "spec:parent=pixel_9,orientation=landscape",
-    showBackground = true
+    showBackground = true,
 )
-annotation class WalletPreview
-
+annotation class PreviewsWallet
 
 @Preview(
     name = "Dark Mode - Text size: Normal",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true
+    showBackground = true,
 )
 @Preview(
     name = "Light Mode - Text size: Normal",
     uiMode = Configuration.UI_MODE_NIGHT_NO,
-    showBackground = true
+    showBackground = true,
 )
-annotation class WalletAccessibilityPreview
+annotation class PreviewsWalletAccessibility

@@ -18,9 +18,8 @@ data class User(
     val uuid: UUID?,
     val accountId: String?,
     val wua: String?,
-    val credential: String?
+    val credential: String?,
 )
-
 
 class DbConverters {
     @TypeConverter

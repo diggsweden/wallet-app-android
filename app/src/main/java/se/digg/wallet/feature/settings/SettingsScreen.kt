@@ -42,16 +42,16 @@ import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
-    onLogout: () -> Unit
 ) {
-
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
@@ -63,28 +63,32 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         {
-            TopAppBar(title = {
-                Text(
-                    text = "Settings"
-                )
-            }, navigationIcon = {
-                IconButton(onClick = { navController.navigateUp() }) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_left),
-                        contentDescription = ""
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Settings",
                     )
-                }
-            })
-        }) { innerPadding ->
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_left),
+                            contentDescription = "",
+                        )
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
         Surface {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
             ) {
                 SettingsHeader()
                 SettingsContent(onLogoutClick = { viewModel.onLogout() })
@@ -103,18 +107,18 @@ private fun SettingsHeader() {
             .padding(horizontal = 16.dp, vertical = 64.dp)
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Image(
             painter = painterResource(R.drawable.playstore_icon),
             contentDescription = "Logo",
             modifier = Modifier
                 .width(160.dp)
-                .height(160.dp)
+                .height(160.dp),
         )
         Text(
             stringResource(R.string.settings_app_version, info.versionName, info.versionCode),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
@@ -122,18 +126,15 @@ private fun SettingsHeader() {
 @Composable
 private fun SettingsContent(onLogoutClick: () -> Unit) {
     PrimaryButton(
-        modifier = Modifier.fillMaxWidth(),
         text = stringResource(R.string.settings_logout),
         onClick = {
             onLogoutClick.invoke()
-        }
+        },
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
-data class AppVersionInfo(
-    val versionName: String,
-    val versionCode: Long
-)
+data class AppVersionInfo(val versionName: String, val versionCode: Long)
 
 fun getAppVersionInfoCompat(context: Context): AppVersionInfo {
     val pm = context.packageManager
@@ -151,7 +152,7 @@ fun getAppVersionInfoCompat(context: Context): AppVersionInfo {
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {

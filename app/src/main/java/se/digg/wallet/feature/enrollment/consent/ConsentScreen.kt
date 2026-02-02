@@ -36,11 +36,10 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun ConsentScreen(onNext: () -> Unit, viewModel: ConsentViewModel = hiltViewModel()) {
-
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -53,57 +52,61 @@ fun ConsentScreen(onNext: () -> Unit, viewModel: ConsentViewModel = hiltViewMode
 
     ConsentScreen(
         uiState = uiState,
-        onNextClicked = { viewModel.onEvent(ConsentUiEvent.NextClicked) },
-        onConsentClicked = {
+        onNext = { viewModel.onEvent(ConsentUiEvent.NextClicked) },
+        onConsent = {
             viewModel.onEvent(
-                ConsentUiEvent.ConsentChanged(it)
+                ConsentUiEvent.ConsentChanged(it),
             )
-        })
+        },
+    )
 }
 
 @Composable
 private fun ConsentScreen(
     uiState: ConsentUiState,
-    onNextClicked: () -> Unit,
-    onConsentClicked: (Boolean) -> Unit
+    onNext: () -> Unit,
+    onConsent: (Boolean) -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            "1. Tillåt behörigheter", textAlign = TextAlign.Center, style = DiggTextStyle.H1,
+            "1. Tillåt behörigheter",
+            textAlign = TextAlign.Center,
+            style = DiggTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
         Row(Modifier.fillMaxWidth()) {
             Image(
                 painter = painterResource(R.drawable.handshake),
-                contentDescription = ""
+                contentDescription = "",
             )
             Spacer(Modifier.width(10.dp))
             Checkbox(
                 modifier = Modifier.size(20.dp),
                 checked = uiState.hasConsent,
                 onCheckedChange = { isChecked ->
-                    onConsentClicked.invoke(isChecked)
+                    onConsent.invoke(isChecked)
                 },
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
                     uncheckedColor = MaterialTheme.colorScheme.outline,
                     checkmarkColor = MaterialTheme.colorScheme.onPrimary,
                     disabledCheckedColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledUncheckedColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    disabledUncheckedColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
             )
             Spacer(Modifier.width(8.dp))
-            Column() {
+            Column {
                 Text(
                     "Samtycke",
-                    style = DiggTextStyle.BodyMD, fontWeight = FontWeight.Bold,
+                    style = DiggTextStyle.BodyMD,
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -115,7 +118,7 @@ private fun ConsentScreen(
                     Text(
                         "Samtycke krävs för att du ska kunna använda plånboken",
                         style = DiggTextStyle.BodySM,
-                        color = Color(0xFFB50000)
+                        color = Color(0xFFB50000),
                     )
                 }
             }
@@ -126,13 +129,13 @@ private fun ConsentScreen(
                 text = "Läs mer om användarvillkor",
                 style = DiggTextStyle.BodyMD,
                 textDecoration = TextDecoration.Underline,
-                color = Color(0xFF556951)
+                color = Color(0xFF556951),
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 painter = painterResource(R.drawable.open_in_new),
                 contentDescription = null,
-                tint = Color(0xFF556951)
+                tint = Color(0xFF556951),
             )
         }
 
@@ -142,31 +145,31 @@ private fun ConsentScreen(
                 text = "Så behandlar vi dina personuppgifter",
                 style = DiggTextStyle.BodyMD,
                 textDecoration = TextDecoration.Underline,
-                color = Color(0xFF556951)
+                color = Color(0xFF556951),
 
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 painter = painterResource(R.drawable.open_in_new),
                 contentDescription = null,
-                tint = Color(0xFF556951)
+                tint = Color(0xFF556951),
             )
         }
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.generic_next),
-            onClick = { onNextClicked.invoke() }
+            onClick = { onNext.invoke() },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun ConsentScreenPreview() {
     WalletTheme {
         Surface {
-            ConsentScreen(uiState = ConsentUiState(), onNextClicked = {}, onConsentClicked = {})
+            ConsentScreen(uiState = ConsentUiState(), onNext = {}, onConsent = {})
         }
     }
 }

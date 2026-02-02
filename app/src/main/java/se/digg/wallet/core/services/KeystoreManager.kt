@@ -6,16 +6,17 @@ package se.digg.wallet.core.services
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
-import timber.log.Timber
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
+import timber.log.Timber
 
 enum class KeyAlias(val value: String) {
-    DEVICE_KEY("device_key_alias"), WALLET_KEY("wallet_key_alias")
+    DEVICE_KEY("device_key_alias"),
+    WALLET_KEY("wallet_key_alias"),
 }
 
 object KeystoreManager {
@@ -43,14 +44,14 @@ object KeystoreManager {
             kpg.initialize(
                 KeyGenParameterSpec.Builder(
                     alias.value,
-                    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+                    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY,
                 ).apply {
                     setAlgorithmParameterSpec(ECGenParameterSpec("secp256r1")) // P-256
                     setDigests(KeyProperties.DIGEST_SHA256)
                     if (tryStrongBox) {
                         setIsStrongBoxBacked(true)
                     }
-                }.build()
+                }.build(),
             )
             return kpg.generateKeyPair()
         } catch (e: StrongBoxUnavailableException) {

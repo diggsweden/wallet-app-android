@@ -2,10 +2,10 @@ package se.digg.wallet.core.oauth
 
 import android.net.Uri
 import androidx.browser.auth.AuthTabIntent
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeout
 
 @Singleton
 class OAuthCoordinator @Inject constructor() {
@@ -37,10 +37,11 @@ class OAuthCoordinator @Inject constructor() {
             AuthTabIntent.RESULT_OK -> {
                 result.resultUri?.let { pendingAuthResult?.complete(it) }
                     ?: pendingAuthResult?.completeExceptionally(Error("Inloggning misslyckades"))
-
             }
 
-            AuthTabIntent.RESULT_VERIFICATION_FAILED, AuthTabIntent.RESULT_VERIFICATION_TIMED_OUT -> {
+            AuthTabIntent.RESULT_VERIFICATION_FAILED,
+            AuthTabIntent.RESULT_VERIFICATION_TIMED_OUT,
+            -> {
                 pendingAuthResult?.completeExceptionally(Error("Inloggning misslyckades"))
             }
 

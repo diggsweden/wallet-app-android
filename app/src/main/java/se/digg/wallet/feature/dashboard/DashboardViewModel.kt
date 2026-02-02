@@ -7,6 +7,10 @@ package se.digg.wallet.feature.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -15,10 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.UserRepository
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(private val userRepository: UserRepository) :
@@ -32,7 +32,7 @@ class DashboardViewModel @Inject constructor(private val userRepository: UserRep
                 DashboardCredentialUiModel(
                     issuer = credential.issuer?.name ?: "",
                     disclosureCount = credential.disclosures.values.size,
-                    issueDate = formatDate(credential.issuedAt)
+                    issueDate = formatDate(credential.issuedAt),
                 )
             }
         }
@@ -52,5 +52,5 @@ fun formatDate(date: Date): String {
 data class DashboardCredentialUiModel(
     val issuer: String,
     val disclosureCount: Int,
-    val issueDate: String
+    val issueDate: String,
 )

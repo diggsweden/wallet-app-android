@@ -28,41 +28,39 @@ data class JwkModel(
     val y: String? = null,
     val n: String? = null,
     val e: String? = null,
-    val k: String? = null
+    val k: String? = null,
 )
 
-fun JWK.toJwkModel(): JwkModel =
-    when (this) {
+fun JWK.toJwkModel(): JwkModel = when (this) {
+    is ECKey -> JwkModel(
+        kty = "EC",
+        crv = curve.name,
+        x = x.toString(),
+        y = y.toString(),
+        use = keyUse?.identifier(),
+        keyOps = keyOperations?.map { it.identifier() },
+        alg = algorithm?.name,
+        kid = keyID,
+    )
 
-        is ECKey -> JwkModel(
-            kty = "EC",
-            crv = curve.name,
-            x = x.toString(),
-            y = y.toString(),
-            use = keyUse?.identifier(),
-            keyOps = keyOperations?.map { it.identifier() },
-            alg = algorithm?.name,
-            kid = keyID
-        )
+    is RSAKey -> JwkModel(
+        kty = "RSA",
+        n = modulus.toString(),
+        e = publicExponent.toString(),
+        use = keyUse?.identifier(),
+        keyOps = keyOperations?.map { it.identifier() },
+        alg = algorithm?.name,
+        kid = keyID,
+    )
 
-        is RSAKey -> JwkModel(
-            kty = "RSA",
-            n = modulus.toString(),
-            e = publicExponent.toString(),
-            use = keyUse?.identifier(),
-            keyOps = keyOperations?.map { it.identifier() },
-            alg = algorithm?.name,
-            kid = keyID
-        )
+    is OctetSequenceKey -> JwkModel(
+        kty = "oct",
+        k = keyValue.toString(),
+        use = keyUse?.identifier(),
+        keyOps = keyOperations?.map { it.identifier() },
+        alg = algorithm?.name,
+        kid = keyID,
+    )
 
-        is OctetSequenceKey -> JwkModel(
-            kty = "oct",
-            k = keyValue.toString(),
-            use = keyUse?.identifier(),
-            keyOps = keyOperations?.map { it.identifier() },
-            alg = algorithm?.name,
-            kid = keyID
-        )
-
-        else -> error("Unsupported JWK type: ${this::class.simpleName}")
-    }
+    else -> error("Unsupported JWK type: ${this::class.simpleName}")
+}

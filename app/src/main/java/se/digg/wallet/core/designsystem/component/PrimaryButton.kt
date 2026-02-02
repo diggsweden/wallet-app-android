@@ -28,33 +28,33 @@ import se.digg.wallet.core.designsystem.theme.ButtonContentPrimary
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimaryDark
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PrimaryButton(
-    modifier: Modifier = Modifier,
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     hapticEnabled: Boolean = false,
-    rightIcon: Int? = null
+    rightIcon: Int? = null,
 ) {
     val haptic = LocalHapticFeedback.current
 
     val buttonColors = if (isSystemInDarkTheme()) {
         ButtonDefaults.buttonColors(
             containerColor = ButtonContainerPrimaryDark,
-            contentColor = ButtonContentPrimaryDark
+            contentColor = ButtonContentPrimaryDark,
         )
     } else {
         ButtonDefaults.buttonColors(
             containerColor = ButtonContainerPrimary,
-            contentColor = ButtonContentPrimary
+            contentColor = ButtonContentPrimary,
         )
     }
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Button(
-            modifier = modifier
+            modifier = Modifier
                 .height(48.dp)
                 .width(300.dp),
             colors = buttonColors,
@@ -70,17 +70,17 @@ fun PrimaryButton(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = text,
-                    style = DiggTextStyle.BodyMD
+                    style = DiggTextStyle.BodyMD,
                 )
                 rightIcon?.let {
-                    Spacer(modifier.width(4.dp))
+                    Spacer(Modifier.width(4.dp))
                     Icon(
                         painter = painterResource(rightIcon),
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 }
             }
@@ -89,14 +89,14 @@ fun PrimaryButton(
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun WalletButtonPreview() {
     WalletTheme {
         Surface {
             PrimaryButton(
                 text = "Preview of button",
                 onClick = {},
-                rightIcon = R.drawable.arrow_left
+                rightIcon = R.drawable.arrow_left,
             )
         }
     }

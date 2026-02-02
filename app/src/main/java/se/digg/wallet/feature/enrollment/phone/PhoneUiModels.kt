@@ -1,9 +1,6 @@
 package se.digg.wallet.feature.enrollment.phone
 
-data class PhoneUiState(
-    val phone: String = "",
-    val showError: Boolean = false
-)
+data class PhoneUiState(val phone: String = "", val showError: Boolean = false)
 
 sealed interface PhoneUiEvent {
     data class PhoneChanged(val value: String) : PhoneUiEvent

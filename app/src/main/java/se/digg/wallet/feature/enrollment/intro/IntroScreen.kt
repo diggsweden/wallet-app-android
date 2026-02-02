@@ -27,20 +27,22 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
-fun IntroScreen(navController: NavController, onContinue: () -> Unit) {
-
+fun IntroScreen(
+    navController: NavController,
+    onContinue: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     BackHandler {
-
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(96.dp))
         Image(
@@ -48,26 +50,27 @@ fun IntroScreen(navController: NavController, onContinue: () -> Unit) {
             contentDescription = stringResource(R.string.enrollment_intro_logo_description),
             modifier = Modifier
                 .width(333.dp)
-                .height(341.dp)
+                .height(341.dp),
         )
         Spacer(modifier = Modifier.height(48.dp))
         Text(
             stringResource(R.string.enrollment_intro_title),
-            style = DiggTextStyle.H1
+            style = DiggTextStyle.H1,
         )
         Spacer(modifier = Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier
-                .fillMaxWidth(),
             text = stringResource(R.string.generic_next),
             onClick = {
                 onContinue.invoke()
-            })
+            },
+            modifier = Modifier
+                .fillMaxWidth(),
+        )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun Preview() {
     WalletTheme {
         Surface {

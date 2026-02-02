@@ -28,11 +28,10 @@ import se.digg.wallet.core.designsystem.component.ConfirmCode
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun EmailVerifyScreen(onNext: () -> Unit, viewModel: EmailVerifyViewModel = hiltViewModel()) {
-
     LaunchedEffect(Unit) {
         viewModel.setEmail()
         viewModel.effects.collect { effect ->
@@ -46,22 +45,23 @@ fun EmailVerifyScreen(onNext: () -> Unit, viewModel: EmailVerifyViewModel = hilt
 
     EmailVerifyScreen(
         uiState = uiState,
-        onNextClicked = { viewModel.onEvent(EmailVerifyUiEvent.NextClicked) },
-        onCodeChanged = { viewModel.onEvent(EmailVerifyUiEvent.CodeChanged(it)) })
+        onNext = { viewModel.onEvent(EmailVerifyUiEvent.NextClicked) },
+        onCodeChange = { viewModel.onEvent(EmailVerifyUiEvent.CodeChanged(it)) },
+    )
 }
 
 @Composable
 private fun EmailVerifyScreen(
     uiState: EmailVerifyUiState,
-    onNextClicked: () -> Unit,
-    onCodeChanged: (String) -> Unit
+    onNext: () -> Unit,
+    onCodeChange: (String) -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
@@ -72,9 +72,10 @@ private fun EmailVerifyScreen(
         Spacer(Modifier.height(70.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Text(
-                text = "En kod för att bekräfta din e-postadress har skickats till ${uiState.email}",
+                text =
+                    "En kod för att bekräfta din e-postadress har skickats till ${uiState.email}",
                 style = DiggTextStyle.BodyMD,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Image(
@@ -82,44 +83,44 @@ private fun EmailVerifyScreen(
                 contentDescription = "",
                 modifier = Modifier
                     .width(135.dp)
-                    .height(161.dp)
+                    .height(161.dp),
             )
         }
         Spacer(Modifier.height(16.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = "Det kan ta några minuter innan du får din kod, den är aktiv i en timme. \n\n" +
-                    "Kom inte koden gå ett steg tillbaka.",
-            style = DiggTextStyle.BodySM
+                "Kom inte koden gå ett steg tillbaka.",
+            style = DiggTextStyle.BodySM,
         )
         Spacer(Modifier.height(64.dp))
 
         ConfirmCode(
             value = uiState.code,
-            onValueChange = { onCodeChanged.invoke(it) },
-            length = 6,
-            onDone = { /* submit code */ }
+            onValueChange = { onCodeChange.invoke(it) },
+            onDone = { /* submit code */ },
         )
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.generic_next),
             onClick = {
-                onNextClicked.invoke()
-            }
+                onNext.invoke()
+            },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-@WalletPreview
+@PreviewsWallet
 private fun PhoneScreenPreview() {
     WalletTheme {
         Surface {
             EmailVerifyScreen(
                 uiState = EmailVerifyUiState(email = "test@digg.se"),
-                onNextClicked = {},
-                onCodeChanged = {})
+                onNext = {},
+                onCodeChange = {},
+            )
         }
     }
 }

@@ -24,13 +24,12 @@ import se.digg.wallet.feature.settings.SettingsScreen
 
 @Composable
 fun WalletNavHost(
-    modifier: Modifier = Modifier,
+    onLogout: () -> Unit,
     navController: NavHostController,
+    modifier: Modifier = Modifier,
     isEnrolled: Boolean = false,
-    onLogout: () -> Unit
 ) {
-
-    val startDestination = if (isEnrolled) RootGraph.Dashboard else RootGraph.Enrollment
+    val startDestination = if (isEnrolled) RootGraph.DASHBOARD else RootGraph.ENROLLMENT
 
     NavHost(
         modifier = modifier,
@@ -47,36 +46,36 @@ fun WalletNavHost(
         },
         popExitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
-        }
+        },
     ) {
-
         composable(
             route = "homescreen?credentialOfferUri={credential_offer_uri}",
-            arguments = listOf(
-                navArgument("credential_offer_uri") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                }
-            ),
-            deepLinks = listOf(
-                //TODO look into uriPattern
-                navDeepLink {
-                    uriPattern =
-                        "openid-credential-offer://?credential_offer={credential_offer_uri}"
-                }
-            )
+            arguments =
+                listOf(
+                    navArgument("credential_offer_uri") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            deepLinks =
+                listOf(
+                    // TODO look into uriPattern
+                    navDeepLink {
+                        uriPattern =
+                            "openid-credential-offer://?credential_offer={credential_offer_uri}"
+                    },
+                ),
         ) { backStackEntry ->
             val fullUri = backStackEntry.deepLinkUri()
             IssuanceScreen(navController = navController, fullUri.toString())
         }
 
-        //Enrolled
+        // Enrolled
         navigation(
             startDestination = NavigationItem.Home.route,
-            route = RootGraph.Dashboard
+            route = RootGraph.DASHBOARD,
         ) {
-
             composable(NavigationItem.Home.route) {
                 DashboardScreen(navController = navController)
             }
@@ -91,53 +90,69 @@ fun WalletNavHost(
 
             composable(
                 route = "presentation_eudi",
-                arguments = listOf(
-                    navArgument("requestUri") { type = NavType.StringType; nullable = true }
-                ),
-                deepLinks = listOf(
-                    navDeepLink {
-                        uriPattern = "eudi-openid4vp://?{requestUri}"
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument("requestUri") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
+                deepLinks =
+                    listOf(
+                        navDeepLink {
+                            uriPattern = "eudi-openid4vp://?{requestUri}"
+                        },
+                    ),
             ) { backStackEntry ->
                 val fullUri = backStackEntry.deepLinkUri()
                 PresentationScreen(navController = navController, fullUri = fullUri.toString())
             }
             composable(
                 route = "presentation",
-                arguments = listOf(
-                    navArgument("requestUri") { type = NavType.StringType; nullable = true }
-                ),
-                deepLinks = listOf(
-                    navDeepLink {
-                        uriPattern = "openid4vp://?{requestUri}"
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument("requestUri") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
+                deepLinks =
+                    listOf(
+                        navDeepLink {
+                            uriPattern = "openid4vp://?{requestUri}"
+                        },
+                    ),
             ) { backStackEntry ->
                 val fullUri = backStackEntry.deepLinkUri()
                 PresentationScreen(navController = navController, fullUri = fullUri.toString())
             }
         }
 
-        //Non-Enrolled
+        // Non-Enrolled
         navigation(
             startDestination = EnrollmentNavItem.Intro.route,
-            route = RootGraph.Enrollment
+            route = RootGraph.ENROLLMENT,
         ) {
             composable(EnrollmentNavItem.Intro.route) {
-                IntroScreen(navController = navController, onContinue = {
-                    navController.navigate(EnrollmentNavItem.Onboarding.route)
-                })
+                IntroScreen(
+                    navController = navController,
+                    onContinue = {
+                        navController.navigate(EnrollmentNavItem.Onboarding.route)
+                    },
+                )
             }
             composable(EnrollmentNavItem.Onboarding.route) {
-                EnrollmentScreen(navController = navController, onFinish = {
-                    navController.navigate(NavigationItem.Home.route) {
-                        popUpTo(navController.graph.id) {
-                            inclusive = true
+                EnrollmentScreen(
+                    navController = navController,
+                    onFinish = {
+                        navController.navigate(NavigationItem.Home.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
-                    }
-                })
+                    },
+                )
             }
         }
     }

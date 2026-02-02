@@ -18,8 +18,7 @@ import se.digg.wallet.core.designsystem.theme.Track
 import se.digg.wallet.core.designsystem.theme.TrackDarkMode
 
 @Composable
-fun ProgressIndicator(modifier: Modifier = Modifier, progress: Float) {
-
+fun ProgressIndicator(progress: Float, modifier: Modifier = Modifier) {
     val isDarkMode = isSystemInDarkTheme()
     val color = if (isDarkMode) ProgressDarkMode else Progress
     val trackColor = if (isDarkMode) TrackDarkMode else Track
@@ -31,12 +30,12 @@ fun ProgressIndicator(modifier: Modifier = Modifier, progress: Float) {
             .clip(RoundedCornerShape(8.dp)),
         progress = { progress },
         color = color,
-        trackColor = trackColor
+        trackColor = trackColor,
     )
 }
 
 @Composable
-fun AnimatedLinearProgress(modifier: Modifier, targetProgress: Float) {
+fun AnimatedLinearProgress(targetProgress: Float, modifier: Modifier = Modifier) {
     val isDarkMode = isSystemInDarkTheme()
     val color = if (isDarkMode) ProgressDarkMode else Progress
     val trackColor = if (isDarkMode) TrackDarkMode else Track
@@ -46,7 +45,7 @@ fun AnimatedLinearProgress(modifier: Modifier, targetProgress: Float) {
     val animatedProgress by animateFloatAsState(
         targetValue = safeTarget,
         animationSpec = tween(durationMillis = 400),
-        label = "linearProgress"
+        label = "linearProgress",
     )
 
     LinearProgressIndicator(
@@ -56,6 +55,6 @@ fun AnimatedLinearProgress(modifier: Modifier, targetProgress: Float) {
             .height(11.dp)
             .clip(RoundedCornerShape(8.dp)),
         color = color,
-        trackColor = trackColor
+        trackColor = trackColor,
     )
 }
