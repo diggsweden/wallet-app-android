@@ -1,16 +1,24 @@
+import ch.acanda.gradle.fabrikt.FabriktGenerateTask
+import com.google.devtools.ksp.gradle.KspAATask
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.LintTask
 
+val fabriktGenerateTask = tasks.named<FabriktGenerateTask>("fabriktGenerate")
+val fabriktOutputDirectory =
+    layout.buildDirectory.dir("generated/sources/fabrikt/src/main")
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    kotlin("kapt")
     alias(libs.plugins.fabrikt)
     alias(libs.plugins.kotlinter)
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 android {
@@ -63,9 +71,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
     }
@@ -81,8 +86,8 @@ android {
         }
     }
 
-    sourceSets {
-        sourceSets["main"].java.srcDir("build/generated/sources/fabrikt/src/main")
+    sourceSets.named("main") {
+        kotlin.directories += fabriktOutputDirectory.get().asFile.path
     }
 }
 
@@ -111,7 +116,7 @@ dependencies {
     implementation(libs.bundles.eudi)
     implementation(libs.bundles.storage)
     implementation(libs.bundles.di)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -136,6 +141,7 @@ tasks.withType<FormatTask> {
 fabrikt {
     generate("client-gateway") {
         apiFile = file("src/main/openapi/client-gateway.json")
+        outputDirectory = fabriktOutputDirectory
         basePackage = "se.wallet.client.gateway"
         addFileDisclaimer = enabled
         validationLibrary = NoValidation
@@ -152,8 +158,12 @@ fabrikt {
     }
 }
 
+tasks.withType<KspAATask>().configureEach {
+    dependsOn(fabriktGenerateTask)
+}
+
 tasks.named("preBuild") {
-    dependsOn("fabriktGenerate")
+    dependsOn(fabriktGenerateTask)
 }
 
 hilt {

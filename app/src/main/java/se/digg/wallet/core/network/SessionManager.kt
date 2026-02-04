@@ -5,9 +5,10 @@ import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.UserDao
+import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
-import se.wallet.client.gateway.models.AuthChallengeResponseDto
+import se.wallet.client.gateway.models.ValidateAuthChallengeRequestDto
 
 class SessionManager(
     val challengeClient: PublicAuthSessionChallengeClient,
@@ -35,11 +36,11 @@ class SessionManager(
 
     suspend fun getChallenge(accountId: String, keyId: String): String =
         when (val result = challengeClient.initChallenge(accountId, keyId)) {
-            is PublicAuthSessionChallengeClient.InitChallengeResult.Failure -> {
+            is NetworkResult.Failure -> {
                 throw Exception("Failed getting challenge")
             }
 
-            is PublicAuthSessionChallengeClient.InitChallengeResult.Success -> {
+            is NetworkResult.Success -> {
                 result.data.nonce ?: ""
             }
         }
@@ -51,14 +52,16 @@ class SessionManager(
                 payload = mapOf("nonce" to nonce),
                 headers = mapOf("kid" to keyId),
             )
-        val result = validateClient.validateChallenge(AuthChallengeResponseDto(signedJwt = jwt))
+        val result = validateClient.validateChallenge(
+            ValidateAuthChallengeRequestDto(signedJwt = jwt),
+        )
         return when (result) {
-            is PublicAuthSessionResponseClient.ValidateChallengeResult.Failure -> {
+            is NetworkResult.Failure -> {
                 throw Exception("Failed validating challenge")
             }
 
-            is PublicAuthSessionResponseClient.ValidateChallengeResult.Success -> {
-                result.response.headers["session"] ?: throw Exception("Could not get session ID")
+            is NetworkResult.Success -> {
+                result.data.sessionId
             }
         }
     }

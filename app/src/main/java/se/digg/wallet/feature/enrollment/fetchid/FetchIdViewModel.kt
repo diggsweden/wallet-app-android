@@ -19,8 +19,8 @@ import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
+import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.OidcAccountsV1Client
-import se.wallet.client.gateway.client.WuaV3Client.CreateWua_1Result
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateWuaDto
 import se.wallet.client.gateway.models.JwkDto
@@ -69,11 +69,11 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                 val response = userRepository.createAccount(requestBody)
                 val accountId =
                     when (response) {
-                        is OidcAccountsV1Client.CreateAccountResult.Failure -> {
+                        is NetworkResult.Failure -> {
                             throw Exception("Kunde inte skapa konto")
                         }
 
-                        is OidcAccountsV1Client.CreateAccountResult.Success -> {
+                        is NetworkResult.Success -> {
                             response.data.accountId ?: ""
                         }
                     }
@@ -106,11 +106,11 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                 val response = userRepository.fetchWua(request)
                 val jwt =
                     when (response) {
-                        is CreateWua_1Result.Failure -> {
+                        is NetworkResult.Failure -> {
                             throw Exception("Could not get WUA")
                         }
 
-                        is CreateWua_1Result.Success -> {
+                        is NetworkResult.Success -> {
                             response.data.jwt ?: ""
                         }
                     }
