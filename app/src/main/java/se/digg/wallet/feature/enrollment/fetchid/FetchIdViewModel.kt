@@ -89,33 +89,9 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
     fun requestWua() {
         viewModelScope.launch {
             try {
-                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val jwk = JwtUtils.exportJwk(keyPair)
                 val uuid = UUID.randomUUID()
-                val request =
-                    CreateWuaDto(
-                        walletId = uuid.toString(),
-                        jwk =
-                            JwkDto(
-                                kty = jwk.keyType.value,
-                                crv = jwk.curve.name,
-                                x = jwk.x.toString(),
-                                y = jwk.y.toString(),
-                            ),
-                    )
-                val response = userRepository.fetchWua(request)
-                val jwt =
-                    when (response) {
-                        is NetworkResult.Failure -> {
-                            throw Exception("Could not get WUA")
-                        }
-
-                        is NetworkResult.Success -> {
-                            response.data.jwt ?: ""
-                        }
-                    }
-                Timber.d("Wallet activation ok - $response")
-                storeWuaLocally(jwt = jwt, uuid = uuid)
+                // TODO: Remove when integrating wua v3
+                storeWuaLocally(jwt = "", uuid = uuid)
                 _uiState.value = FetchIdUiState.Idle
             } catch (e: Exception) {
                 Timber.d("Wallet activation error - ${e.message}")
