@@ -52,6 +52,7 @@ import se.digg.wallet.data.DisplayLocal
 import se.digg.wallet.data.Proof
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.toJwkModel
+import se.wallet.client.gateway.client.NetworkResult
 import timber.log.Timber
 
 sealed interface IssuanceState {
@@ -118,7 +119,11 @@ class IssuanceViewModel @Inject constructor(
                 val prepareAuthorizationRequest = issuer.prepareAuthorizationRequest().getOrThrow()
                 val authCodeUrl =
                     prepareAuthorizationRequest.authorizationCodeURL.toString().toUri()
-                val oAuthCallback = oAuthCoordinator.authorize(authCodeUrl, launchAuthTab)
+                val oAuthCallback = oAuthCoordinator.authorize(
+                    url = authCodeUrl,
+                    redirectSchema = "wallet-app",
+                    launchAuthTab = launchAuthTab,
+                )
                 val authCode = oAuthCallback.getQueryParameter("code")
                     ?: throw Exception("Failed OAuth callback")
                 val authRequest = with(issuer) {
@@ -127,7 +132,7 @@ class IssuanceViewModel @Inject constructor(
                         prepareAuthorizationRequest.state,
                     )
                 }.getOrThrow()
-                _uiState.value = IssuanceState.Authorized(authRequest)
+                // _uiState.value = IssuanceState.Authorized(authRequest)
                 fetchCredential(authRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
@@ -140,18 +145,38 @@ class IssuanceViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value
-
-                val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl.toString()).nonce
-
-                val payload = IssuanceProofPayload(
-                    aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString(),
-                    nonce = nonce,
-                )
-
-                val headers = mapOf(
+                val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value.toString()
+                val aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString()
+                val headers = mutableMapOf(
                     "typ" to "openid4vci-proof+jwt",
                 )
+                val payload: IssuanceProofPayload
+
+                val nonceUrl = issuerMetadata.value?.nonceEndpoint?.value
+                if (nonceUrl != null) {
+                    val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
+                    val response = userRepository.fetchWua(nonce = nonce)
+                    val wua = when (response) {
+                        is NetworkResult.Failure -> {
+                            ""
+                        }
+
+                        is NetworkResult.Success -> {
+                            response.data.jwt ?: ""
+                        }
+                    }
+                    headers["key_attestation"] = wua
+                    payload = IssuanceProofPayload(
+                        nonce = nonce,
+                        aud = aud,
+                    )
+                } else {
+                    payload = IssuanceProofPayload(
+                        nonce = null,
+                        aud = aud,
+                    )
+                }
+
                 val jwtProof = JwtUtils.signJWT(keyPair, payload, headers)
                 val proofs = Proof(listOf(jwtProof))
 

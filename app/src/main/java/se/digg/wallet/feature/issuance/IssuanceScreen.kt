@@ -246,7 +246,11 @@ private fun PreAuthInput(onSubmit: (Int) -> Unit) {
 fun sanitize(input: String) = input.filter { it.isDigit() }
 
 @Composable
-private fun Disclosures(fetchedCredential: CredentialLocal, onClose: () -> Boolean) {
+fun Disclosures(
+    fetchedCredential: CredentialLocal,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column {
         Card(
             colors =

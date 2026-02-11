@@ -25,7 +25,7 @@ class SessionManager(
 
     suspend fun initSession(): String {
         val accountId = userDao.get()?.accountId ?: throw Exception("No account")
-        val key = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+        val key = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
         val keyId = JwtUtils.exportJwk(key).keyID
         val nonce = getChallenge(accountId, keyId)
         val sessionToken = validateChallenge(keyId = keyId, key = key, nonce = nonce)

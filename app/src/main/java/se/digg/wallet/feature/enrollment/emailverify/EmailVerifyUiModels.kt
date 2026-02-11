@@ -8,7 +8,6 @@ data class EmailVerifyUiState(
 
 sealed interface EmailVerifyUiEvent {
     data class CodeChanged(val value: String) : EmailVerifyUiEvent
-
     object NextClicked : EmailVerifyUiEvent
 }
 

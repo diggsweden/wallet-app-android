@@ -17,15 +17,13 @@ import se.digg.wallet.data.UserRepository
 class EnrollmentViewModel @Inject constructor(private val userRepository: UserRepository) :
     ViewModel() {
 
-    sealed interface UiEvent {
-        data object LocalStorageCleared : UiEvent
-    }
-
     private val _uiState = MutableStateFlow(EnrollmentUiState())
     val uiState: StateFlow<EnrollmentUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<EnrollmentViewModel.UiEvent>()
-    val events: SharedFlow<EnrollmentViewModel.UiEvent> = _events
+    private val _events = MutableSharedFlow<EnrollmentUiEvent>()
+    val events: SharedFlow<EnrollmentUiEvent> = _events
+
+    var credentialOffer: String = ""
 
     fun goNext() {
         val currentIndex = _uiState.value.currentStep.ordinal
@@ -73,7 +71,7 @@ class EnrollmentViewModel @Inject constructor(private val userRepository: UserRe
         viewModelScope.launch {
             try {
                 userRepository.wipeAll()
-                _events.emit(EnrollmentViewModel.UiEvent.LocalStorageCleared)
+                _events.emit(EnrollmentUiEvent.LocalStorageCleared)
             } catch (e: Exception) {
                 // TODO handle error?
             }
@@ -83,5 +81,16 @@ class EnrollmentViewModel @Inject constructor(private val userRepository: UserRe
     fun setSessionId(sessionId: String) {
         userRepository.setSessionId(sessionId)
         goNext()
+    }
+
+    fun setFetchedCredentialOffer(offer: String) {
+        credentialOffer = offer
+        goNext()
+    }
+
+    fun getFetchedCredentialOffer() {
+        viewModelScope.launch {
+            _events.emit(EnrollmentUiEvent.CredentialOffer(credentialOffer))
+        }
     }
 }

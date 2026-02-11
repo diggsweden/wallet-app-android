@@ -50,7 +50,6 @@ androidx-browser = { group = "androidx.browser", name = "browser", version.ref =
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 ktlint-compose = { group = "io.nlopez.compose.rules", name = "ktlint", version.ref = "ktlintCompose" }
 
-
 #Storage
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }

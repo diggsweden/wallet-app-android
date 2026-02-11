@@ -13,4 +13,5 @@ sealed interface FetchIdUiEvent {
 
 sealed interface FetchIdUiEffect {
     object OnNext : FetchIdUiEffect
+    data class OnCredentialOfferFetched(val credentialOffer: String) : FetchIdUiEffect
 }

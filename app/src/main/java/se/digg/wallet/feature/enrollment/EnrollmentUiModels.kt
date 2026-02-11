@@ -8,7 +8,8 @@ data class EnrollmentUiState(
 )
 
 sealed interface EnrollmentUiEvent {
-    data class EmailChanged(val value: String) : EnrollmentUiEvent
+    data class CredentialOffer(val credentialOffer: String) : EnrollmentUiEvent
+    data object LocalStorageCleared : EnrollmentUiEvent
 }
 
 sealed interface EnrollmentUiEffect {
@@ -25,6 +26,7 @@ enum class EnrollmentStep(val stepTitle: String) {
     PIN("PIN"),
     VERIFY_PIN("Verify PIN"),
     FETCH_PID("PID"),
+    CREDENTIAL_OFFER("Credential offer"),
     ;
 
     companion object {

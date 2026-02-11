@@ -42,20 +42,9 @@ import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
+import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
-
-sealed interface PresentationState {
-    object Initial : PresentationState
-    object Loading : PresentationState
-    data class SelectDisclosures(val disclosures: List<DisclosureLocal>) : PresentationState
-    object ShareSuccess : PresentationState
-    data class Error(val errorMessage: String?) : PresentationState
-}
-
-sealed interface UiEffect {
-    data class OpenUrl(val url: String) : UiEffect
-}
 
 @HiltViewModel
 class PresentationViewModel @Inject constructor(
@@ -67,11 +56,11 @@ class PresentationViewModel @Inject constructor(
     var presentationUri: String = ""
     var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
 
-    private val _uiState = MutableStateFlow<PresentationState>(PresentationState.Initial)
-    val uiState: StateFlow<PresentationState> = _uiState
+    private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Initial)
+    val uiState: StateFlow<PresentationUiState> = _uiState
 
-    private val _effects = MutableSharedFlow<UiEffect>()
-    val effects: SharedFlow<UiEffect> = _effects.asSharedFlow()
+    private val _effects = MutableSharedFlow<PresentationUiEffect>()
+    val effects: SharedFlow<PresentationUiEffect> = _effects.asSharedFlow()
 
     fun init(fullUri: String) {
         presentationUri = fullUri
@@ -116,7 +105,7 @@ class PresentationViewModel @Inject constructor(
                 Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
             } catch (e: RuntimeException) {
                 Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
-                _uiState.value = PresentationState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
             }
         }
     }
@@ -155,12 +144,12 @@ class PresentationViewModel @Inject constructor(
                         }
                     }
                     _uiState.value =
-                        PresentationState.SelectDisclosures(disclosures = matchedClaims)
+                        PresentationUiState.SelectDisclosures(disclosures = matchedClaims)
                     Timber.d("PresentationViewModel - Claims")
                 } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel -Error: ${e.message}")
-                _uiState.value = PresentationState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
             }
         }
     }
@@ -214,19 +203,19 @@ class PresentationViewModel @Inject constructor(
                             )
                             Timber.d("PresentationViewModel - Presentation: OK $response}")
                             response.redirectUri?.let {
-                                _effects.emit(UiEffect.OpenUrl(response.redirectUri))
+                                _effects.emit(PresentationUiEffect.OpenUrl(response.redirectUri))
                             } ?: run {
-                                _uiState.value = PresentationState.ShareSuccess
+                                _uiState.value = PresentationUiState.ShareSuccess
                             }
                         } catch (e: Exception) {
                             Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                            _uiState.value = PresentationState.Error(errorMessage = e.message)
+                            _uiState.value = PresentationUiState.Error(errorMessage = e.message)
                         }
                     }
                 } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                _uiState.value = PresentationState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
             }
         }
     }
