@@ -70,7 +70,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/wua/v3": {
@@ -79,21 +80,16 @@
           "wua-controller"
         ],
         "operationId": "createWua_1",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "example": {
-                "walletId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                "jwk": {
-                  "kty": "EC",
-                  "crv": "P-256",
-                  "x": "1fH0eqXgMMwCIafNaDc1axdCjLlw7zpTLvLWjpPvhEc",
-                  "y": "5qOejJs7BK-jLingaUTEhBrzP_YPyHfptS5yWE98I40"
-                }
-              }
+        "parameters": [
+          {
+            "name": "nonce",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
           "500": {
             "description": "Could not create Wua",
@@ -180,7 +176,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/public/auth/session/response": {
@@ -474,7 +471,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/public/auth/session/challenge": {

@@ -1,6 +1,5 @@
 package se.digg.wallet.feature.enrollment.fetchid
 
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,23 +26,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
-import se.digg.wallet.feature.dashboard.CREDENTIAL_URL
+import se.digg.wallet.core.oauth.LocalAuthTabLauncher
+import se.digg.wallet.feature.enrollment.EnrollmentViewModel
 
 @Composable
-fun FetchIdScreen(onNext: () -> Unit, viewModel: FetchIdViewModel = hiltViewModel()) {
+fun FetchIdScreen(
+    onNext: () -> Unit,
+    onCredentialOfferFetch: (String) -> Unit,
+    viewModel: FetchIdViewModel = hiltViewModel(),
+    enrollmentViewModel: EnrollmentViewModel = hiltViewModel(),
+) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 FetchIdUiEffect.OnNext -> {}
+
+                is FetchIdUiEffect.OnCredentialOfferFetched -> {
+                    onCredentialOfferFetch.invoke(effect.credentialOffer)
+                }
             }
         }
     }
@@ -57,19 +66,22 @@ fun FetchIdScreen(onNext: () -> Unit, viewModel: FetchIdViewModel = hiltViewMode
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val launchAuthTab = LocalAuthTabLauncher.current
 
     FetchIdScreen(
         uiState = uiState,
+        onFetchId = { viewModel.getCredentialOffer(launchAuthTab) },
     )
 }
 
 @Composable
-private fun FetchIdScreen(uiState: FetchIdUiState) {
+private fun FetchIdScreen(uiState: FetchIdUiState, onFetchId: () -> Unit) {
     when (uiState) {
         FetchIdUiState.Error -> Error()
 
         FetchIdUiState.Idle -> Content(
             uiState = uiState,
+            onFetchId = { onFetchId.invoke() },
         )
 
         FetchIdUiState.Loading -> Loading()
@@ -89,7 +101,7 @@ private fun Error() {
 }
 
 @Composable
-private fun Content(uiState: FetchIdUiState) {
+private fun Content(uiState: FetchIdUiState, onFetchId: () -> Unit) {
     val context = LocalContext.current
 
     Column(
@@ -99,12 +111,7 @@ private fun Content(uiState: FetchIdUiState) {
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text(
-            "9. Hämta personuppgifter",
-            style = DiggTextStyle.H1,
-        )
-        Spacer(Modifier.height(70.dp))
+        OnboardingHeader(pageTitle = "9. Hämta personuppgifter")
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -150,8 +157,7 @@ private fun Content(uiState: FetchIdUiState) {
         PrimaryButton(
             text = "Hämta personuppgifter",
             onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
-                context.startActivity(intent)
+                onFetchId.invoke()
             },
             modifier = Modifier.fillMaxWidth(),
         )
@@ -176,6 +182,7 @@ private fun FetchIdScreenPreview() {
         Surface {
             FetchIdScreen(
                 uiState = FetchIdUiState.Idle,
+                onFetchId = {},
             )
         }
     }

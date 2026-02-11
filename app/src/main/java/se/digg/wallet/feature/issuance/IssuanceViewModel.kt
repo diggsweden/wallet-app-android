@@ -52,12 +52,11 @@ import se.digg.wallet.data.DisplayLocal
 import se.digg.wallet.data.Proof
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.toJwkModel
+import se.wallet.client.gateway.client.NetworkResult
 import timber.log.Timber
 
 sealed interface IssuanceState {
-    object Idle : IssuanceState
     data class IssuerFetched(val credentialOffer: CredentialOffer) : IssuanceState
-    data class Authorized(val request: AuthorizedRequest) : IssuanceState
     data class CredentialFetched(val credential: CredentialLocal) : IssuanceState
     object Loading : IssuanceState
     object Error : IssuanceState
@@ -84,7 +83,7 @@ class IssuanceViewModel @Inject constructor(
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
     private var issuer: Issuer? = null
 
-    private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Idle)
+    private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Loading)
     val uiState: StateFlow<IssuanceState> = _uiState
 
     private val _issuerMetadata = MutableStateFlow<CredentialIssuerMetadata?>(null)
@@ -118,7 +117,11 @@ class IssuanceViewModel @Inject constructor(
                 val prepareAuthorizationRequest = issuer.prepareAuthorizationRequest().getOrThrow()
                 val authCodeUrl =
                     prepareAuthorizationRequest.authorizationCodeURL.toString().toUri()
-                val oAuthCallback = oAuthCoordinator.authorize(authCodeUrl, launchAuthTab)
+                val oAuthCallback = oAuthCoordinator.authorize(
+                    url = authCodeUrl,
+                    redirectScheme = "wallet-app",
+                    launchAuthTab = launchAuthTab,
+                )
                 val authCode = oAuthCallback.getQueryParameter("code")
                     ?: throw Exception("Failed OAuth callback")
                 val authRequest = with(issuer) {
@@ -127,7 +130,6 @@ class IssuanceViewModel @Inject constructor(
                         prepareAuthorizationRequest.state,
                     )
                 }.getOrThrow()
-                _uiState.value = IssuanceState.Authorized(authRequest)
                 fetchCredential(authRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
@@ -140,18 +142,35 @@ class IssuanceViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value
-
-                val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl.toString()).nonce
-
-                val payload = IssuanceProofPayload(
-                    aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString(),
-                    nonce = nonce,
-                )
-
-                val headers = mapOf(
+                val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value.toString()
+                val aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString()
+                val headers = mutableMapOf(
                     "typ" to "openid4vci-proof+jwt",
                 )
+                val payload: IssuanceProofPayload
+
+                val nonceUrl = issuerMetadata.value?.nonceEndpoint?.value
+                if (nonceUrl != null) {
+                    val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
+                    val response = userRepository.fetchWua(nonce = nonce)
+                    val wua = when (response) {
+                        is NetworkResult.Failure -> null
+                        is NetworkResult.Success -> response.data.jwt
+                    }.takeIf { !it.isNullOrBlank() }
+                        ?: throw IllegalStateException("Wallet Unit Attestation (WUA) is missing")
+
+                    headers["key_attestation"] = wua
+                    payload = IssuanceProofPayload(
+                        nonce = nonce,
+                        aud = aud,
+                    )
+                } else {
+                    payload = IssuanceProofPayload(
+                        nonce = null,
+                        aud = aud,
+                    )
+                }
+
                 val jwtProof = JwtUtils.signJWT(keyPair, payload, headers)
                 val proofs = Proof(listOf(jwtProof))
 

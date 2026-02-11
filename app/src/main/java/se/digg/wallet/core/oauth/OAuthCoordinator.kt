@@ -11,7 +11,7 @@ import kotlinx.coroutines.withTimeout
 class OAuthCoordinator @Inject constructor() {
     private var pendingAuthResult: CompletableDeferred<Uri>? = null
 
-    suspend fun authorize(url: Uri, launchAuthTab: LaunchAuthTab): Uri {
+    suspend fun authorize(url: Uri, launchAuthTab: LaunchAuthTab, redirectScheme: String): Uri {
         check(pendingAuthResult == null) {
             "Auth session already ongoing"
         }
@@ -19,7 +19,7 @@ class OAuthCoordinator @Inject constructor() {
         pendingAuthResult = CompletableDeferred()
 
         try {
-            launchAuthTab(url)
+            launchAuthTab(url, redirectScheme)
             return withTimeout(120_000) {
                 pendingAuthResult?.await() ?: throw Exception("No pending auth result found")
             }

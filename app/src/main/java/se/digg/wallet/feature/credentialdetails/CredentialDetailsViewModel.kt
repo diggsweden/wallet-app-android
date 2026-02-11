@@ -19,8 +19,11 @@ import timber.log.Timber
 
 sealed interface CredentialDetailsState {
     object Loading : CredentialDetailsState
-    data class Disclosures(val disclosures: List<DisclosureLocal>, val issuer: String?) :
-        CredentialDetailsState
+    data class Disclosures(
+        val disclosures: Map<String, DisclosureLocal>,
+        val issuer: String?,
+        val issuerImgUrl: String,
+    ) : CredentialDetailsState
 
     data class Error(val errorMessage: String) : CredentialDetailsState
 }
@@ -39,10 +42,11 @@ class CredentialDetailsViewModel @Inject constructor(private val userRepository:
                 val credential: CredentialLocal = storedCredential?.let {
                     return@let Json.decodeFromString(CredentialLocal.serializer(), it)
                 } ?: return@launch
-                val disclosures = credential.disclosures.values.toList()
+                val disclosures = credential.disclosures
                 _uiState.value = CredentialDetailsState.Disclosures(
                     disclosures = disclosures,
                     issuer = credential.issuer?.name,
+                    issuerImgUrl = credential.issuer?.logo?.uri?.toString() ?: "",
                 )
             } catch (e: Exception) {
                 Timber.d("CredentialDetailsViewModel - Error: ${e.message}")

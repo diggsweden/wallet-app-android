@@ -4,11 +4,16 @@ data class EnrollmentUiState(
     val currentStep: EnrollmentStep = EnrollmentStep.NOTIFICATION,
     val totalSteps: Int = EnrollmentStep.totalSteps,
     val enableBack: List<EnrollmentStep> =
-        listOf(EnrollmentStep.VERIFY_EMAIL, EnrollmentStep.VERIFY_PHONE, EnrollmentStep.VERIFY_PIN),
+        listOf(
+            EnrollmentStep.VERIFY_EMAIL,
+            EnrollmentStep.VERIFY_PHONE,
+            EnrollmentStep.VERIFY_PIN,
+            EnrollmentStep.CREDENTIAL_OFFER,
+        ),
 )
 
 sealed interface EnrollmentUiEvent {
-    data class EmailChanged(val value: String) : EnrollmentUiEvent
+    data object LocalStorageCleared : EnrollmentUiEvent
 }
 
 sealed interface EnrollmentUiEffect {
@@ -25,6 +30,7 @@ enum class EnrollmentStep(val stepTitle: String) {
     PIN("PIN"),
     VERIFY_PIN("Verify PIN"),
     FETCH_PID("PID"),
+    CREDENTIAL_OFFER("Credential offer"),
     ;
 
     companion object {

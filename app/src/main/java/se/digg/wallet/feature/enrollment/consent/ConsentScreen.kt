@@ -27,12 +27,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
@@ -71,16 +71,10 @@ private fun ConsentScreen(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp)
+            .padding(bottom = 8.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text(
-            "1. Tillåt behörigheter",
-            textAlign = TextAlign.Center,
-            style = DiggTextStyle.H1,
-        )
-        Spacer(Modifier.height(70.dp))
+        OnboardingHeader(pageTitle = "1. Tillåt behörigheter")
         Row(Modifier.fillMaxWidth()) {
             Image(
                 painter = painterResource(R.drawable.handshake),

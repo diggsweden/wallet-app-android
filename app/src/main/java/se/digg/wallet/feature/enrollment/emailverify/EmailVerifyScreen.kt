@@ -25,6 +25,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.ConfirmCode
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
@@ -63,13 +64,7 @@ private fun EmailVerifyScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = "6. Bekräfta e-postadress",
-            style = DiggTextStyle.H1,
-        )
-        Spacer(Modifier.height(70.dp))
+        OnboardingHeader(pageTitle = "6. Bekräfta e-postadress")
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Text(
                 text =

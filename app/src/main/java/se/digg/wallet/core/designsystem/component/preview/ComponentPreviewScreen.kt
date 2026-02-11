@@ -23,7 +23,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.component.CredentialCard
-import se.digg.wallet.core.designsystem.component.LockedFieldWithCheckbox
 import se.digg.wallet.core.designsystem.component.NewCredentialCard
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -72,7 +71,6 @@ private fun ComponentPreviewScreen() {
             )
 
             PreviewCategoryDivider("Locked textfield")
-            LockedFieldWithCheckbox(value = "Value", label = "Label", { })
         }
     }
 }

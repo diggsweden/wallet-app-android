@@ -11,7 +11,6 @@ import se.wallet.client.gateway.client.OidcAccountsV1Client
 import se.wallet.client.gateway.client.WuaV3Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateAccountResponseDto
-import se.wallet.client.gateway.models.CreateWuaDto
 import se.wallet.client.gateway.models.WuaDto
 
 class UserRepository @Inject constructor(
@@ -23,8 +22,8 @@ class UserRepository @Inject constructor(
     val wuaClient = WuaV3Client(gatewayClient)
     private var sessionId: String? = null
 
-    suspend fun fetchWua(request: CreateWuaDto): NetworkResult<WuaDto> =
-        wuaClient.createWua1(request)
+    suspend fun fetchWua(nonce: String? = null): NetworkResult<WuaDto> =
+        wuaClient.createWua1(nonce = nonce)
 
     suspend fun createAccount(
         request: CreateAccountRequestDto,

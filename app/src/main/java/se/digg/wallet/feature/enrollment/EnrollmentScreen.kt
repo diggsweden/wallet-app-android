@@ -45,6 +45,7 @@ import se.digg.wallet.feature.enrollment.consent.ConsentScreen
 import se.digg.wallet.feature.enrollment.email.EmailScreen
 import se.digg.wallet.feature.enrollment.emailverify.EmailVerifyScreen
 import se.digg.wallet.feature.enrollment.fetchid.FetchIdScreen
+import se.digg.wallet.feature.enrollment.issuance.OnboardingIssuanceScreen
 import se.digg.wallet.feature.enrollment.login.LoginScreen
 import se.digg.wallet.feature.enrollment.phone.PhoneScreen
 import se.digg.wallet.feature.enrollment.phoneverify.PhoneVerifyScreen
@@ -58,10 +59,8 @@ fun EnrollmentScreen(
 ) {
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
-            when (event) {
-                EnrollmentViewModel.UiEvent.LocalStorageCleared -> {
-                    navController.popBackStack()
-                }
+            if (event is EnrollmentUiEvent.LocalStorageCleared) {
+                navController.popBackStack()
             }
         }
     }
@@ -82,6 +81,7 @@ fun EnrollmentScreen(
         onCloseOnboarding = { viewModel.closeOnboarding() },
         onFinishOnboarding = { onFinish.invoke() },
         onLoginSuccessful = { viewModel.setSessionId(it) },
+        onCredentialOfferFetch = { viewModel.setFetchedCredentialOffer(it) },
     )
 }
 
@@ -94,6 +94,7 @@ fun EnrollmentScreen(
     onCloseOnboarding: () -> Unit,
     onFinishOnboarding: () -> Unit,
     onLoginSuccessful: (String) -> Unit,
+    onCredentialOfferFetch: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val currentStep = uiState.currentStep.ordinal + 1
@@ -176,6 +177,7 @@ fun EnrollmentScreen(
                         onSkip = { onSkip.invoke() },
                         onFinish = { onFinishOnboarding.invoke() },
                         onLoginSuccessful = { onLoginSuccessful.invoke(it) },
+                        onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
                     )
                 }
             }
@@ -191,6 +193,7 @@ fun OnboardingStepContent(
     onSkip: () -> Unit,
     onFinish: () -> Unit,
     onLoginSuccessful: (String) -> Unit,
+    onCredentialOfferFetch: (String) -> Unit,
 ) {
     when (step) {
         EnrollmentStep.NOTIFICATION -> ConsentScreen(onNext = { onNext.invoke() })
@@ -216,7 +219,15 @@ fun OnboardingStepContent(
             onBack = { onBack.invoke() },
         )
 
-        EnrollmentStep.FETCH_PID -> FetchIdScreen(onNext = { onFinish.invoke() })
+        EnrollmentStep.FETCH_PID -> FetchIdScreen(
+            onNext = { onFinish.invoke() },
+            onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
+        )
+
+        EnrollmentStep.CREDENTIAL_OFFER -> OnboardingIssuanceScreen(
+            onBack = {},
+            onFinish = { onFinish.invoke() },
+        )
     }
 }
 
@@ -233,6 +244,7 @@ private fun EnrollmentPreview() {
                 onCloseOnboarding = {},
                 onFinishOnboarding = {},
                 onLoginSuccessful = {},
+                onCredentialOfferFetch = {},
             )
         }
     }

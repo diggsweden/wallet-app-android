@@ -24,11 +24,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.OutLinedInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
@@ -89,13 +89,7 @@ private fun EmailScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text(
-            "5. Din e-postadress",
-            textAlign = TextAlign.Center,
-            style = DiggTextStyle.H1,
-        )
-        Spacer(Modifier.height(70.dp))
+        OnboardingHeader(pageTitle = "5. Din e-postadress")
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Image(
                 painter = painterResource(R.drawable.pinphone),

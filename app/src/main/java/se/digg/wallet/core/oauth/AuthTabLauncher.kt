@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 
-typealias LaunchAuthTab = (url: Uri) -> Unit
+typealias LaunchAuthTab = (url: Uri, redirectScheme: String) -> Unit
 
 val LocalAuthTabLauncher = staticCompositionLocalOf<LaunchAuthTab> {
     error("No AuthTabLauncher provided")

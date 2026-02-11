@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.OutLinedInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
@@ -71,13 +72,7 @@ private fun PhoneScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text(
-            "3. Ditt telefonnummer",
-            textAlign = TextAlign.Center,
-            style = DiggTextStyle.H1,
-        )
-        Spacer(Modifier.height(70.dp))
+        OnboardingHeader(pageTitle = "3. Ditt telefonnummer")
         OutLinedInput(
             value = uiState.phone,
             labelText = stringResource(R.string.contact_info_phone_label),

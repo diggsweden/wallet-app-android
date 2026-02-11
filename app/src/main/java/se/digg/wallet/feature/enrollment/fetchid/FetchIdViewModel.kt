@@ -1,9 +1,10 @@
 package se.digg.wallet.feature.enrollment.fetchid
 
+import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,19 +17,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.oauth.LaunchAuthTab
+import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.client.NetworkResult
-import se.wallet.client.gateway.client.OidcAccountsV1Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
-import se.wallet.client.gateway.models.CreateWuaDto
 import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
 
 @HiltViewModel
-class FetchIdViewModel @Inject constructor(private val userRepository: UserRepository) :
-    ViewModel() {
+class FetchIdViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val oAuthCoordinator: OAuthCoordinator,
+) : ViewModel() {
     init {
         setupAccount()
     }
@@ -47,7 +50,7 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
     fun setupAccount() {
         viewModelScope.launch {
             try {
-                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
                 val jwk = JwtUtils.exportJwk(keyPair)
                 val email = userRepository.getEmail() ?: ""
                 val phone = userRepository.getPhone() ?: ""
@@ -79,31 +82,31 @@ class FetchIdViewModel @Inject constructor(private val userRepository: UserRepos
                     }
                 Timber.d("ContactInfo - Response: $response")
                 userRepository.setAccountId(accountId)
-                requestWua()
+                _uiState.value = FetchIdUiState.Idle
             } catch (e: Exception) {
                 Timber.d("ContactInfo - Account creation error: ${e.message}")
             }
         }
     }
 
-    fun requestWua() {
+    fun getCredentialOffer(launchAuthTab: LaunchAuthTab) {
         viewModelScope.launch {
-            try {
-                val uuid = UUID.randomUUID()
-                // TODO: Remove when integrating wua v3
-                storeWuaLocally(jwt = "", uuid = uuid)
-                _uiState.value = FetchIdUiState.Idle
-            } catch (e: Exception) {
-                Timber.d("Wallet activation error - ${e.message}")
-                _uiState.value = FetchIdUiState.Error
-            }
-        }
-    }
+            val oAuthCallback = oAuthCoordinator.authorize(
+                url = "https://wallet.sandbox.digg.se/pid-issuer".toUri(),
+                redirectScheme = "openid-credential-offer",
+                launchAuthTab = launchAuthTab,
+            )
+            val credentialOffer =
+                oAuthCallback.getQueryParameter("credential_offer")
+                    ?: throw IllegalStateException("credential offer query parameter missing")
 
-    fun storeWuaLocally(jwt: String, uuid: UUID) {
-        viewModelScope.launch {
-            userRepository.setWua(jwt)
-            userRepository.setUuid(uuid)
+            val encodedJson = Uri.encode(credentialOffer)
+            val uri = Uri.parse(
+                "openid-credential-offer://?credential_offer=$encodedJson",
+            ).toString()
+            _effects.emit(
+                FetchIdUiEffect.OnCredentialOfferFetched(credentialOffer = uri),
+            )
         }
     }
 }

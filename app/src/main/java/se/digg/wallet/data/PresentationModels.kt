@@ -1,6 +1,6 @@
 @file:Suppress("ktlint:standard:filename")
 
-package se.digg.wallet.feature.presentation
+package se.digg.wallet.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
