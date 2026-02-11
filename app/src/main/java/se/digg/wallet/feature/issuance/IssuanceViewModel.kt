@@ -56,9 +56,7 @@ import se.wallet.client.gateway.client.NetworkResult
 import timber.log.Timber
 
 sealed interface IssuanceState {
-    object Idle : IssuanceState
     data class IssuerFetched(val credentialOffer: CredentialOffer) : IssuanceState
-    data class Authorized(val request: AuthorizedRequest) : IssuanceState
     data class CredentialFetched(val credential: CredentialLocal) : IssuanceState
     object Loading : IssuanceState
     object Error : IssuanceState
@@ -85,7 +83,7 @@ class IssuanceViewModel @Inject constructor(
     private var claimsMetadata: Map<String, Claim> = mutableMapOf()
     private var issuer: Issuer? = null
 
-    private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Idle)
+    private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Loading)
     val uiState: StateFlow<IssuanceState> = _uiState
 
     private val _issuerMetadata = MutableStateFlow<CredentialIssuerMetadata?>(null)
@@ -121,7 +119,7 @@ class IssuanceViewModel @Inject constructor(
                     prepareAuthorizationRequest.authorizationCodeURL.toString().toUri()
                 val oAuthCallback = oAuthCoordinator.authorize(
                     url = authCodeUrl,
-                    redirectSchema = "wallet-app",
+                    redirectScheme = "wallet-app",
                     launchAuthTab = launchAuthTab,
                 )
                 val authCode = oAuthCallback.getQueryParameter("code")
@@ -132,7 +130,6 @@ class IssuanceViewModel @Inject constructor(
                         prepareAuthorizationRequest.state,
                     )
                 }.getOrThrow()
-                // _uiState.value = IssuanceState.Authorized(authRequest)
                 fetchCredential(authRequest)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
@@ -157,14 +154,11 @@ class IssuanceViewModel @Inject constructor(
                     val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
                     val response = userRepository.fetchWua(nonce = nonce)
                     val wua = when (response) {
-                        is NetworkResult.Failure -> {
-                            ""
-                        }
+                        is NetworkResult.Failure -> null
+                        is NetworkResult.Success -> response.data.jwt
+                    }.takeIf { !it.isNullOrBlank() }
+                        ?: throw IllegalStateException("Wallet Unit Attestation (WUA) is missing")
 
-                        is NetworkResult.Success -> {
-                            response.data.jwt ?: ""
-                        }
-                    }
                     headers["key_attestation"] = wua
                     payload = IssuanceProofPayload(
                         nonce = nonce,

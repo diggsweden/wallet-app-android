@@ -38,13 +38,13 @@ class MainActivity : ComponentActivity() {
             oAuthCoordinator.onResult(result)
         }
 
-    private fun launchAuthTab(url: Uri, redirectSchema: String) {
+    private fun launchAuthTab(url: Uri, redirectScheme: String) {
         val authTabIntent = AuthTabIntent.Builder().build()
 
         authTabIntent.launch(
             authLauncher,
             url,
-            redirectSchema,
+            redirectScheme,
         )
     }
 

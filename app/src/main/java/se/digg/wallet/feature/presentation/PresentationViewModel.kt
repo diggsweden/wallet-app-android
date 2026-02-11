@@ -56,7 +56,7 @@ class PresentationViewModel @Inject constructor(
     var presentationUri: String = ""
     var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
 
-    private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Initial)
+    private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Loading)
     val uiState: StateFlow<PresentationUiState> = _uiState
 
     private val _effects = MutableSharedFlow<PresentationUiEffect>()

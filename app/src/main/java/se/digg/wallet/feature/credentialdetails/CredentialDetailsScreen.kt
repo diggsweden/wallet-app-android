@@ -52,7 +52,7 @@ fun CredentialDetailsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CredentialDetailsScreen(
+private fun CredentialDetailsScreen(
     uiState: CredentialDetailsState,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,

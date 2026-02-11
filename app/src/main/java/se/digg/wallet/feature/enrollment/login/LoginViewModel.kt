@@ -27,7 +27,7 @@ class LoginViewModel @Inject constructor(private val oAuthCoordinator: OAuthCoor
         viewModelScope.launch {
             val oAuthCallback = oAuthCoordinator.authorize(
                 url = "https://wallet.sandbox.digg.se/api/oidc/auth".toUri(),
-                redirectSchema = "wallet-app",
+                redirectScheme = "wallet-app",
                 launchAuthTab = launchAuthTab,
             )
             val sessionId =

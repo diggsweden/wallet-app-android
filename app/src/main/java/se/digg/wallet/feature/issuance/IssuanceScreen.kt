@@ -6,72 +6,111 @@
 
 package se.digg.wallet.feature.issuance
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
+import se.digg.wallet.core.designsystem.component.DisclosureList
+import se.digg.wallet.core.designsystem.component.GenericErrorScreen
+import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
-import se.digg.wallet.data.CredentialLocal
-import timber.log.Timber
 
 @Composable
 fun IssuanceScreen(
-    navController: NavController,
-    credentialOfferUri: String?,
+    onBackClick: () -> Unit,
+    onFinishClick: () -> Unit,
+    credentialOfferUri: String,
     modifier: Modifier = Modifier,
+    headerContent: (@Composable () -> Unit)? = null,
     viewModel: IssuanceViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
-    val launchAuthTab = LocalAuthTabLauncher.current
-    LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri ?: "error") }
 
+    val launchAuthTab = LocalAuthTabLauncher.current
+    LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri) }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        if (headerContent != null) {
+            headerContent()
+        } else {
+            Spacer(Modifier.height(26.dp))
+        }
+        CredentialOfferHeader(issuer = issuerMetadata)
+
+        when (uiState) {
+            IssuanceState.Loading -> {
+                GenericLoading()
+            }
+
+            IssuanceState.Error -> {
+                GenericErrorScreen()
+            }
+
+            is IssuanceState.IssuerFetched -> {
+                Spacer(modifier = Modifier.weight(1f))
+                PrimaryButton(
+                    text = "Hämta ID-handling",
+                    onClick = { viewModel.authorize(launchAuthTab) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            is IssuanceState.CredentialFetched -> {
+                val credential = (uiState as IssuanceState.CredentialFetched).credential
+                Spacer(modifier = Modifier.height(30.dp))
+                DisclosureList(disclosures = credential.disclosures.values.toList())
+                Spacer(modifier = Modifier.height(24.dp))
+                PrimaryButton(
+                    text = stringResource(R.string.enrollment_credential_offer_button_accept),
+                    onClick = { onFinishClick.invoke() },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DeepLinkedIssuanceScreen(
+    onBackClick: () -> Unit,
+    onFinishClick: () -> Unit,
+    credentialOfferUri: String,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         {
@@ -81,8 +120,14 @@ fun IssuanceScreen(
                         text = "Hämta attributsintyg",
                     )
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+                ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = { onBackClick.invoke() }) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_left),
                             contentDescription = "",
@@ -92,210 +137,16 @@ fun IssuanceScreen(
             )
         },
     ) { innerPadding ->
-        Surface(modifier = Modifier.padding(innerPadding)) {
-            Column(
-                modifier =
-                    Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp),
-            ) {
-                Header(metadata = issuerMetadata)
-
-                when (val state = uiState) {
-                    IssuanceState.Idle -> {
-                        Timber.d("IssuanceState.Initial")
-                    }
-
-                    is IssuanceState.IssuerFetched -> {
-                        Timber.d("IssuanceState.IssuerFetched")
-                        PrimaryButton(
-                            text = "Hämta ID-handling",
-                            onClick = { viewModel.authorize(launchAuthTab) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-
-                    is IssuanceState.Authorized -> {
-                        Timber.d("IssuanceState.Authorized")
-                        val authorizedRequest = state.request
-                        PrimaryButton(
-                            text = "Logga in",
-                            onClick = { viewModel.fetchCredential(authorizedRequest) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-
-                    is IssuanceState.CredentialFetched -> {
-                        Timber.d("IssuanceState.CredentialFetched")
-                        val fetchedCredential = state.credential
-                        Disclosures(
-                            fetchedCredential = fetchedCredential,
-                            onClose = { navController.navigateUp() },
-                        )
-                    }
-
-                    IssuanceState.Error -> {
-                        Timber.d("IssuanceState.Error")
-                    }
-
-                    IssuanceState.Loading -> {
-                        Timber.d("IssuanceState.Loading ")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Header(metadata: CredentialIssuerMetadata?) {
-    Column {
-        Card(
-            colors =
-                CardDefaults.cardColors(
-                    containerColor =
-                        MaterialTheme.colorScheme.onPrimary.copy(
-                            alpha = 0.2f,
-                        ),
-                ),
-            modifier =
-                Modifier
-                    .fillMaxWidth(),
+        Surface(
+            modifier = Modifier.padding(innerPadding),
+            color = MaterialTheme.colorScheme.background,
         ) {
-            SelectionContainer {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .height(200.dp)
-                                .fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        AsyncImage(
-                            model =
-                                metadata
-                                    ?.display
-                                    ?.first()
-                                    ?.logo
-                                    ?.uri
-                                    .toString(),
-                            contentDescription = "-",
-                            modifier = Modifier.size(200.dp),
-                        )
-                    }
-                    Text("Utfärdare:", fontWeight = FontWeight.Bold)
-                    Text(metadata?.display?.first()?.name ?: "-")
-                }
-            }
+            IssuanceScreen(
+                onBackClick = { onBackClick.invoke() },
+                onFinishClick = { onFinishClick.invoke() },
+                credentialOfferUri = credentialOfferUri,
+            )
         }
-        Spacer(Modifier.height(12.dp))
-    }
-}
-
-@Composable
-private fun PreAuthInput(onSubmit: (Int) -> Unit) {
-    var text by rememberSaveable { mutableStateOf("") }
-
-    Column {
-        Card(
-            colors =
-                CardDefaults.cardColors(
-                    containerColor =
-                        colorResource(id = R.color.digg_primary).copy(
-                            alpha = 0.2f,
-                        ),
-                ),
-            modifier =
-                Modifier
-                    .fillMaxWidth(),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = sanitize(it) },
-                    label = { Text("Enter authorization code") },
-                    singleLine = true,
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done,
-                        ),
-                    keyboardActions =
-                        KeyboardActions(
-                            onDone = {
-                                text.toIntOrNull()?.let { input -> onSubmit.invoke(input) }
-                            },
-                        ),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                Button(
-                    onClick = { text.toIntOrNull()?.let { input -> onSubmit.invoke(input) } },
-                    enabled = text.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Verify")
-                }
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-    }
-}
-
-fun sanitize(input: String) = input.filter { it.isDigit() }
-
-@Composable
-fun Disclosures(
-    fetchedCredential: CredentialLocal,
-    onClose: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column {
-        Card(
-            colors =
-                CardDefaults.cardColors(
-                    containerColor =
-                        MaterialTheme.colorScheme.onPrimary.copy(
-                            alpha = 0.2f,
-                        ),
-                ),
-            modifier =
-                Modifier
-                    .fillMaxWidth(),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text("Attribut:", fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(12.dp))
-                fetchedCredential.disclosures.forEach { item ->
-                    OutlinedTextField(
-                        value = item.value.value,
-                        onValueChange = { },
-                        label = {
-                            Text(
-                                item.value.claim.display
-                                    .first()
-                                    .name ?: "No name",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        },
-                        singleLine = true,
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(12.dp))
-                }
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        PrimaryButton(
-            text = stringResource(R.string.generic_ok),
-            onClick = { onClose.invoke() },
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }
 

@@ -69,12 +69,8 @@ class EnrollmentViewModel @Inject constructor(private val userRepository: UserRe
 
     fun closeOnboarding() {
         viewModelScope.launch {
-            try {
-                userRepository.wipeAll()
-                _events.emit(EnrollmentUiEvent.LocalStorageCleared)
-            } catch (e: Exception) {
-                // TODO handle error?
-            }
+            userRepository.wipeAll()
+            _events.emit(EnrollmentUiEvent.LocalStorageCleared)
         }
     }
 
@@ -88,9 +84,5 @@ class EnrollmentViewModel @Inject constructor(private val userRepository: UserRe
         goNext()
     }
 
-    fun getFetchedCredentialOffer() {
-        viewModelScope.launch {
-            _events.emit(EnrollmentUiEvent.CredentialOffer(credentialOffer))
-        }
-    }
+    fun getCredentialOfferUrl(): String = credentialOffer
 }

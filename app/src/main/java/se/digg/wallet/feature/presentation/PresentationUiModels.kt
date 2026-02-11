@@ -3,7 +3,6 @@ package se.digg.wallet.feature.presentation
 import se.digg.wallet.data.DisclosureLocal
 
 sealed interface PresentationUiState {
-    object Initial : PresentationUiState
     object Loading : PresentationUiState
     data class SelectDisclosures(val disclosures: List<DisclosureLocal>) : PresentationUiState
     object ShareSuccess : PresentationUiState

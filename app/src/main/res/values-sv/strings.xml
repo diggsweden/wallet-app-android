@@ -56,4 +56,8 @@
     <string name="enrollment_credential_offer_button_accept">Godkänn personuppgifter</string>
     <string name="generic_share">Dela</string>
     <string name="generic_error_screen_message">Något gick tyvärr fel, vänligen försök igen och om problemet kvarstår så kontakta oss med en felrapport.</string>
+    <string name="presentation_share_successful_info">Fortsätt flödet i din webbläsare eller på din andra enhet.</string>
+    <string name="presentation_share_successful_title">Delning av data lyckades!</string>
+    <string name="presentation_share_title">Vill du dela följande data?</string>
+    <string name="presentation_app_bar_title">Dela attribut</string>
 </resources>

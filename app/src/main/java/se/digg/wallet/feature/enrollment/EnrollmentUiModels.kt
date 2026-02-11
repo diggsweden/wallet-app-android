@@ -4,11 +4,15 @@ data class EnrollmentUiState(
     val currentStep: EnrollmentStep = EnrollmentStep.NOTIFICATION,
     val totalSteps: Int = EnrollmentStep.totalSteps,
     val enableBack: List<EnrollmentStep> =
-        listOf(EnrollmentStep.VERIFY_EMAIL, EnrollmentStep.VERIFY_PHONE, EnrollmentStep.VERIFY_PIN),
+        listOf(
+            EnrollmentStep.VERIFY_EMAIL,
+            EnrollmentStep.VERIFY_PHONE,
+            EnrollmentStep.VERIFY_PIN,
+            EnrollmentStep.CREDENTIAL_OFFER,
+        ),
 )
 
 sealed interface EnrollmentUiEvent {
-    data class CredentialOffer(val credentialOffer: String) : EnrollmentUiEvent
     data object LocalStorageCleared : EnrollmentUiEvent
 }
 

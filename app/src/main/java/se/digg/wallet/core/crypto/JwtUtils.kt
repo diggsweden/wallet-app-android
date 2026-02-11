@@ -60,7 +60,7 @@ object JwtUtils {
         keyPair: KeyPair,
         payload: T,
         headers: Map<String, Any>,
-        shouldIncludePublicKey: Boolean = false,
+        includeJwk: Boolean = false,
     ): String {
         val now = Instant.now().epochSecond.toInt()
 
@@ -81,7 +81,7 @@ object JwtUtils {
         val publicECKey = exportedECKey.toPublicJWK()
 
         val header = JWSHeader.Builder(algorithm).customParams(headers).apply {
-            if (shouldIncludePublicKey) {
+            if (includeJwk) {
                 jwk(publicECKey)
             }
         }.build()

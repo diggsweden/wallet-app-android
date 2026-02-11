@@ -18,7 +18,7 @@ import se.digg.wallet.feature.credentialdetails.CredentialDetailsScreen
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.enrollment.EnrollmentScreen
 import se.digg.wallet.feature.enrollment.intro.IntroScreen
-import se.digg.wallet.feature.issuance.IssuanceScreen
+import se.digg.wallet.feature.issuance.DeepLinkedIssuanceScreen
 import se.digg.wallet.feature.presentation.PresentationScreen
 import se.digg.wallet.feature.settings.SettingsScreen
 
@@ -68,7 +68,11 @@ fun WalletNavHost(
                 ),
         ) { backStackEntry ->
             val fullUri = backStackEntry.deepLinkUri()
-            IssuanceScreen(navController = navController, fullUri.toString())
+            DeepLinkedIssuanceScreen(
+                onBackClick = { navController.navigateUp() },
+                onFinishClick = { navController.navigateUp() },
+                credentialOfferUri = fullUri.toString(),
+            )
         }
 
         // Enrolled

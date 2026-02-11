@@ -21,7 +21,6 @@ import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
-import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.models.CreateAccountRequestDto
@@ -32,7 +31,6 @@ import timber.log.Timber
 class FetchIdViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val oAuthCoordinator: OAuthCoordinator,
-    private val openIdNetworkService: OpenIdNetworkService,
 ) : ViewModel() {
     init {
         setupAccount()
@@ -95,10 +93,9 @@ class FetchIdViewModel @Inject constructor(
         viewModelScope.launch {
             val oAuthCallback = oAuthCoordinator.authorize(
                 url = "https://wallet.sandbox.digg.se/pid-issuer".toUri(),
-                redirectSchema = "openid-credential-offer",
+                redirectScheme = "openid-credential-offer",
                 launchAuthTab = launchAuthTab,
             )
-            Timber.d("Credential offer: before: ")
             val credentialOffer =
                 oAuthCallback.getQueryParameter("credential_offer")
                     ?: throw IllegalStateException("credential offer query parameter missing")

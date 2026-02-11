@@ -42,15 +42,14 @@ import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.feature.enrollment.consent.ConsentScreen
-import se.digg.wallet.feature.enrollment.credentialoffer.CredentialOfferScreen
 import se.digg.wallet.feature.enrollment.email.EmailScreen
 import se.digg.wallet.feature.enrollment.emailverify.EmailVerifyScreen
 import se.digg.wallet.feature.enrollment.fetchid.FetchIdScreen
+import se.digg.wallet.feature.enrollment.issuance.OnboardingIssuanceScreen
 import se.digg.wallet.feature.enrollment.login.LoginScreen
 import se.digg.wallet.feature.enrollment.phone.PhoneScreen
 import se.digg.wallet.feature.enrollment.phoneverify.PhoneVerifyScreen
 import se.digg.wallet.feature.enrollment.pin.PinSetupScreen
-import timber.log.Timber
 
 @Composable
 fun EnrollmentScreen(
@@ -60,14 +59,8 @@ fun EnrollmentScreen(
 ) {
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
-            when (event) {
-                EnrollmentUiEvent.LocalStorageCleared -> {
-                    navController.popBackStack()
-                }
-
-                else -> {
-                    Timber.d("ENROLLMENTSCREEN")
-                }
+            if (event is EnrollmentUiEvent.LocalStorageCleared) {
+                navController.popBackStack()
             }
         }
     }
@@ -231,7 +224,7 @@ fun OnboardingStepContent(
             onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
         )
 
-        EnrollmentStep.CREDENTIAL_OFFER -> CredentialOfferScreen(
+        EnrollmentStep.CREDENTIAL_OFFER -> OnboardingIssuanceScreen(
             onBack = {},
             onFinish = { onFinish.invoke() },
         )

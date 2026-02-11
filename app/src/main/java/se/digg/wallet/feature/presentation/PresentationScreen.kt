@@ -91,7 +91,7 @@ private fun PresentationScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Dela attribut",
+                        text = stringResource(R.string.presentation_app_bar_title),
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -120,9 +120,6 @@ private fun PresentationScreen(
                     GenericErrorScreen(errorMessage = state.errorMessage)
                 }
 
-                PresentationUiState.Initial -> {
-                }
-
                 PresentationUiState.Loading -> {
                     GenericLoading()
                 }
@@ -141,7 +138,7 @@ private fun PresentationScreen(
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
-                                text = "Vill du dela följande data?",
+                                text = stringResource(R.string.presentation_share_title),
                                 style = DiggTextStyle.H2,
                             )
                             Spacer(Modifier.height(8.dp))
@@ -177,14 +174,14 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "Delning av data lyckades!",
+            text = stringResource(R.string.presentation_share_successful_title),
             style = DiggTextStyle.H5,
         )
         Spacer(Modifier.height(8.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "Fortsätt flödet i din webbläsare eller på din andra enhet.",
+            text = stringResource(R.string.presentation_share_successful_info),
         )
         Spacer(Modifier.height(16.dp))
         PrimaryButton(
@@ -203,7 +200,7 @@ private fun PresentationPreview() {
                 onBackCLick = { },
                 onShareClick = { },
                 onFinishClick = { },
-                uiState = PresentationUiState.Error("Error asser"),
+                uiState = PresentationUiState.Error("Error message for preview"),
             )
         }
     }
