@@ -6,6 +6,6 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/diggsweden/wallet-app-android/badge?style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/diggsweden/wallet-app-android)
 
-Source code is EUPL-1.2.
+Source code is EUPL-1.2. Most other assets are CC0-1.0
 
 Copies from Google Play Store are licensed under their store EULA plus our Terms of Use; that doesn’t change the EUPL license for the source.
