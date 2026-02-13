@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Digg - Agency for digital government
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import ch.acanda.gradle.fabrikt.FabriktGenerateTask
 import com.google.devtools.ksp.gradle.KspAATask
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
