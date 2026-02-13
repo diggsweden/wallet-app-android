@@ -6,21 +6,26 @@ version = 1
 
 [[annotations]]
 path = [
-  ".conform.yaml",
-  ".gitignore",
-  "CHANGELOG.md",
-  "README.md",
-  "app/.gitignore",
-  "app/proguard-rules.pro",
-  "docs/DEVELOPMENT.md",
-  "feature/home/.gitignore",
-  "feature/home/consumer-rules.pro",
-  "feature/home/proguard-rules.pro",
-  "gradle/libs.versions.toml",
-  "gradle/wrapper/gradle-wrapper.properties",
-  "gradle.properties",
-  "renovate.json",
-  "settings.gradle.kts",
+    ".conform.yaml",
+    ".gitignore",
+    "CHANGELOG.md",
+    "README.md",
+    "app/.gitignore",
+    "app/proguard-rules.pro",
+    "docs/DEVELOPMENT.md",
+    "feature/home/.gitignore",
+    "feature/home/consumer-rules.pro",
+    "feature/home/proguard-rules.pro",
+    "gradle/libs.versions.toml",
+    "gradle/wrapper/gradle-wrapper.properties",
+    "gradle.properties",
+    "settings.gradle.kts",
+    "**/*build.gradle.kts",
+    "**/*.json",
+    "**/*.xml",
+    "**/*.ttf",
+    "**/*.png",
+    ".editorconfig",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Digg - Agency for Digital Government"
@@ -28,22 +33,18 @@ SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
 path = [
-  "**/*.kt",
-  "**/*.kts",
-  "**/*.xml",
-  "**/*.ttf",
-  "**/*.png",
-]
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2025 Digg - Agency for Digital Government"
-SPDX-License-Identifier = "EUPL-1.2"
-
-[[annotations]]
-path = [
-  "gradlew",
-  "gradlew.bat",
-  "gradle/wrapper/gradle-wrapper.jar",
+    "gradlew",
+    "gradlew.bat",
+    "gradle/wrapper/gradle-wrapper.jar",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Gradle Inc."
 SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+    "app/src/main/res/font/ubuntu_*.ttf",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright 2011, 2022, 2023 Canonical Ltd. Licensed under the Ubuntu Font Licence 1.0"
+SPDX-License-Identifier = "Ubuntu-font-1.0"
