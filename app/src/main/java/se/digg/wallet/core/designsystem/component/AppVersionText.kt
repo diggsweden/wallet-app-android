@@ -36,11 +36,13 @@ fun AppVersionText(modifier: Modifier = Modifier) {
     val string =
         stringResource(R.string.settings_app_version, version.versionName, version.versionCode)
 
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier.clickable {
+            clipboardManager.setText(AnnotatedString(string))
+        },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
-            modifier = Modifier.clickable {
-                clipboardManager.setText(AnnotatedString(string))
-            },
             text = string,
             style = DiggTextStyle.BodySM,
         )

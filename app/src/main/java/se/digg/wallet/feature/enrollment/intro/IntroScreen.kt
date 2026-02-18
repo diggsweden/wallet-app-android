@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,13 +59,14 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(53.dp))
         Image(
-            painter = painterResource(R.drawable.digg_intro),
+            painter = painterResource(R.drawable.digg_intro_man_bun),
             contentDescription = stringResource(R.string.enrollment_intro_logo_description),
             modifier = Modifier
                 .width(333.dp)
-                .height(341.dp),
+                .height(341.dp)
+                .graphicsLayer(scaleX = 1.4f, scaleY = 1.4f),
         )
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(2f))
         Text(
             text = stringResource(R.string.enrollment_intro_title),
             fontSize = 40.sp,
@@ -79,7 +81,7 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Medium,
             color = textColor,
         )
-        Spacer(modifier = Modifier.height(53.dp))
+        Spacer(modifier = Modifier.weight(2f))
         PrimaryButton(
             text = stringResource(R.string.enrollment_intro_button),
             onClick = {
