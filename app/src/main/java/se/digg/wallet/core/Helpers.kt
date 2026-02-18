@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:filename")
+
 package se.digg.wallet.core
 
 import android.content.Context
