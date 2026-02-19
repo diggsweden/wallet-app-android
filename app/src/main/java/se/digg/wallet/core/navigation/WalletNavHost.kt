@@ -139,7 +139,6 @@ fun WalletNavHost(
         ) {
             composable(EnrollmentNavItem.Intro.route) {
                 IntroScreen(
-                    navController = navController,
                     onContinue = {
                         navController.navigate(EnrollmentNavItem.Onboarding.route)
                     },

@@ -9,7 +9,7 @@
     <string name="homescreen_pid_info_url">https://issuer.eudiw.dev/credential_offer_choice</string>
     <string name="homescreen_more_info_here">här</string>
     <string name="enrollment_pin_confirm">Confirm PIN code</string>
-    <string name="enrollment_intro_title">Din data, ditt val</string>
+    <string name="enrollment_intro_subtitle">Din data, ditt val</string>
     <string name="enrollment_intro_logo_description">Logo</string>
     <string name="generic_ok">Ok</string>
     <string name="generic_continue">Continue</string>
@@ -24,7 +24,6 @@
     <string name="enrollment_done_description">Nu är din plånbok redo för att användas!</string>
     <string name="enrollment_done_title">Done!</string>
     <string name="settings_logout">Logga ut</string>
-    <string name="settings_app_version">App version: %1$s:%2$d</string>
     <string name="generic_close">Close</string>
     <string name="dashboard_title">ID-plånboken</string>
     <string name="dashboard_add_credential">Add new credential</string>
@@ -59,4 +58,7 @@
     <string name="presentation_share_successful_title">Delning av data lyckades!</string>
     <string name="presentation_share_title">Vill du dela följande data?</string>
     <string name="presentation_app_bar_title">Dela attribut</string>
+    <string name="settings_app_version">App version: %1$s (%2$d)</string>
+    <string name="enrollment_intro_title">Plånboken</string>
+    <string name="enrollment_intro_button">Kom igång med plånboken</string>
 </resources>
