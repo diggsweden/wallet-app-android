@@ -8,7 +8,7 @@ import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.OidcAccountsV1Client
-import se.wallet.client.gateway.client.WuaV3Client
+import se.wallet.client.gateway.client.WuaClient
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateAccountResponseDto
 import se.wallet.client.gateway.models.WuaDto
@@ -19,11 +19,21 @@ class UserRepository @Inject constructor(
 ) {
     val user: Flow<User?> = userDao.observe()
     val accountsClient = OidcAccountsV1Client(gatewayClient)
-    val wuaClient = WuaV3Client(gatewayClient)
+    val wuaClient = WuaClient(gatewayClient)
     private var sessionId: String? = null
 
-    suspend fun fetchWua(nonce: String? = null): NetworkResult<WuaDto> =
-        wuaClient.createWua1(nonce = nonce)
+    suspend fun fetchWua(nonce: String? = null): String =
+        when (val response = wuaClient.createWua(nonce = nonce)) {
+            is NetworkResult.Failure -> {
+                throw IllegalStateException(
+                    "Wallet Unit Attestation (WUA) is missing",
+                )
+            }
+
+            is NetworkResult.Success -> {
+                return response.data.jwt
+            }
+        }
 
     suspend fun createAccount(
         request: CreateAccountRequestDto,
