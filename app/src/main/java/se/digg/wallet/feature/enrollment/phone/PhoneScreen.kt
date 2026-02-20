@@ -35,6 +35,7 @@ import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PhoneScreen(
+    pageNumber: Int,
     onNext: () -> Unit,
     onSkip: () -> Unit,
     viewModel: PhoneViewModel = hiltViewModel(),
@@ -52,6 +53,7 @@ fun PhoneScreen(
 
     PhoneScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         onInputChange = { viewModel.onEvent(PhoneUiEvent.PhoneChanged(it)) },
         onNext = { viewModel.onEvent(PhoneUiEvent.NextClicked) },
         onSkip = { viewModel.onEvent(PhoneUiEvent.SkipClicked) },
@@ -61,6 +63,7 @@ fun PhoneScreen(
 @Composable
 private fun PhoneScreen(
     uiState: PhoneUiState,
+    pageNumber: Int,
     onInputChange: (String) -> Unit,
     onNext: () -> Unit,
     onSkip: () -> Unit,
@@ -72,7 +75,7 @@ private fun PhoneScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageTitle = "3. Ditt telefonnummer")
+        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Ditt telefonnummer")
         OutLinedInput(
             value = uiState.phone,
             labelText = stringResource(R.string.contact_info_phone_label),
@@ -115,6 +118,7 @@ private fun PhoneScreenPreview() {
         Surface {
             PhoneScreen(
                 uiState = PhoneUiState(),
+                pageNumber = 2,
                 onInputChange = {},
                 onNext = {},
                 onSkip = {},

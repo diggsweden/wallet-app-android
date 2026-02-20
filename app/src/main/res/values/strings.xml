@@ -61,4 +61,5 @@
     <string name="settings_app_version">App version: %1$s (%2$d)</string>
     <string name="enrollment_intro_title">Plånboken</string>
     <string name="enrollment_intro_button">Kom igång med plånboken</string>
+    <string name="onboarding_page_title">%1$d. %2$s</string>
 </resources>

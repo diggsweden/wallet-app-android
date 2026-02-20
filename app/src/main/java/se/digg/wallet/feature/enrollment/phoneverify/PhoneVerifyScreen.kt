@@ -32,7 +32,11 @@ import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
-fun PhoneVerifyScreen(onNext: () -> Unit, viewModel: PhoneVerifyViewModel = hiltViewModel()) {
+fun PhoneVerifyScreen(
+    pageNumber: Int,
+    onNext: () -> Unit,
+    viewModel: PhoneVerifyViewModel = hiltViewModel(),
+) {
     LaunchedEffect(Unit) {
         viewModel.setPhoneNumber()
         viewModel.effects.collect { effect ->
@@ -46,6 +50,7 @@ fun PhoneVerifyScreen(onNext: () -> Unit, viewModel: PhoneVerifyViewModel = hilt
 
     PhoneVerifyScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         onNext = { viewModel.onEvent(PhoneVerifyUiEvent.NextClicked) },
         onConfirmCodeChange = { viewModel.onEvent(PhoneVerifyUiEvent.CodeChanged(it)) },
     )
@@ -54,6 +59,7 @@ fun PhoneVerifyScreen(onNext: () -> Unit, viewModel: PhoneVerifyViewModel = hilt
 @Composable
 private fun PhoneVerifyScreen(
     uiState: PhoneVerifyUiState,
+    pageNumber: Int,
     onNext: () -> Unit,
     onConfirmCodeChange: (String) -> Unit,
 ) {
@@ -64,7 +70,8 @@ private fun PhoneVerifyScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageTitle = "4. Bekräfta telefonnummer")
+        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Bekräfta telefonnummer")
+
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Text(
                 text =
@@ -118,6 +125,7 @@ private fun PhoneVerifyScreenPreview() {
                     showError = false,
                     phone = "12345678",
                 ),
+                pageNumber = 5,
                 onNext = {},
                 onConfirmCodeChange = {},
             )

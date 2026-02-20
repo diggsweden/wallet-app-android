@@ -1,5 +1,6 @@
 import ch.acanda.gradle.fabrikt.FabriktGenerateTask
 import com.google.devtools.ksp.gradle.KspAATask
+import java.util.Properties
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.LintTask
 
@@ -24,6 +25,17 @@ kotlin {
 android {
     namespace = "se.digg.wallet"
     compileSdk = 36
+
+    val secretsProperties = Properties().apply {
+        val secretsFile = rootProject.file("secrets.properties")
+        if (secretsFile.exists()) {
+            load(secretsFile.inputStream())
+        }
+    }
+
+    fun getSecret(name: String): String = System.getenv(name)
+        ?: secretsProperties.getProperty(name)
+        ?: error("Missing secret: $name")
 
     // TODO this can be removed when eudi-libraries are removed.
     packaging {
@@ -73,6 +85,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     lint {
         abortOnError = false
@@ -83,6 +96,32 @@ android {
         create("demo") {
             dimension = "version"
             applicationIdSuffix = ".demo"
+            buildConfigField("String", "API_KEY", "\"${getSecret("SANDBOX_API_KEY")}\"")
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"wallet.sandbox.digg.se/api\"",
+            )
+            buildConfigField(
+                "String",
+                "CREDENTIAL_URL",
+                "\"https://wallet.sandbox.digg.se/pid-issuer\"",
+            )
+        }
+        create("local") {
+            dimension = "version"
+            applicationIdSuffix = ".local"
+            buildConfigField("String", "API_KEY", "\"${getSecret("LOCAL_API_KEY")}\"")
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"10.0.2.2:8082/wallet-client-gateway\"",
+            )
+            buildConfigField(
+                "String",
+                "CREDENTIAL_URL",
+                "\"http://10.0.2.2:8082/pid-issuer\"",
+            )
         }
     }
 
