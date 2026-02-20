@@ -11,6 +11,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.header
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import java.security.SecureRandom
@@ -22,6 +23,7 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
@@ -130,8 +132,9 @@ object NetworkModule {
                 defaultRequest {
                     url {
                         protocol = URLProtocol.HTTPS
-                        host = "wallet.sandbox.digg.se/api"
+                        host = BuildConfig.BASE_URL
                     }
+                    header("X-API-KEY", BuildConfig.API_KEY)
                 }
             }
 

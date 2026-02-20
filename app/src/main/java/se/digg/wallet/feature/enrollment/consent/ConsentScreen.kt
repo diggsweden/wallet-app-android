@@ -39,7 +39,11 @@ import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
-fun ConsentScreen(onNext: () -> Unit, viewModel: ConsentViewModel = hiltViewModel()) {
+fun ConsentScreen(
+    pageNumber: Int,
+    onNext: () -> Unit,
+    viewModel: ConsentViewModel = hiltViewModel(),
+) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -52,6 +56,7 @@ fun ConsentScreen(onNext: () -> Unit, viewModel: ConsentViewModel = hiltViewMode
 
     ConsentScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         onNext = { viewModel.onEvent(ConsentUiEvent.NextClicked) },
         onConsent = {
             viewModel.onEvent(
@@ -64,6 +69,7 @@ fun ConsentScreen(onNext: () -> Unit, viewModel: ConsentViewModel = hiltViewMode
 @Composable
 private fun ConsentScreen(
     uiState: ConsentUiState,
+    pageNumber: Int,
     onNext: () -> Unit,
     onConsent: (Boolean) -> Unit,
 ) {
@@ -74,7 +80,7 @@ private fun ConsentScreen(
             .padding(bottom = 8.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageTitle = "1. Tillåt behörigheter")
+        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Tillåt behörigheter")
         Row(Modifier.fillMaxWidth()) {
             Image(
                 painter = painterResource(R.drawable.handshake),
@@ -163,7 +169,7 @@ private fun ConsentScreen(
 private fun ConsentScreenPreview() {
     WalletTheme {
         Surface {
-            ConsentScreen(uiState = ConsentUiState(), onNext = {}, onConsent = {})
+            ConsentScreen(uiState = ConsentUiState(), onNext = {}, onConsent = {}, pageNumber = 1)
         }
     }
 }
