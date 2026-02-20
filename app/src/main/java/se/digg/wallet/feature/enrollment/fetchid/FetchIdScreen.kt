@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -36,14 +35,13 @@ import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
-import se.digg.wallet.feature.enrollment.EnrollmentViewModel
 
 @Composable
 fun FetchIdScreen(
+    pageNumber: Int,
     onNext: () -> Unit,
     onCredentialOfferFetch: (String) -> Unit,
     viewModel: FetchIdViewModel = hiltViewModel(),
-    enrollmentViewModel: EnrollmentViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
@@ -70,17 +68,19 @@ fun FetchIdScreen(
 
     FetchIdScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         onFetchId = { viewModel.getCredentialOffer(launchAuthTab) },
     )
 }
 
 @Composable
-private fun FetchIdScreen(uiState: FetchIdUiState, onFetchId: () -> Unit) {
+private fun FetchIdScreen(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> Unit) {
     when (uiState) {
         FetchIdUiState.Error -> Error()
 
         FetchIdUiState.Idle -> Content(
             uiState = uiState,
+            pageNumber = pageNumber,
             onFetchId = { onFetchId.invoke() },
         )
 
@@ -101,9 +101,7 @@ private fun Error() {
 }
 
 @Composable
-private fun Content(uiState: FetchIdUiState, onFetchId: () -> Unit) {
-    val context = LocalContext.current
-
+private fun Content(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -111,7 +109,7 @@ private fun Content(uiState: FetchIdUiState, onFetchId: () -> Unit) {
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageTitle = "9. Hämta personuppgifter")
+        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Hämta personuppgifter")
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -182,6 +180,7 @@ private fun FetchIdScreenPreview() {
         Surface {
             FetchIdScreen(
                 uiState = FetchIdUiState.Idle,
+                pageNumber = 8,
                 onFetchId = {},
             )
         }

@@ -6,8 +6,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
+import se.wallet.client.gateway.client.AccountsV1Client
 import se.wallet.client.gateway.client.NetworkResult
-import se.wallet.client.gateway.client.OidcAccountsV1Client
 import se.wallet.client.gateway.client.WuaV3Client
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.CreateAccountResponseDto
@@ -18,19 +18,16 @@ class UserRepository @Inject constructor(
     private val gatewayClient: HttpClient,
 ) {
     val user: Flow<User?> = userDao.observe()
-    val accountsClient = OidcAccountsV1Client(gatewayClient)
+    val accountsClient = AccountsV1Client(gatewayClient)
     val wuaClient = WuaV3Client(gatewayClient)
-    private var sessionId: String? = null
 
     suspend fun fetchWua(nonce: String? = null): NetworkResult<WuaDto> =
         wuaClient.createWua1(nonce = nonce)
 
     suspend fun createAccount(
         request: CreateAccountRequestDto,
-    ): NetworkResult<CreateAccountResponseDto> {
-        val session = sessionId ?: throw IllegalStateException("SessionId is null")
-        return accountsClient.createAccount(createAccountRequestDto = request, sESSION = session)
-    }
+    ): NetworkResult<CreateAccountResponseDto> =
+        accountsClient.createAccount1(createAccountRequestDto = request)
 
     suspend fun getPin(): String? = userDao.get()?.pin
     suspend fun getUuid(): UUID? = userDao.get()?.uuid
@@ -47,9 +44,6 @@ class UserRepository @Inject constructor(
     suspend fun setCredential(credential: String) = updateUser { it.copy(credential = credential) }
     suspend fun setEmail(email: String) = updateUser { it.copy(email = email) }
     suspend fun setPhone(phone: String) = updateUser { it.copy(phone = phone) }
-    fun setSessionId(id: String) {
-        sessionId = id
-    }
 
     suspend fun wipeAll() = userDao.clear()
 

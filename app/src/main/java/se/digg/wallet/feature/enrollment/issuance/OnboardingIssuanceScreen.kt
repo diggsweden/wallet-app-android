@@ -11,6 +11,7 @@ import se.digg.wallet.feature.issuance.IssuanceScreen
 
 @Composable
 fun OnboardingIssuanceScreen(
+    pageNumber: Int,
     onBack: () -> Unit,
     onFinish: () -> Unit,
     sharedViewModel: EnrollmentViewModel = hiltViewModel(),
@@ -21,7 +22,7 @@ fun OnboardingIssuanceScreen(
         onBackClick = {},
         onFinishClick = { onFinish.invoke() },
         headerContent = {
-            OnboardingHeader(pageTitle = "10. Hämta personuppgifter")
+            OnboardingHeader(pageNumber = pageNumber, pageTitle = "Hämta personuppgifter")
         },
         credentialOfferUri = credentialOfferUri,
     )

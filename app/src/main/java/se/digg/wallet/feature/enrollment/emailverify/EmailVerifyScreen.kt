@@ -32,7 +32,11 @@ import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
-fun EmailVerifyScreen(onNext: () -> Unit, viewModel: EmailVerifyViewModel = hiltViewModel()) {
+fun EmailVerifyScreen(
+    pageNumber: Int,
+    onNext: () -> Unit,
+    viewModel: EmailVerifyViewModel = hiltViewModel(),
+) {
     LaunchedEffect(Unit) {
         viewModel.setEmail()
         viewModel.effects.collect { effect ->
@@ -46,6 +50,7 @@ fun EmailVerifyScreen(onNext: () -> Unit, viewModel: EmailVerifyViewModel = hilt
 
     EmailVerifyScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         onNext = { viewModel.onEvent(EmailVerifyUiEvent.NextClicked) },
         onCodeChange = { viewModel.onEvent(EmailVerifyUiEvent.CodeChanged(it)) },
     )
@@ -54,6 +59,7 @@ fun EmailVerifyScreen(onNext: () -> Unit, viewModel: EmailVerifyViewModel = hilt
 @Composable
 private fun EmailVerifyScreen(
     uiState: EmailVerifyUiState,
+    pageNumber: Int,
     onNext: () -> Unit,
     onCodeChange: (String) -> Unit,
 ) {
@@ -64,7 +70,7 @@ private fun EmailVerifyScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageTitle = "6. Bekräfta e-postadress")
+        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Bekräfta e-postadress")
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Text(
                 text =
@@ -113,6 +119,7 @@ private fun PhoneScreenPreview() {
         Surface {
             EmailVerifyScreen(
                 uiState = EmailVerifyUiState(email = "test@digg.se"),
+                pageNumber = 5,
                 onNext = {},
                 onCodeChange = {},
             )

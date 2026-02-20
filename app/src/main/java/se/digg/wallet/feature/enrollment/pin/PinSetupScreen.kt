@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
@@ -31,6 +32,7 @@ import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
 fun PinSetupScreen(
+    pageNumber: Int,
     onNext: () -> Unit,
     onBack: () -> Unit,
     verifyPin: Boolean = false,
@@ -49,6 +51,7 @@ fun PinSetupScreen(
 
     PinSetupScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         verifyPin = verifyPin,
         onNext = { viewModel.setPin(it) },
         onVerify = { viewModel.checkIfValid(isVerifyScreen = verifyPin, code = it) },
@@ -58,6 +61,7 @@ fun PinSetupScreen(
 @Composable
 private fun PinSetupScreen(
     uiState: PinSetupUiState,
+    pageNumber: Int,
     verifyPin: Boolean,
     onNext: (String) -> Unit,
     onVerify: (String) -> Unit,
@@ -71,15 +75,14 @@ private fun PinSetupScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text(
-            if (verifyPin) {
-                "8. Bekräfta pinkod för identifiering"
-            } else {
-                "7. Ange pinkod för identifiering"
-            },
-            style = DiggTextStyle.H1,
-        )
+        if (verifyPin) {
+            OnboardingHeader(
+                pageNumber = pageNumber,
+                pageTitle = "Bekräfta pinkod för identifiering",
+            )
+        } else {
+            OnboardingHeader(pageNumber = pageNumber, pageTitle = "Ange pinkod för identifiering")
+        }
         Spacer(Modifier.weight(1f))
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -94,7 +97,7 @@ private fun PinSetupScreen(
             },
         )
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.weight(2f))
         PrimaryButton(
             text = stringResource(R.string.generic_next),
             onClick = {
@@ -116,6 +119,7 @@ private fun PinSetupScreenPreview() {
         Surface {
             PinSetupScreen(
                 uiState = PinSetupUiState(),
+                pageNumber = 6,
                 verifyPin = true,
                 onNext = {},
                 onVerify = {},

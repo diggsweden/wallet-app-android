@@ -38,14 +38,13 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CredentialCard
 import se.digg.wallet.core.designsystem.component.NewCredentialCard
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.navigation.NavigationItem
-
-const val CREDENTIAL_URL = "https://wallet.sandbox.digg.se/pid-issuer"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +125,7 @@ fun DashboardScreen(
             NewCredentialCard(
                 text = stringResource(R.string.dashboard_add_credential),
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, CREDENTIAL_URL.toUri())
+                    val intent = Intent(Intent.ACTION_VIEW, BuildConfig.CREDENTIAL_URL.toUri())
                     context.startActivity(intent)
                 },
             )

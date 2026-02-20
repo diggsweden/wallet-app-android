@@ -46,7 +46,6 @@ import se.digg.wallet.feature.enrollment.email.EmailScreen
 import se.digg.wallet.feature.enrollment.emailverify.EmailVerifyScreen
 import se.digg.wallet.feature.enrollment.fetchid.FetchIdScreen
 import se.digg.wallet.feature.enrollment.issuance.OnboardingIssuanceScreen
-import se.digg.wallet.feature.enrollment.login.LoginScreen
 import se.digg.wallet.feature.enrollment.phone.PhoneScreen
 import se.digg.wallet.feature.enrollment.phoneverify.PhoneVerifyScreen
 import se.digg.wallet.feature.enrollment.pin.PinSetupScreen
@@ -80,7 +79,6 @@ fun EnrollmentScreen(
         onSkip = { viewModel.onSkip() },
         onCloseOnboarding = { viewModel.closeOnboarding() },
         onFinishOnboarding = { onFinish.invoke() },
-        onLoginSuccessful = { viewModel.setSessionId(it) },
         onCredentialOfferFetch = { viewModel.setFetchedCredentialOffer(it) },
     )
 }
@@ -93,7 +91,6 @@ fun EnrollmentScreen(
     onSkip: () -> Unit,
     onCloseOnboarding: () -> Unit,
     onFinishOnboarding: () -> Unit,
-    onLoginSuccessful: (String) -> Unit,
     onCredentialOfferFetch: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -171,12 +168,12 @@ fun EnrollmentScreen(
                     label = "OnboardingStepTransition",
                 ) { animatedStep ->
                     OnboardingStepContent(
+                        pageNumber = currentStep,
                         step = animatedStep,
                         onNext = { onNext.invoke() },
                         onBack = { onBack.invoke() },
                         onSkip = { onSkip.invoke() },
                         onFinish = { onFinishOnboarding.invoke() },
-                        onLoginSuccessful = { onLoginSuccessful.invoke(it) },
                         onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
                     )
                 }
@@ -187,46 +184,63 @@ fun EnrollmentScreen(
 
 @Composable
 fun OnboardingStepContent(
+    pageNumber: Int,
     step: EnrollmentStep,
     onNext: () -> Unit,
     onBack: () -> Unit,
     onSkip: () -> Unit,
     onFinish: () -> Unit,
-    onLoginSuccessful: (String) -> Unit,
     onCredentialOfferFetch: (String) -> Unit,
 ) {
     when (step) {
-        EnrollmentStep.NOTIFICATION -> ConsentScreen(onNext = { onNext.invoke() })
-
-        EnrollmentStep.LOGIN -> LoginScreen(onLoginSuccessful = { onLoginSuccessful.invoke(it) })
+        EnrollmentStep.NOTIFICATION -> ConsentScreen(
+            onNext = {
+                onNext.invoke()
+            },
+            pageNumber = pageNumber,
+        )
 
         EnrollmentStep.PHONE_NUMBER -> PhoneScreen(
             onNext = { onNext.invoke() },
             onSkip = { onSkip.invoke() },
+            pageNumber = pageNumber,
         )
 
-        EnrollmentStep.VERIFY_PHONE -> PhoneVerifyScreen(onNext = { onNext.invoke() })
+        EnrollmentStep.VERIFY_PHONE -> PhoneVerifyScreen(
+            onNext = { onNext.invoke() },
+            pageNumber = pageNumber,
+        )
 
-        EnrollmentStep.EMAIL -> EmailScreen(onNext = { onNext.invoke() })
+        EnrollmentStep.EMAIL -> EmailScreen(onNext = { onNext.invoke() }, pageNumber = pageNumber)
 
-        EnrollmentStep.VERIFY_EMAIL -> EmailVerifyScreen(onNext = { onNext.invoke() })
+        EnrollmentStep.VERIFY_EMAIL -> EmailVerifyScreen(
+            onNext = { onNext.invoke() },
+            pageNumber = pageNumber,
+        )
 
-        EnrollmentStep.PIN -> PinSetupScreen(onNext = { onNext.invoke() }, onBack = {})
+        EnrollmentStep.PIN -> PinSetupScreen(
+            onNext = { onNext.invoke() },
+            onBack = {},
+            pageNumber = pageNumber,
+        )
 
         EnrollmentStep.VERIFY_PIN -> PinSetupScreen(
             onNext = { onNext.invoke() },
             verifyPin = true,
             onBack = { onBack.invoke() },
+            pageNumber = pageNumber,
         )
 
         EnrollmentStep.FETCH_PID -> FetchIdScreen(
             onNext = { onFinish.invoke() },
             onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
+            pageNumber = pageNumber,
         )
 
         EnrollmentStep.CREDENTIAL_OFFER -> OnboardingIssuanceScreen(
             onBack = {},
             onFinish = { onFinish.invoke() },
+            pageNumber = pageNumber,
         )
     }
 }
@@ -243,7 +257,6 @@ private fun EnrollmentPreview() {
                 onSkip = {},
                 onCloseOnboarding = {},
                 onFinishOnboarding = {},
-                onLoginSuccessful = {},
                 onCredentialOfferFetch = {},
             )
         }
