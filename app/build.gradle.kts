@@ -105,7 +105,7 @@ android {
             buildConfigField(
                 "String",
                 "CREDENTIAL_URL",
-                "\"https://wallet.sandbox.digg.se/pid-issuer\"",
+                "\"wallet.sandbox.digg.se/pid-issuer\"",
             )
         }
         create("local") {
@@ -115,12 +115,12 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"10.0.2.2:8082/wallet-client-gateway\"",
+                "\"10.0.2.2/wallet-client-gateway\"",
             )
             buildConfigField(
                 "String",
                 "CREDENTIAL_URL",
-                "\"http://10.0.2.2:8082/pid-issuer\"",
+                "\"10.0.2.2/pid-issuer\"",
             )
         }
     }
