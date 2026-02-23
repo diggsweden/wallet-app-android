@@ -152,12 +152,7 @@ class IssuanceViewModel @Inject constructor(
                 val nonceUrl = issuerMetadata.value?.nonceEndpoint?.value
                 if (nonceUrl != null) {
                     val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
-                    val response = userRepository.fetchWua(nonce = nonce)
-                    val wua = when (response) {
-                        is NetworkResult.Failure -> null
-                        is NetworkResult.Success -> response.data.jwt
-                    }.takeIf { !it.isNullOrBlank() }
-                        ?: throw IllegalStateException("Wallet Unit Attestation (WUA) is missing")
+                    val wua = userRepository.fetchWua(nonce = nonce)
 
                     headers["key_attestation"] = wua
                     payload = IssuanceProofPayload(
