@@ -104,7 +104,7 @@ android {
             )
             buildConfigField(
                 "String",
-                "CREDENTIAL_URL",
+                "PID_ISSUER_URL",
                 "\"wallet.sandbox.digg.se/pid-issuer\"",
             )
         }
@@ -119,7 +119,7 @@ android {
             )
             buildConfigField(
                 "String",
-                "CREDENTIAL_URL",
+                "PID_ISSUER_URL",
                 "\"10.0.2.2/pid-issuer\"",
             )
         }

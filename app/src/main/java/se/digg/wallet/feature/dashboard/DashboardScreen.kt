@@ -125,7 +125,7 @@ fun DashboardScreen(
             NewCredentialCard(
                 text = stringResource(R.string.dashboard_add_credential),
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, BuildConfig.CREDENTIAL_URL.toUri())
+                    val intent = Intent(Intent.ACTION_VIEW, BuildConfig.PID_ISSUER_URL.toUri())
                     context.startActivity(intent)
                 },
             )

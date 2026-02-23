@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
@@ -92,7 +93,7 @@ class FetchIdViewModel @Inject constructor(
     fun getCredentialOffer(launchAuthTab: LaunchAuthTab) {
         viewModelScope.launch {
             val oAuthCallback = oAuthCoordinator.authorize(
-                url = "https://wallet.sandbox.digg.se/pid-issuer".toUri(),
+                url = "https://${BuildConfig.PID_ISSUER_URL}".toUri(),
                 redirectScheme = "openid-credential-offer",
                 launchAuthTab = launchAuthTab,
             )
