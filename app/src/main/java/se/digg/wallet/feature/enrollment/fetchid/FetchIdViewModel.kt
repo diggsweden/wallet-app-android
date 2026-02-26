@@ -16,9 +16,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
+import se.digg.wallet.core.oauth.OAuthResult
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
@@ -85,28 +87,52 @@ class FetchIdViewModel @Inject constructor(
                 _uiState.value = FetchIdUiState.Idle
             } catch (e: Exception) {
                 Timber.d("ContactInfo - Account creation error: ${e.message}")
+                _uiState.value = FetchIdUiState.Error
             }
         }
     }
 
     fun getCredentialOffer(launchAuthTab: LaunchAuthTab) {
         viewModelScope.launch {
-            val oAuthCallback = oAuthCoordinator.authorize(
-                url = "https://wallet.sandbox.digg.se/pid-issuer".toUri(),
-                redirectScheme = "openid-credential-offer",
-                launchAuthTab = launchAuthTab,
-            )
-            val credentialOffer =
-                oAuthCallback.getQueryParameter("credential_offer")
-                    ?: throw IllegalStateException("credential offer query parameter missing")
+            try {
+                when (
+                    val oAuthCallback = oAuthCoordinator.authorize(
+                        url = "https://${BuildConfig.PID_ISSUER_URL}".toUri(),
+                        redirectScheme = "openid-credential-offer",
+                        launchAuthTab = launchAuthTab,
+                    )
+                ) {
+                    OAuthResult.Cancelled -> {
+                        Timber.d("OAuth cancelled: cancelled")
+                        _uiState.value = FetchIdUiState.Idle
+                    }
 
-            val encodedJson = Uri.encode(credentialOffer)
-            val uri = Uri.parse(
-                "openid-credential-offer://?credential_offer=$encodedJson",
-            ).toString()
-            _effects.emit(
-                FetchIdUiEffect.OnCredentialOfferFetched(credentialOffer = uri),
-            )
+                    is OAuthResult.Failure -> {
+                        Timber.d("OAuth cancelled: Failure")
+                        _uiState.value = FetchIdUiState.Idle
+                    }
+
+                    is OAuthResult.Success -> {
+                        Timber.d("OAuth Success: ${oAuthCallback.uri}")
+                        val credentialOffer =
+                            oAuthCallback.uri.getQueryParameter("credential_offer")
+                                ?: throw IllegalStateException(
+                                    "credential offer query parameter missing",
+                                )
+
+                        val encodedJson = Uri.encode(credentialOffer)
+                        val uri = Uri.parse(
+                            "openid-credential-offer://?credential_offer=$encodedJson",
+                        ).toString()
+                        _effects.emit(
+                            FetchIdUiEffect.OnCredentialOfferFetched(credentialOffer = uri),
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.d("Credential offer not fetched - ${e.message}")
+                _uiState.value = FetchIdUiState.Error
+            }
         }
     }
 }

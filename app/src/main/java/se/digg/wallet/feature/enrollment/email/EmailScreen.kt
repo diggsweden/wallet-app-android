@@ -36,7 +36,7 @@ import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
 @Composable
-fun EmailScreen(onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel()) {
+fun EmailScreen(pageNumber: Int, onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel()) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -49,6 +49,7 @@ fun EmailScreen(onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel())
 
     EmailScreen(
         uiState = uiState,
+        pageNumber = pageNumber,
         onNext = { viewModel.onEvent(EmailUiEvent.NextClicked) },
         onEmailChange = { viewModel.onEvent(EmailUiEvent.EmailChanged(it)) },
         onEmailFocusChange = { viewModel.onEvent(EmailUiEvent.EmailFocusedChanged(it)) },
@@ -62,6 +63,7 @@ fun EmailScreen(onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel())
 @Composable
 private fun EmailScreen(
     uiState: EmailUiState,
+    pageNumber: Int,
     onNext: () -> Unit,
     onEmailChange: (String) -> Unit,
     onEmailFocusChange: (Boolean) -> Unit,
@@ -89,7 +91,7 @@ private fun EmailScreen(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageTitle = "5. Din e-postadress")
+        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Din e-postadress")
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Image(
                 painter = painterResource(R.drawable.pinphone),
@@ -154,6 +156,7 @@ private fun PhoneScreenPreview() {
         Surface {
             EmailScreen(
                 uiState = EmailUiState(),
+                pageNumber = 4,
                 onNext = {},
                 onEmailChange = {},
                 onEmailFocusChange = {},

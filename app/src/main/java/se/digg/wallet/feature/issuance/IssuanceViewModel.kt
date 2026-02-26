@@ -40,6 +40,7 @@ import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
+import se.digg.wallet.core.oauth.OAuthResult
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
@@ -117,20 +118,33 @@ class IssuanceViewModel @Inject constructor(
                 val prepareAuthorizationRequest = issuer.prepareAuthorizationRequest().getOrThrow()
                 val authCodeUrl =
                     prepareAuthorizationRequest.authorizationCodeURL.toString().toUri()
-                val oAuthCallback = oAuthCoordinator.authorize(
-                    url = authCodeUrl,
-                    redirectScheme = "wallet-app",
-                    launchAuthTab = launchAuthTab,
-                )
-                val authCode = oAuthCallback.getQueryParameter("code")
-                    ?: throw Exception("Failed OAuth callback")
-                val authRequest = with(issuer) {
-                    prepareAuthorizationRequest.authorizeWithAuthorizationCode(
-                        AuthorizationCode(code = authCode),
-                        prepareAuthorizationRequest.state,
+                when (
+                    val oAuthCallback = oAuthCoordinator.authorize(
+                        url = authCodeUrl,
+                        redirectScheme = "wallet-app",
+                        launchAuthTab = launchAuthTab,
                     )
-                }.getOrThrow()
-                fetchCredential(authRequest)
+                ) {
+                    OAuthResult.Cancelled -> {
+                        _uiState.value = IssuanceState.Error
+                    }
+
+                    is OAuthResult.Failure -> {
+                        _uiState.value = IssuanceState.Error
+                    }
+
+                    is OAuthResult.Success -> {
+                        val authCode = oAuthCallback.uri.getQueryParameter("code")
+                            ?: throw Exception("Failed OAuth callback")
+                        val authRequest = with(issuer) {
+                            prepareAuthorizationRequest.authorizeWithAuthorizationCode(
+                                AuthorizationCode(code = authCode),
+                                prepareAuthorizationRequest.state,
+                            )
+                        }.getOrThrow()
+                        fetchCredential(authRequest)
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
                 Timber.d("IssuanceViewModel: Authorize error: ${e.message}")
