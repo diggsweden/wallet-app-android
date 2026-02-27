@@ -53,7 +53,6 @@ import se.digg.wallet.data.DisplayLocal
 import se.digg.wallet.data.Proof
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.toJwkModel
-import se.wallet.client.gateway.client.NetworkResult
 import timber.log.Timber
 
 sealed interface IssuanceState {

@@ -6,7 +6,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
-import se.wallet.client.gateway.client.AccountsV1Client
+import se.wallet.client.gateway.client.AccountsClient
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.WuaClient
 import se.wallet.client.gateway.models.CreateAccountRequestDto
@@ -17,7 +17,7 @@ class UserRepository @Inject constructor(
     private val gatewayClient: HttpClient,
 ) {
     val user: Flow<User?> = userDao.observe()
-    val accountsClient = AccountsV1Client(gatewayClient)
+    val accountsClient = AccountsClient(gatewayClient)
     val wuaClient = WuaClient(gatewayClient)
 
     suspend fun fetchWua(nonce: String? = null): String =
