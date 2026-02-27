@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "/wallet-client-gateway"
+      "url": "/api"
     }
   ],
   "security": [
@@ -35,7 +35,9 @@
         "responses": {
           "500": {
             "description": "Could not create Wua",
-            "content": {}
+            "content": {
+
+            }
           },
           "400": {
             "description": "Bad input",
@@ -49,7 +51,9 @@
           },
           "401": {
             "description": "Not authorized",
-            "content": {}
+            "content": {
+
+            }
           },
           "201": {
             "description": "Wua created",
@@ -87,7 +91,9 @@
         "responses": {
           "500": {
             "description": "Unknown error",
-            "content": {}
+            "content": {
+
+            }
           },
           "400": {
             "description": "Bad input, session not created",
@@ -128,7 +134,7 @@
     "/oidc/accounts/v1": {
       "post": {
         "tags": [
-          "account-controller-v-1"
+          "oidc-account-controller"
         ],
         "operationId": "createAccount",
         "parameters": [
@@ -167,7 +173,9 @@
         "responses": {
           "500": {
             "description": "Could not create account, server error",
-            "content": {}
+            "content": {
+
+            }
           },
           "400": {
             "description": "Bad input, unable to create account",
@@ -192,7 +200,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/attribute-attestations": {
@@ -271,7 +280,9 @@
         "responses": {
           "500": {
             "description": "Could not create attestation, server error",
-            "content": {}
+            "content": {
+
+            }
           },
           "400": {
             "description": "Bad input, unable to create attestation",
@@ -299,7 +310,7 @@
         }
       }
     },
-    "/accounts/v1": {
+    "/accounts": {
       "post": {
         "tags": [
           "account-controller"
@@ -330,7 +341,9 @@
         "responses": {
           "500": {
             "description": "Could not create account, server error",
-            "content": {}
+            "content": {
+
+            }
           },
           "400": {
             "description": "Bad input, unable to create account",
@@ -355,8 +368,7 @@
               }
             }
           }
-        },
-        "deprecated": true
+        }
       }
     },
     "/public/auth/session/challenge": {
@@ -638,9 +650,14 @@
         "properties": {
           "accountId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "description": "Account ID",
+            "example": "3685BCB1-4AA4-4C81-8806-43FBD31A0957"
           }
-        }
+        },
+        "required": [
+          "accountId"
+        ]
       },
       "CreateAttestationDto": {
         "type": "object",
