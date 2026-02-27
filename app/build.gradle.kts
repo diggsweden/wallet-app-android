@@ -4,6 +4,16 @@ import java.util.Properties
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.LintTask
 
+val secretsProperties = Properties().apply {
+    val secretsFile = rootProject.file("secrets.properties")
+    if (secretsFile.exists()) {
+        secretsFile.inputStream().use(::load)
+    }
+}
+
+fun getSecret(name: String): String =
+    secretsProperties.getProperty(name) ?: error("Missing secret: $name")
+
 fun getVersionCode(): Int {
     System.getenv("CI") ?: return 1
 
@@ -33,17 +43,6 @@ kotlin {
 android {
     namespace = "se.digg.wallet"
     compileSdk = 36
-
-    val secretsProperties = Properties().apply {
-        val secretsFile = rootProject.file("secrets.properties")
-        if (secretsFile.exists()) {
-            load(secretsFile.inputStream())
-        }
-    }
-
-    fun getSecret(name: String): String = System.getenv(name)
-        ?: secretsProperties.getProperty(name)
-        ?: error("Missing secret: $name")
 
     // TODO this can be removed when eudi-libraries are removed.
     packaging {
