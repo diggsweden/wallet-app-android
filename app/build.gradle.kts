@@ -4,6 +4,14 @@ import java.util.Properties
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.LintTask
 
+fun getVersionCode(): Int {
+    System.getenv("CI") ?: return 1
+
+    return providers.exec {
+        commandLine("git", "rev-list", "--count", "origin/main")
+    }.standardOutput.asText.get().trim().toInt()
+}
+
 val fabriktGenerateTask = tasks.named<FabriktGenerateTask>("fabriktGenerate")
 val fabriktOutputDirectory =
     layout.buildDirectory.dir("generated/sources/fabrikt/src/main")
@@ -46,7 +54,7 @@ android {
         applicationId = "se.digg.wallet"
         minSdk = 28
         targetSdk = 36
-        versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: 1
+        versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: getVersionCode()
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
