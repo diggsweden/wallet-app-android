@@ -4,7 +4,7 @@
 
 name: Gradle Test
 
-on: [ workflow_call ] # yamllint disable-line rule:truthy
+on: [workflow_call] # yamllint disable-line rule:truthy
 
 permissions:
   contents: read
@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ '21' ]
-        os: [ ubuntu-latest ]
+        java-version: ['21']
+        os: [ubuntu-latest]
 
     permissions:
       contents: read
