@@ -17,17 +17,17 @@ sealed class NavigationItem(val route: String) {
     object Settings : NavigationItem(route = AppNavigation.SETTINGS.name)
 }
 
-enum class EnrollmentNavigation {
+enum class OnboardingNavigation {
     INTRO,
     ONBOARDING,
 }
 
-sealed class EnrollmentNavItem(val route: String) {
-    object Intro : EnrollmentNavItem(route = EnrollmentNavigation.INTRO.name)
-    object Onboarding : EnrollmentNavItem(route = EnrollmentNavigation.ONBOARDING.name)
+sealed class OnboardingNavItem(val route: String) {
+    object Intro : OnboardingNavItem(route = OnboardingNavigation.INTRO.name)
+    object Onboarding : OnboardingNavItem(route = OnboardingNavigation.ONBOARDING.name)
 }
 
 object RootGraph {
-    const val ENROLLMENT = "enrollment_graph"
+    const val ONBOARDING = "onboarding_graph"
     const val DASHBOARD = "dashboard_graph"
 }

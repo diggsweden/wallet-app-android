@@ -83,7 +83,7 @@ fun IssuanceScreen(
             is IssuanceState.IssuerFetched -> {
                 Spacer(modifier = Modifier.weight(1f))
                 PrimaryButton(
-                    text = "Hämta ID-handling",
+                    text = "Logga in",
                     onClick = { viewModel.authorize(launchAuthTab) },
                     modifier = Modifier.fillMaxWidth(),
                 )
