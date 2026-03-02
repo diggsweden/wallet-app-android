@@ -16,9 +16,9 @@ import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsScreen
 import se.digg.wallet.feature.dashboard.DashboardScreen
-import se.digg.wallet.feature.enrollment.EnrollmentScreen
-import se.digg.wallet.feature.enrollment.intro.IntroScreen
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceScreen
+import se.digg.wallet.feature.onboarding.OnboardingScreen
+import se.digg.wallet.feature.onboarding.intro.IntroScreen
 import se.digg.wallet.feature.presentation.PresentationScreen
 import se.digg.wallet.feature.settings.SettingsScreen
 
@@ -29,7 +29,7 @@ fun WalletNavHost(
     modifier: Modifier = Modifier,
     isEnrolled: Boolean = false,
 ) {
-    val startDestination = if (isEnrolled) RootGraph.DASHBOARD else RootGraph.ENROLLMENT
+    val startDestination = if (isEnrolled) RootGraph.DASHBOARD else RootGraph.ONBOARDING
 
     NavHost(
         modifier = modifier,
@@ -134,18 +134,18 @@ fun WalletNavHost(
 
         // Non-Enrolled
         navigation(
-            startDestination = EnrollmentNavItem.Intro.route,
-            route = RootGraph.ENROLLMENT,
+            startDestination = OnboardingNavItem.Intro.route,
+            route = RootGraph.ONBOARDING,
         ) {
-            composable(EnrollmentNavItem.Intro.route) {
+            composable(OnboardingNavItem.Intro.route) {
                 IntroScreen(
                     onContinue = {
-                        navController.navigate(EnrollmentNavItem.Onboarding.route)
+                        navController.navigate(OnboardingNavItem.Onboarding.route)
                     },
                 )
             }
-            composable(EnrollmentNavItem.Onboarding.route) {
-                EnrollmentScreen(
+            composable(OnboardingNavItem.Onboarding.route) {
+                OnboardingScreen(
                     navController = navController,
                     onFinish = {
                         navController.navigate(NavigationItem.Home.route) {
