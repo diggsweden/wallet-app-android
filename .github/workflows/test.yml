@@ -44,7 +44,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Decode secrets.properties
-        run: echo "${{ secrets.SECRETS_PROPERTIES_BASE64 }}" | base64 --decode > secrets.properties
+        run: echo "${{ secrets.SECRETS_PROPERTIES_BASE64 }}" | base64 --decode > ./secrets.properties
+
+      - name: Log working dir
+        run: ls -al
 
       - name: Run tests
         run: "# shellcheck disable=SC2086 \n./gradlew test\n"
