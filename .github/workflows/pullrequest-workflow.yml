@@ -34,6 +34,7 @@ jobs:
   test:
     needs: [pr-checks]
     if: always()
+    secrets: inherit
     permissions:
       contents: read
       packages: read
