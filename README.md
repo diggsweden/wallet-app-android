@@ -46,7 +46,7 @@ Choose the desired variant from the dropdown menu
 
 ## Running the Android app against a local setup
 
-To run the app against a local setup of wallet-ecosystem you have to fetch and follow the steps described [here](https://github.com/diggsweden/wallet-ecosystem). After you have successfully got the wallet-ecosystem running on your machine build the Android app with the localDebug build variant on your emulator.
+To run the app against a local setup of wallet-ecosystem you have to fetch and follow the steps described [in the wallet-ecosystem repository](https://github.com/diggsweden/wallet-ecosystem). After you have successfully got the wallet-ecosystem running on your machine build the Android app with the localDebug build variant on your emulator.
 
 ## Licenses
 

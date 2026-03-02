@@ -26,6 +26,7 @@ path = [
     "**/*.ttf",
     "**/*.png",
     ".editorconfig",
+    "secrets.properties.example",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Digg - Agency for Digital Government"
