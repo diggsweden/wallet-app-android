@@ -4,11 +4,6 @@
     "title": "Wallet Client Gateway",
     "version": "v1"
   },
-  "servers": [
-    {
-      "url": "/api"
-    }
-  ],
   "security": [
     {
       "ApiKeyScheme": [],

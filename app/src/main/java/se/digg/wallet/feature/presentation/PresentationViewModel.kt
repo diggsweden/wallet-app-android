@@ -40,10 +40,12 @@ import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
+import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.UserRepository
+import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
 import timber.log.Timber
 
 @HiltViewModel
@@ -201,11 +203,30 @@ class PresentationViewModel @Inject constructor(
                                 url = it.toString(),
                                 body = createRequestBody(submissionPayload),
                             )
-                            Timber.d("PresentationViewModel - Presentation: OK $response}")
-                            response.redirectUri?.let {
-                                _effects.emit(PresentationUiEffect.OpenUrl(response.redirectUri))
-                            } ?: run {
-                                _uiState.value = PresentationUiState.ShareSuccess
+                            when (response) {
+                                is PresentationResult.Redirect -> {
+                                    _effects.emit(
+                                        OpenUrl(
+                                            response.data.redirectUri.toString(),
+                                        ),
+                                    )
+                                }
+
+                                PresentationResult.Success -> {
+                                    _uiState.value = PresentationUiState.ShareSuccess
+                                }
+
+                                is PresentationResult.Error -> {
+                                    _uiState.value =
+                                        PresentationUiState.Error(
+                                            errorMessage =
+                                                buildString {
+                                                    append(response.errorCode)
+                                                    append(": ")
+                                                    append(response.errorMessage)
+                                                },
+                                        )
+                                }
                             }
                         } catch (e: Exception) {
                             Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")

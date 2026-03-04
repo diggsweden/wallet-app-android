@@ -23,15 +23,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import se.digg.wallet.core.deeplink.DeepLinkHandler
+import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.navigation.WalletNavHost
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
     lateinit var oAuthCoordinator: OAuthCoordinator
+
+    @Inject
+    lateinit var deepLinkHandler: DeepLinkHandler
 
     private val authLauncher =
         AuthTabIntent.registerActivityResultLauncher(this) { result ->
@@ -69,19 +75,23 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleIntent()
+        handleIntent(intent)
     }
 
-    private fun handleIntent() {
-        intent.data?.let { uri ->
-            val request =
-                NavDeepLinkRequest.Builder
-                    .fromUri(uri)
+    private fun handleIntent(intent: Intent) {
+        when (val result = deepLinkHandler.handle(intent)) {
+            DeepLinkResult.Consumed -> {
+                Timber.d("MainActivity: Deeplink handled by OauthCoordinator")
+            }
+
+            is DeepLinkResult.Unhandled -> {
+                Timber.d("MainActivity: Deeplink handled with NavDeepLinkRequest")
+                val request = NavDeepLinkRequest.Builder
+                    .fromUri(result.uri)
                     .build()
 
-            navHostController.navigate(
-                request,
-            )
+                navHostController.navigate(request)
+            }
         }
     }
 }

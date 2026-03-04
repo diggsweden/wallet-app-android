@@ -13,14 +13,18 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import javax.inject.Inject
+import kotlinx.serialization.json.Json
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.response.NonceResponseModel
 import se.digg.wallet.data.response.PresentationResponseModel
 
 class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClient) {
+    private val json = Json { ignoreUnknownKeys = true }
+
     suspend fun fetchCredential(
         url: String,
         accessToken: String,
@@ -48,8 +52,8 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
 
     suspend fun fetchNonce(url: String): NonceResponseModel = httpClient.post(url).body()
 
-    suspend fun postVpToken(url: String, body: String): PresentationResponseModel =
-        httpClient.post(urlString = url) {
+    suspend fun postVpToken(url: String, body: String): PresentationResult {
+        val response = httpClient.post(urlString = url) {
             contentType(
                 ContentType(
                     contentType = "application",
@@ -57,5 +61,26 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
                 ),
             )
             setBody(body)
-        }.body()
+        }
+        return if (response.status == HttpStatusCode.OK) {
+            val responseBody = response.bodyAsText().trim()
+            if (responseBody.isBlank() || responseBody == "{}") {
+                PresentationResult.Success
+            } else {
+                val model = json.decodeFromString<PresentationResponseModel>(responseBody)
+                PresentationResult.Redirect(model)
+            }
+        } else {
+            PresentationResult.Error(
+                errorCode = response.status.toString(),
+                errorMessage = response.status.description,
+            )
+        }
+    }
+}
+
+sealed interface PresentationResult {
+    data class Redirect(val data: PresentationResponseModel) : PresentationResult
+    data object Success : PresentationResult
+    data class Error(val errorCode: String, val errorMessage: String) : PresentationResult
 }

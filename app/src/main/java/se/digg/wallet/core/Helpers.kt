@@ -7,7 +7,11 @@
 package se.digg.wallet.core
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import timber.log.Timber
+
+private const val CUSTOM_TABS_ACTION = "android.support.customtabs.action.CustomTabsService"
 
 fun getAppVersion(context: Context): AppVersionInfo = try {
     val packageInfo = context.packageManager.getPackageInfo(
@@ -25,3 +29,23 @@ fun getAppVersion(context: Context): AppVersionInfo = try {
 }
 
 data class AppVersionInfo(val versionName: String, val versionCode: Long)
+
+fun getCustomTabsProvider(context: Context): String? {
+    val packageManager = context.packageManager
+
+    val browserPackage = packageManager.resolveActivity(
+        Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com")),
+        0,
+    )?.activityInfo?.packageName ?: return null
+
+    val service = packageManager.queryIntentServices(
+        Intent(CUSTOM_TABS_ACTION).setPackage(browserPackage),
+        0,
+    ).firstOrNull()
+
+    val provider = service?.serviceInfo?.packageName
+
+    Timber.d("CustomTabs provider: $provider")
+
+    return provider
+}
