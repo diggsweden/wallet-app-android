@@ -10,5 +10,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PresentationResponseModel(
     @SerialName("redirect_uri")
-    val redirectUri: String?,
+    val redirectUri: String? = null,
 )

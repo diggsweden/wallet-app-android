@@ -107,7 +107,7 @@ class PresentationViewModel @Inject constructor(
                 Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
             } catch (e: RuntimeException) {
                 Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
-                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }
@@ -151,7 +151,7 @@ class PresentationViewModel @Inject constructor(
                 } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel -Error: ${e.message}")
-                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }
@@ -197,7 +197,7 @@ class PresentationViewModel @Inject constructor(
                             TODO()
                         }
                     }
-                    responseUrl.let { it ->
+                    responseUrl.let {
                         try {
                             val response = openIdNetworkService.postVpToken(
                                 url = it.toString(),
@@ -205,11 +205,7 @@ class PresentationViewModel @Inject constructor(
                             )
                             when (response) {
                                 is PresentationResult.Redirect -> {
-                                    _effects.emit(
-                                        OpenUrl(
-                                            response.data.redirectUri.toString(),
-                                        ),
-                                    )
+                                    _effects.emit(OpenUrl(response.uri))
                                 }
 
                                 PresentationResult.Success -> {
@@ -218,25 +214,18 @@ class PresentationViewModel @Inject constructor(
 
                                 is PresentationResult.Error -> {
                                     _uiState.value =
-                                        PresentationUiState.Error(
-                                            errorMessage =
-                                                buildString {
-                                                    append(response.errorCode)
-                                                    append(": ")
-                                                    append(response.errorMessage)
-                                                },
-                                        )
+                                        PresentationUiState.Error(message = response.message)
                                 }
                             }
                         } catch (e: Exception) {
                             Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                            _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                            _uiState.value = PresentationUiState.Error(message = e.message)
                         }
                     }
                 } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }

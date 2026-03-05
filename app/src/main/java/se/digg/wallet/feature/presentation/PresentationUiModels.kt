@@ -10,7 +10,7 @@ sealed interface PresentationUiState {
     object Loading : PresentationUiState
     data class SelectDisclosures(val disclosures: List<DisclosureLocal>) : PresentationUiState
     object ShareSuccess : PresentationUiState
-    data class Error(val errorMessage: String?) : PresentationUiState
+    data class Error(val message: String?) : PresentationUiState
 }
 
 sealed interface PresentationUiEffect {
