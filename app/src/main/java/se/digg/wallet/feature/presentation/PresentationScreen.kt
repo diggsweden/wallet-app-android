@@ -117,7 +117,7 @@ private fun PresentationScreen(
         ) {
             when (val state = uiState) {
                 is PresentationUiState.Error -> {
-                    GenericErrorScreen(errorMessage = state.errorMessage)
+                    GenericErrorScreen(errorMessage = state.message)
                 }
 
                 PresentationUiState.Loading -> {

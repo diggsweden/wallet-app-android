@@ -5,6 +5,8 @@
 package se.digg.wallet.feature.dashboard
 
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -125,7 +127,8 @@ fun DashboardScreen(
             NewCredentialCard(
                 text = stringResource(R.string.dashboard_add_credential),
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, BuildConfig.PID_ISSUER_URL.toUri())
+                    val intent =
+                        Intent(Intent.ACTION_VIEW, "https://${BuildConfig.PID_ISSUER_URL}".toUri())
                     context.startActivity(intent)
                 },
             )

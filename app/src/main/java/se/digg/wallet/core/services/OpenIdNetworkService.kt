@@ -14,13 +14,17 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import javax.inject.Inject
+import kotlinx.serialization.json.Json
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.response.NonceResponseModel
 import se.digg.wallet.data.response.PresentationResponseModel
 
 class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClient) {
+    private val json = Json { ignoreUnknownKeys = true }
+
     suspend fun fetchCredential(
         url: String,
         accessToken: String,
@@ -48,8 +52,8 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
 
     suspend fun fetchNonce(url: String): NonceResponseModel = httpClient.post(url).body()
 
-    suspend fun postVpToken(url: String, body: String): PresentationResponseModel =
-        httpClient.post(urlString = url) {
+    suspend fun postVpToken(url: String, body: String): PresentationResult = try {
+        val response = httpClient.post(urlString = url) {
             contentType(
                 ContentType(
                     contentType = "application",
@@ -57,5 +61,26 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
                 ),
             )
             setBody(body)
-        }.body()
+        }
+
+        check(response.status.isSuccess()) {
+            "Failed sending presentation: ${response.status}"
+        }
+
+        val model: PresentationResponseModel = json.decodeFromString(response.body())
+
+        if (model.redirectUri != null) {
+            PresentationResult.Redirect(model.redirectUri)
+        } else {
+            PresentationResult.Success
+        }
+    } catch (e: Exception) {
+        PresentationResult.Error(message = e.message)
+    }
+}
+
+sealed interface PresentationResult {
+    data class Redirect(val uri: String) : PresentationResult
+    data object Success : PresentationResult
+    data class Error(val message: String?) : PresentationResult
 }

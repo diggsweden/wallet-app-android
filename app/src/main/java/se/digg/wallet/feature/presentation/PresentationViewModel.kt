@@ -40,10 +40,12 @@ import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
+import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.DisclosureLocal
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.UserRepository
+import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
 import timber.log.Timber
 
 @HiltViewModel
@@ -105,7 +107,7 @@ class PresentationViewModel @Inject constructor(
                 Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
             } catch (e: RuntimeException) {
                 Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
-                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }
@@ -149,7 +151,7 @@ class PresentationViewModel @Inject constructor(
                 } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel -Error: ${e.message}")
-                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }
@@ -195,27 +197,35 @@ class PresentationViewModel @Inject constructor(
                             TODO()
                         }
                     }
-                    responseUrl.let { it ->
+                    responseUrl.let {
                         try {
                             val response = openIdNetworkService.postVpToken(
                                 url = it.toString(),
                                 body = createRequestBody(submissionPayload),
                             )
-                            Timber.d("PresentationViewModel - Presentation: OK $response}")
-                            response.redirectUri?.let {
-                                _effects.emit(PresentationUiEffect.OpenUrl(response.redirectUri))
-                            } ?: run {
-                                _uiState.value = PresentationUiState.ShareSuccess
+                            when (response) {
+                                is PresentationResult.Redirect -> {
+                                    _effects.emit(OpenUrl(response.uri))
+                                }
+
+                                PresentationResult.Success -> {
+                                    _uiState.value = PresentationUiState.ShareSuccess
+                                }
+
+                                is PresentationResult.Error -> {
+                                    _uiState.value =
+                                        PresentationUiState.Error(message = response.message)
+                                }
                             }
                         } catch (e: Exception) {
                             Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                            _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                            _uiState.value = PresentationUiState.Error(message = e.message)
                         }
                     }
                 } ?: throw IllegalStateException("Authorization was null")
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                _uiState.value = PresentationUiState.Error(errorMessage = e.message)
+                _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }
