@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.component.DisclosureList
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
+import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
@@ -88,8 +88,8 @@ private fun CredentialDetailsScreen(
                 .padding(bottom = 16.dp),
         ) {
             when (uiState) {
-                is CredentialDetailsState.Disclosures -> {
-                    DisclosureList(uiState.disclosures.values.toList())
+                is CredentialDetailsState.Credential -> {
+                    ClaimList(uiState.claims)
                 }
 
                 is CredentialDetailsState.Error -> {

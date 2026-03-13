@@ -8,6 +8,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import java.util.UUID
+import kotlinx.serialization.json.Json
+import se.digg.wallet.data.SavedCredential
 
 @Entity(tableName = "user")
 data class User(
@@ -18,7 +20,7 @@ data class User(
     val uuid: UUID?,
     val accountId: String?,
     val wua: String?,
-    val credential: String?,
+    val credential: SavedCredential?,
 )
 
 class DbConverters {
@@ -28,4 +30,12 @@ class DbConverters {
 
     @TypeConverter
     fun uuidToString(uuid: UUID?): String? = uuid?.toString()
+
+    @TypeConverter
+    fun credentialFromString(value: String?): SavedCredential? =
+        value?.let { runCatching { Json.decodeFromString<SavedCredential>(it) }.getOrNull() }
+
+    @TypeConverter
+    fun credentialToString(credential: SavedCredential?): String? =
+        credential?.let { Json.encodeToString(SavedCredential.serializer(), it) }
 }

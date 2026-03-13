@@ -43,10 +43,7 @@ class UserRepository @Inject constructor(
         accountsClient.createAccount1(createAccountRequestDto = request)
 
     suspend fun getPin(): String? = userDao.get()?.pin
-    suspend fun getUuid(): UUID? = userDao.get()?.uuid
-    suspend fun getAccountId(): String? = userDao.get()?.accountId
-    suspend fun getWua(): String? = userDao.get()?.wua
-    suspend fun getCredential(): String? = userDao.get()?.credential
+    suspend fun getCredential(): SavedCredential? = userDao.get()?.credential
     suspend fun getEmail(): String? = userDao.get()?.email
     suspend fun getPhone(): String? = userDao.get()?.phone
 
@@ -54,7 +51,8 @@ class UserRepository @Inject constructor(
     suspend fun setUuid(uuid: UUID) = updateUser { it.copy(uuid = uuid) }
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
     suspend fun setWua(wua: String) = updateUser { it.copy(wua = wua) }
-    suspend fun setCredential(credential: String) = updateUser { it.copy(credential = credential) }
+    suspend fun setCredential(credential: SavedCredential) =
+        updateUser { it.copy(credential = credential) }
     suspend fun setEmail(email: String) = updateUser { it.copy(email = email) }
     suspend fun setPhone(phone: String) = updateUser { it.copy(phone = phone) }
 

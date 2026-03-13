@@ -16,8 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.serialization.json.Json
-import se.digg.wallet.data.CredentialLocal
 import se.digg.wallet.data.UserRepository
 
 @HiltViewModel
@@ -26,12 +24,10 @@ class DashboardViewModel @Inject constructor(private val userRepository: UserRep
 
     val credentialDetails: StateFlow<DashboardCredentialUiModel?> =
         userRepository.user.map {
-            it?.credential?.let {
-                val credential = Json.decodeFromString(CredentialLocal.serializer(), it)
-
+            it?.credential?.let { credential ->
                 DashboardCredentialUiModel(
                     issuer = credential.issuer?.name ?: "",
-                    disclosureCount = credential.disclosures.values.size,
+                    disclosureCount = credential.claimsCount,
                     issueDate = formatDate(credential.issuedAt),
                 )
             }

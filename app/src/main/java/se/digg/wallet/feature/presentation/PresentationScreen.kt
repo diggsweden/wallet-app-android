@@ -37,10 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.component.DisclosureList
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -124,8 +124,8 @@ private fun PresentationScreen(
                     GenericLoading()
                 }
 
-                is PresentationUiState.SelectDisclosures -> {
-                    val matchedClaims = state.disclosures
+                is PresentationUiState.PresentClaims -> {
+                    val disclosedClaims = state.claims
                     Box(
                         modifier = Modifier.fillMaxSize(),
                     ) {
@@ -142,7 +142,7 @@ private fun PresentationScreen(
                                 style = DiggTextStyle.H2,
                             )
                             Spacer(Modifier.height(8.dp))
-                            DisclosureList(disclosures = matchedClaims)
+                            ClaimList(disclosedClaims)
                         }
                         PrimaryButton(
                             text = stringResource(R.string.generic_share),

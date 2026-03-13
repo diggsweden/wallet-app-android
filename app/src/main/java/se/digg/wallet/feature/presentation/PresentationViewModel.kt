@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jwt.JWT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.Resolution
@@ -21,14 +22,22 @@ import eu.europa.ec.eudi.openid4vp.SupportedClientIdPrefix
 import eu.europa.ec.eudi.openid4vp.VPConfiguration
 import eu.europa.ec.eudi.openid4vp.VpFormatsSupported
 import eu.europa.ec.eudi.openid4vp.asException
+import eu.europa.ec.eudi.openid4vp.dcql.ClaimPath as DcqlClaimPath
+import eu.europa.ec.eudi.openid4vp.dcql.ClaimPathElement as DcqlClaimPathElement
 import eu.europa.ec.eudi.openid4vp.dcql.QueryId
+import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps
+import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.present
+import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serialize
+import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serializeWithKeyBinding
+import eu.europa.ec.eudi.sdjwt.JwtAndClaims
+import eu.europa.ec.eudi.sdjwt.SdJwt
+import eu.europa.ec.eudi.sdjwt.vc.ClaimPath as SdJwtClaimPath
+import eu.europa.ec.eudi.sdjwt.vc.ClaimPathElement as SdJwtClaimPathElement
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
 import java.security.MessageDigest
 import java.util.Base64
 import javax.inject.Inject
+import kotlin.collections.joinToString
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -37,12 +46,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.services.PresentationResult
-import se.digg.wallet.data.CredentialLocal
-import se.digg.wallet.data.DisclosureLocal
+import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
@@ -52,11 +62,13 @@ import timber.log.Timber
 class PresentationViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
+    @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
-    var walletConfig: SiopOpenId4VPConfig? = null
-    var matchedClaims: List<DisclosureLocal> = emptyList()
-    var presentationUri: String = ""
-    var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
+    var claimsToPresent: List<ClaimUiModel> = emptyList()
+    private var walletConfig: SiopOpenId4VPConfig? = null
+    private var presentationUri: String = ""
+    private var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
+    private var disclosedSdJwt: SdJwt<JwtAndClaims>? = null
 
     private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Loading)
     val uiState: StateFlow<PresentationUiState> = _uiState
@@ -91,7 +103,7 @@ class PresentationViewModel @Inject constructor(
                 ),
             )
             try {
-                val resolution = SiopOpenId4Vp.invoke(walletConfig!!, provideKtorClient())
+                val resolution = SiopOpenId4Vp.invoke(walletConfig!!, httpClient)
                     .resolveRequestUri(presentationUri)
                 when (resolution) {
                     is Resolution.Invalid -> {
@@ -112,45 +124,27 @@ class PresentationViewModel @Inject constructor(
         }
     }
 
-    fun provideKtorClient(): HttpClient = HttpClient(OkHttp) {
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
-        }
-        engine {
-            config {
-                retryOnConnectionFailure(true)
-            }
-        }
-    }
-
     fun matchDisclosures() {
         viewModelScope.launch {
             try {
-                val storedCredential = userRepository.getCredential()
-                // TODO: Handle failing to parse credential, or send it to viewmodel from outside
-                val credential: CredentialLocal = storedCredential?.let {
-                    return@let Json.decodeFromString(CredentialLocal.serializer(), it)
-                } ?: return@launch
-                authorization?.let { auth ->
-                    val query = auth.query.credentials.value[0]
+                val credential = checkNotNull(userRepository.getCredential()) { "No credential" }
+                val auth = checkNotNull(authorization) { "Authorization was null" }
 
-                    matchedClaims = when (val claims = query.claims) {
-                        null -> {
-                            credential.disclosures.values.toList()
-                        }
+                val queryClaims = auth.query.credentials.value[0].claims
+                    ?.map { it.path.toSdJwtClaimPath() }
+                    ?.toSet()
+                    ?: emptySet()
+                val sdJwt = with(DefaultSdJwtOps) {
+                    unverifiedIssuanceFrom(credential.compactSerialized).getOrThrow()
+                }
+                val disclosedSdJwt =
+                    checkNotNull(sdJwt.present(queryClaims)) { "Nothing to disclose" }
 
-                        else -> {
-                            claims
-                                .map { it.path.value.joinToString(".") }
-                                .mapNotNull(credential.disclosures::get)
-                        }
-                    }
-                    _uiState.value =
-                        PresentationUiState.SelectDisclosures(disclosures = matchedClaims)
-                    Timber.d("PresentationViewModel - Claims")
-                } ?: throw IllegalStateException("Authorization was null")
+                this@PresentationViewModel.disclosedSdJwt = disclosedSdJwt
+                claimsToPresent = disclosedSdJwt.toClaimUiModels(credential.claimDisplayNames)
+                _uiState.value = PresentationUiState.PresentClaims(claims = claimsToPresent)
             } catch (e: Exception) {
-                Timber.d("PresentationViewModel -Error: ${e.message}")
+                Timber.d("PresentationViewModel - Error: ${e.message}")
                 _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
@@ -159,102 +153,55 @@ class PresentationViewModel @Inject constructor(
     fun sendData() {
         viewModelScope.launch {
             try {
-                val storedCredential = userRepository.getCredential()
-                val credential: CredentialLocal = storedCredential?.let {
-                    return@let Json.decodeFromString(CredentialLocal.serializer(), it)
-                } ?: return@launch
-                authorization?.let { auth ->
+                val auth = checkNotNull(authorization) { "Authorization was null" }
+                val disclosedSdJwt = checkNotNull(disclosedSdJwt) { "Nothing was disclosed" }
+                val responseUrl = when (val responseMode = auth.responseMode) {
+                    is ResponseMode.DirectPost -> responseMode.responseURI
+                    is ResponseMode.DirectPostJwt -> responseMode.responseURI
+                    else -> throw IllegalStateException("Unsupported response mode")
+                }
+                val query = auth.query.credentials.value[0]
+                val clientId = auth.client.id.originalClientId
 
-                    val query = auth.query.credentials.value[0]
-                    val submissionPayload = createSubmissionPayload(
-                        createVpToken(credential = credential, auth),
-                        auth.state,
-                        query.id,
-                        auth.nonce,
-                    )
-                    val responseUrl = when (val responseMode = auth.responseMode) {
-                        is ResponseMode.DirectPost -> {
-                            responseMode.responseURI
-                        }
+                val keyBinding = createKeyBinding(
+                    sdJwt = disclosedSdJwt.serialize(),
+                    nonce = auth.nonce,
+                    clientId = clientId,
+                )
+                val vpToken = disclosedSdJwt.serializeWithKeyBinding(
+                    kbJwt = keyBinding.serialize(),
+                )
 
-                        is ResponseMode.DirectPostJwt -> {
-                            responseMode.responseURI
-                        }
+                val response = openIdNetworkService.postVpToken(
+                    url = responseUrl.toString(),
+                    body = createRequestBody(
+                        vpToken = vpToken,
+                        state = auth.state,
+                        id = query.id,
+                        nonce = auth.nonce,
+                    ),
+                )
 
-                        is ResponseMode.Fragment -> {
-                            TODO()
-                        }
-
-                        is ResponseMode.FragmentJwt -> {
-                            TODO()
-                        }
-
-                        is ResponseMode.Query -> {
-                            TODO()
-                        }
-
-                        is ResponseMode.QueryJwt -> {
-                            TODO()
-                        }
+                when (response) {
+                    is PresentationResult.Redirect -> {
+                        _effects.emit(OpenUrl(response.uri))
                     }
-                    responseUrl.let {
-                        try {
-                            val response = openIdNetworkService.postVpToken(
-                                url = it.toString(),
-                                body = createRequestBody(submissionPayload),
-                            )
-                            when (response) {
-                                is PresentationResult.Redirect -> {
-                                    _effects.emit(OpenUrl(response.uri))
-                                }
 
-                                PresentationResult.Success -> {
-                                    _uiState.value = PresentationUiState.ShareSuccess
-                                }
-
-                                is PresentationResult.Error -> {
-                                    _uiState.value =
-                                        PresentationUiState.Error(message = response.message)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
-                            _uiState.value = PresentationUiState.Error(message = e.message)
-                        }
+                    is PresentationResult.Success -> {
+                        _uiState.value = PresentationUiState.ShareSuccess
                     }
-                } ?: throw IllegalStateException("Authorization was null")
+                }
             } catch (e: Exception) {
-                Timber.d("PresentationViewModel - Presentation: Error ${e.message}}")
+                Timber.d("PresentationViewModel - Presentation: Error ${e.message}")
                 _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }
     }
 
-    private fun createRequestBody(payload: Map<String, Any?>): String =
-        payload.entries.joinToString("&") {
-            "${it.key}=${it.value}"
-        }
-
-    fun createVpToken(
-        credential: CredentialLocal?,
-        authorization: ResolvedRequestObject.OpenId4VPAuthorization,
-    ): String {
-        val header = credential?.sdJwt
-        val body = matchedClaims.map { it.base64 }
-        val combined = listOf(header).plus(body).joinToString(separator = "~").plus("~")
-        Timber.d("PresentationViewModel - SendDisclosures: $combined")
-        val keybinding = createKeyBinding(combined, authorization)
-        val full = combined + keybinding
-        return full
-    }
-
-    private fun createKeyBinding(
-        sdJwt: String,
-        authorization: ResolvedRequestObject.OpenId4VPAuthorization,
-    ): String {
+    private fun createKeyBinding(sdJwt: String, nonce: String, clientId: String): JWT {
         val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-        val nonce = authorization.nonce
-        val aud = "x509_san_dns:" + authorization.client.id.originalClientId
+        val nonce = nonce
+        val aud = "x509_san_dns:$clientId"
         val sdJwtData: ByteArray = sdJwt.toByteArray(Charsets.US_ASCII)
         val hash = MessageDigest.getInstance("SHA-256").digest(sdJwtData)
         val base64Hash = Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
@@ -264,23 +211,34 @@ class PresentationViewModel @Inject constructor(
             sdHash = base64Hash,
         )
         val headers = mapOf("typ" to "kb+jwt")
-        val keybinding = JwtUtils.signJWT(keyPair = keyPair, payload = payload, headers = headers)
-        Timber.d("PresentationViewModel - SendDisclosures ")
-        return keybinding
+        return JwtUtils.signJWT(keyPair = keyPair, payload = payload, headers = headers)
     }
 
-    private fun createSubmissionPayload(
+    private fun createRequestBody(
         vpToken: String,
         state: String?,
         id: QueryId,
         nonce: String,
-    ): Map<String, Any?> {
+    ): String {
         val vpJson = Json.encodeToString(mapOf(id to listOf(vpToken)))
 
         return mapOf(
             "state" to state,
             "vp_token" to vpJson,
             "nonce" to nonce,
-        )
+        ).entries.joinToString("&") {
+            "${it.key}=${it.value}"
+        }
     }
+}
+
+private fun DcqlClaimPath.toSdJwtClaimPath(): SdJwtClaimPath {
+    val elements = value.map { it.toSdJwtClaimPathElement() }
+    return SdJwtClaimPath(elements.first(), *elements.drop(1).toTypedArray())
+}
+
+private fun DcqlClaimPathElement.toSdJwtClaimPathElement(): SdJwtClaimPathElement = when (this) {
+    DcqlClaimPathElement.AllArrayElements -> SdJwtClaimPathElement.AllArrayElements
+    is DcqlClaimPathElement.ArrayElement -> SdJwtClaimPathElement.ArrayElement(index)
+    is DcqlClaimPathElement.Claim -> SdJwtClaimPathElement.Claim(name)
 }

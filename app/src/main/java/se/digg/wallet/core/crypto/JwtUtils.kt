@@ -11,13 +11,14 @@ import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
-import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.SignedJWT
 import java.security.KeyPair
 import java.security.interfaces.ECPublicKey
 import java.time.Instant
@@ -65,7 +66,7 @@ object JwtUtils {
         payload: T,
         headers: Map<String, Any>,
         includeJwk: Boolean = false,
-    ): String {
+    ): SignedJWT {
         val now = Instant.now().epochSecond.toInt()
 
         val defaultJwtClaims = DefaultJwtClaims(
@@ -90,13 +91,10 @@ object JwtUtils {
             }
         }.build()
 
-        val jws = JWSObject(
-            header,
-            Payload(encoded),
-        )
+        val claimsSet = JWTClaimsSet.parse(encoded)
+        val signedJwt = SignedJWT(header, claimsSet)
+        signedJwt.sign(WalletSigner(keyPair))
 
-        jws.sign(WalletSigner(keyPair))
-
-        return jws.serialize()
+        return signedJwt
     }
 }
