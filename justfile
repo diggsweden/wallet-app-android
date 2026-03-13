@@ -32,7 +32,7 @@ default:
 
 # ▪ Install devtools and tools
 [group('setup')]
-install: setup-devtools tools-install
+install: setup-devtools tools-install setup-secrets
 
 # ▪ Setup devtools (clone or update)
 [group('setup')]
@@ -56,6 +56,11 @@ setup-devtools:
         fi
         printf "Installed devbase-check %s\n" "${latest:-main}"
     fi
+
+# Copy secrets.properties.example to secrets.properties if it doesn't exist
+[group('setup')]
+setup-secrets:
+    @[ -f "secrets.properties" ] || cp secrets.properties.example secrets.properties
 
 # Check required tools are installed
 [group('setup')]
@@ -196,6 +201,15 @@ clean:
     just_header "Cleaning" "./gradlew clean"
     ./gradlew clean
     just_success "Clean completed"
+
+# ==================================================================================== #
+# EMULATOR - Emulator utilities
+# ==================================================================================== #
+
+# ▪ Install CA certificate on running emulator
+[group('emulator')]
+emulator-install-cert *ARGS:
+    @scripts/emulator-install-cert.sh {{ARGS}}
 
 # ==================================================================================== #
 # INTERNAL

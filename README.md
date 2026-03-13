@@ -18,7 +18,13 @@ You must add the API keys by copying the secrets.properties.example file and ren
 cp secrets.properties.example secrets.properties
 ```
 
-Open secret.properties and fill in the missing API keys.
+Or using just:
+
+```bash
+just setup-secrets
+```
+
+Open secrets.properties and fill in the missing API keys.
 
 ---
 
@@ -47,6 +53,28 @@ Choose the desired variant from the dropdown menu
 ## Running the Android app against a local setup
 
 To run the app against a local setup of wallet-ecosystem you have to fetch and follow the steps described [in the wallet-ecosystem repository](https://github.com/diggsweden/wallet-ecosystem). After you have successfully got the wallet-ecosystem running on your machine build the Android app with the localDebug build variant on your emulator.
+
+### Installing the CA certificate on the emulator
+
+The local setup uses TLS certificates issued by a local CA (via [mkcert](https://github.com/FiloSottile/mkcert)). To make the emulator trust these certificates, run:
+
+```bash
+just emulator-install-cert
+```
+
+Or directly:
+
+```bash
+./scripts/emulator-install-cert.sh
+```
+
+This pushes the mkcert root CA certificate to the emulator and opens the certificate settings. Follow the on-screen instructions to install it as a trusted CA certificate.
+
+You can also pass a custom certificate path:
+
+```bash
+just emulator-install-cert /path/to/cert.pem
+```
 
 ## Licenses
 
