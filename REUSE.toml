@@ -6,7 +6,7 @@ version = 1
 
 [[annotations]]
 path = [
-    ".conform.yaml",
+    ".gommitlint.yaml",
     ".gitignore",
     "CHANGELOG.md",
     "README.md",
