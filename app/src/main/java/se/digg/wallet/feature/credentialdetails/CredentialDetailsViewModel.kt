@@ -11,16 +11,15 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import se.digg.wallet.data.CredentialLocal
-import se.digg.wallet.data.DisclosureLocal
+import se.digg.wallet.core.extensions.getClaimUiModels
+import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
 
 sealed interface CredentialDetailsState {
     object Loading : CredentialDetailsState
-    data class Disclosures(
-        val disclosures: Map<String, DisclosureLocal>,
+    data class Credential(
+        val claims: List<ClaimUiModel>,
         val issuer: String?,
         val issuerImgUrl: String,
     ) : CredentialDetailsState
@@ -38,13 +37,11 @@ class CredentialDetailsViewModel @Inject constructor(private val userRepository:
     fun matchDisclosures() {
         viewModelScope.launch {
             try {
-                val storedCredential = userRepository.getCredential()
-                val credential: CredentialLocal = storedCredential?.let {
-                    return@let Json.decodeFromString(CredentialLocal.serializer(), it)
-                } ?: return@launch
-                val disclosures = credential.disclosures
-                _uiState.value = CredentialDetailsState.Disclosures(
-                    disclosures = disclosures,
+                val credential =
+                    checkNotNull(userRepository.getCredential()) { "No credential found" }
+                val claims = credential.getClaimUiModels()
+                _uiState.value = CredentialDetailsState.Credential(
+                    claims = claims,
                     issuer = credential.issuer?.name,
                     issuerImgUrl = credential.issuer?.logo?.uri?.toString() ?: "",
                 )

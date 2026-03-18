@@ -39,16 +39,17 @@ data class CredentialResponseModel(val credentials: List<Credential>)
 data class Credential(val credential: String)
 
 @Serializable
-data class CredentialLocal(
-    val issuer: DisplayLocal?,
-    val sdJwt: String,
-    val disclosures: Map<String, DisclosureLocal>,
+data class SavedCredential(
+    val compactSerialized: String,
+    val claimDisplayNames: Map<String, String>,
+    val claimsCount: Int,
     @Serializable(with = DateAsLongSerializer::class)
     val issuedAt: Date = Date(),
+    val issuer: IssuerDisplay?,
 )
 
 @Serializable
-data class DisplayLocal(
+data class IssuerDisplay(
     val name: String,
     @Serializable(with = LocaleSerializer::class)
     val locale: Locale? = null,

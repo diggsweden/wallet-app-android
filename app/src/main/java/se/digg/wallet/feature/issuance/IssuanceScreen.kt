@@ -35,10 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
-import se.digg.wallet.core.designsystem.component.DisclosureList
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 
@@ -71,7 +71,7 @@ fun IssuanceScreen(
         }
         CredentialOfferHeader(issuer = issuerMetadata)
 
-        when (uiState) {
+        when (val currentState = uiState) {
             IssuanceState.Loading -> {
                 GenericLoading()
             }
@@ -90,9 +90,8 @@ fun IssuanceScreen(
             }
 
             is IssuanceState.CredentialFetched -> {
-                val credential = (uiState as IssuanceState.CredentialFetched).credential
                 Spacer(modifier = Modifier.height(30.dp))
-                DisclosureList(disclosures = credential.disclosures.values.toList())
+                ClaimList(claims = currentState.claims)
                 Spacer(modifier = Modifier.height(24.dp))
                 PrimaryButton(
                     text = stringResource(R.string.enrollment_credential_offer_button_accept),

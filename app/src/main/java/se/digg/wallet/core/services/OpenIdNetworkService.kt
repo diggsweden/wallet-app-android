@@ -52,7 +52,7 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
 
     suspend fun fetchNonce(url: String): NonceResponseModel = httpClient.post(url).body()
 
-    suspend fun postVpToken(url: String, body: String): PresentationResult = try {
+    suspend fun postVpToken(url: String, body: String): PresentationResult {
         val response = httpClient.post(urlString = url) {
             contentType(
                 ContentType(
@@ -69,18 +69,15 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
 
         val model: PresentationResponseModel = json.decodeFromString(response.body())
 
-        if (model.redirectUri != null) {
+        return if (model.redirectUri != null) {
             PresentationResult.Redirect(model.redirectUri)
         } else {
             PresentationResult.Success
         }
-    } catch (e: Exception) {
-        PresentationResult.Error(message = e.message)
     }
 }
 
 sealed interface PresentationResult {
     data class Redirect(val uri: String) : PresentationResult
     data object Success : PresentationResult
-    data class Error(val message: String?) : PresentationResult
 }

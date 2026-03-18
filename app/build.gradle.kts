@@ -161,11 +161,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation(libs.nimbus)
     implementation(libs.timber)
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
     implementation(libs.bundles.storage)
     implementation(libs.bundles.di)
+    implementation(libs.bundles.ktor)
     ksp(libs.hilt.compiler)
 
     implementation(libs.room.runtime)

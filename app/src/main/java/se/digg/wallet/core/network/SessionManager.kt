@@ -55,7 +55,7 @@ class SessionManager(
                 keyPair = key,
                 payload = mapOf("nonce" to nonce),
                 headers = mapOf("kid" to keyId),
-            )
+            ).serialize()
         val result = validateClient.validateChallenge(
             ValidateAuthChallengeRequestDto(signedJwt = jwt),
         )
