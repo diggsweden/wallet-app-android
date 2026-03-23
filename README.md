@@ -54,6 +54,22 @@ Choose the desired variant from the dropdown menu
 
 To run the app against a local setup of wallet-ecosystem you have to fetch and follow the steps described [in the wallet-ecosystem repository](https://github.com/diggsweden/wallet-ecosystem). After you have successfully got the wallet-ecosystem running on your machine build the Android app with the localDebug build variant on your emulator.
 
+### Setup platform-tools
+
+Make sure that the path to your platform-tools is added in the ~/.zshrc.
+```bash
+nano ~/.zshrc
+```
+If you do not have a path to your platform-tools add it here. If you are using the default install location you can add the following line, otherwise locate your installation and add that path instead:
+
+```bash
+export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
+```
+To verify that it is correctly setup this command (it should return adb version) if correctly setup.
+
+```bash
+adb version
+```
 ### Installing the CA certificate on the emulator
 
 The local setup uses TLS certificates issued by a local CA (via [mkcert](https://github.com/FiloSottile/mkcert)). To make the emulator trust these certificates, run:
@@ -76,8 +92,12 @@ You can also pass a custom certificate path:
 just emulator-install-cert /path/to/cert.pem
 ```
 
-## Licenses
+**To install the certificate click:**
+CA Certificate -> CA Certificate (on "Install a certificate" page) -> "Install anyway" -> Select "Downloads" from the hamburger menu -> Now click on the file "rootCA.pem"
 
+Your device is now ready to connect to your local services.
+
+## Licenses
 ---
 
 Source code is EUPL-1.2. Most other assets are CC0-1.0
