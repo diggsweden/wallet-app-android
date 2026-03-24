@@ -13,7 +13,7 @@ permissions:
 jobs:
   # Build Android app with signing
   build:
-    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-app.yml@72b9c326139080c9a9c91999ada2d62d19e7ee54 # main
+    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-app.yml@2afbedbefbb457a5fc6175de232e4644cab58a69 # main
     permissions:
       contents: read
     secrets: inherit
@@ -28,7 +28,7 @@ jobs:
   # Publish to Google Play internal track
   publish-google-play:
     needs: build
-    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@72b9c326139080c9a9c91999ada2d62d19e7ee54 # main
+    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@2afbedbefbb457a5fc6175de232e4644cab58a69 # main
     permissions:
       contents: read
     secrets: inherit
