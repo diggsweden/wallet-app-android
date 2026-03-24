@@ -38,6 +38,7 @@ import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
 fun EmailScreen(pageNumber: Int, onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel()) {
@@ -91,8 +92,8 @@ private fun EmailScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp)
+            .padding(horizontal = OnboardingDefaults.HorizontalPadding)
+            .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
         OnboardingHeader(pageNumber = pageNumber, pageTitle = "Din e-postadress")

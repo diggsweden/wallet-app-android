@@ -62,4 +62,10 @@
     <string name="presentation_app_bar_title">Dela attribut</string>
     <string name="enrollment_intro_title">Plånboken</string>
     <string name="enrollment_intro_button">Kom igång med plånboken</string>
+    <string name="onboarding_consent_checkbox_title">Samtycke</string>
+    <string name="onboarding_consent_checkbox_description">Ja, jag samtycker till att Digg får lagra mina användar-uppgifter såsom telefonnummer och e-postadress</string>
+    <string name="onboarding_consent_checkbox_error">Samtycke krävs för att du ska kunna använda plånboken</string>
+    <string name="onboarding_consent_terms">Läs mer om användarvillkor</string>
+    <string name="onboarding_consent_personal_data">Så behandlar vi dina personuppgifter</string>
+    <string name="onboarding_consent_page_title">Tillåt behörigheter</string>
 </resources>

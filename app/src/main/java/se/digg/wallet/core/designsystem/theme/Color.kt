@@ -51,6 +51,7 @@ val DarkOnPrimary = Color(0xFFFFFFFF)
 
 val DiggBlack = Color(0xFF2B2A29)
 val DiggBrown = Color(0xFF8F554C)
+val DiggPink = Color(0xFFE6BCB6)
 
 // TextColors
 val TextPrimary = Color(0xFF2B2A29)
@@ -75,7 +76,7 @@ val DefaultCheckMarkDarkMode = Color(0xFFD5DAD4)
 val Container = Color(0xFFF3F3F3)
 val ContainerDarkMode = Color(0xFF1E1D1B)
 val ErrorContainer = Color(0xFFF3DEDB)
-val ErrorContainerDarkMode = Color(0xFF673D37)
+val ErrorContainerDarkMode = Color(0xFF331E1B)
 val ErrorOutline = Color(0xFFB50000)
 val ErrorOutlineDarkMode = Color(0xFFEDBFBF)
 val PlaceholderText = Color(0xFFC3C3C2)

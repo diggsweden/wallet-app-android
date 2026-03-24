@@ -57,19 +57,23 @@ To run the app against a local setup of wallet-ecosystem you have to fetch and f
 ### Setup platform-tools
 
 Make sure that the path to your platform-tools is added in the ~/.zshrc.
+
 ```bash
 nano ~/.zshrc
 ```
+
 If you do not have a path to your platform-tools add it here. If you are using the default install location you can add the following line, otherwise locate your installation and add that path instead:
 
 ```bash
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
 ```
+
 To verify that it is correctly setup this command (it should return adb version) if correctly setup.
 
 ```bash
 adb version
 ```
+
 ### Installing the CA certificate on the emulator
 
 The local setup uses TLS certificates issued by a local CA (via [mkcert](https://github.com/FiloSottile/mkcert)). To make the emulator trust these certificates, run:
@@ -98,6 +102,7 @@ CA Certificate -> CA Certificate (on "Install a certificate" page) -> "Install a
 Your device is now ready to connect to your local services.
 
 ## Licenses
+
 ---
 
 Source code is EUPL-1.2. Most other assets are CC0-1.0
