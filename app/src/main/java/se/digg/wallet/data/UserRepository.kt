@@ -53,6 +53,7 @@ class UserRepository @Inject constructor(
     suspend fun setWua(wua: String) = updateUser { it.copy(wua = wua) }
     suspend fun setCredential(credential: SavedCredential) =
         updateUser { it.copy(credential = credential) }
+
     suspend fun setEmail(email: String) = updateUser { it.copy(email = email) }
     suspend fun setPhone(phone: String) = updateUser { it.copy(phone = phone) }
 

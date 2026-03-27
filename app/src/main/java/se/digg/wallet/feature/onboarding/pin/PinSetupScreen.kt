@@ -4,7 +4,6 @@
 
 package se.digg.wallet.feature.onboarding.pin
 
-import PinInput
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,10 +28,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
+import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
 fun PinSetupScreen(
@@ -75,8 +76,8 @@ private fun PinSetupScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp)
+            .padding(horizontal = OnboardingDefaults.HorizontalPadding)
+            .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
         if (verifyPin) {

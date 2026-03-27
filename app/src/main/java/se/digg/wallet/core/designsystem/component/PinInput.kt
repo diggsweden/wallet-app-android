@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+package se.digg.wallet.core.designsystem.component
+
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import androidx.compose.foundation.background
@@ -47,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.theme.DiggBlack
 import se.digg.wallet.core.designsystem.theme.DiggBrown
+import se.digg.wallet.core.designsystem.theme.DiggPink
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -158,16 +161,20 @@ private fun PinBalls(requiredLength: Int, pinLength: Int) {
 
 @Composable
 private fun PinCircle(filled: Boolean, size: Dp) {
-    val borderColor = DiggBrown
+    val color = if (!isSystemInDarkTheme()) {
+        DiggBrown
+    } else {
+        DiggPink
+    }
     val fillColor: Color =
-        if (filled) DiggBrown else Color.Transparent
+        if (filled) color else Color.Transparent
 
     Box(
         modifier = Modifier
             .size(size)
             .border(
                 width = 1.dp,
-                color = DiggBrown,
+                color = color,
                 shape = CircleShape,
             )
             .background(
