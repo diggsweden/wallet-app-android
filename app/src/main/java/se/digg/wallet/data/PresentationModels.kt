@@ -6,6 +6,9 @@
 
 package se.digg.wallet.data
 
+import eu.europa.ec.eudi.sdjwt.JwtAndClaims
+import eu.europa.ec.eudi.sdjwt.SdJwt
+import eu.europa.ec.eudi.sdjwt.vc.ClaimPath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -15,4 +18,18 @@ data class KeybindingPayload(
     val nonce: String,
     @SerialName("sd_hash")
     val sdHash: String,
+)
+
+data class CredentialQuery(
+    val id: String,
+    val required: Boolean = true,
+    val claimPaths: Set<ClaimPath>,
+)
+
+data class PresentationItem(
+    val id: String,
+    val isChecked: Boolean,
+    val isRequired: Boolean,
+    val claims: List<ClaimUiModel>,
+    val disclosedSdJwt: SdJwt<JwtAndClaims>,
 )

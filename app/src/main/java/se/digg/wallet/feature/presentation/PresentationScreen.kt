@@ -4,7 +4,7 @@
 
 package se.digg.wallet.feature.presentation
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +41,7 @@ import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
+import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
 import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -71,6 +72,12 @@ fun PresentationScreen(
         onBackCLick = { navController.navigateUp() },
         onShareClick = { viewModel.sendData() },
         onFinishClick = { navController.navigateUp() },
+        onOptionalClaimClick = { id, checked ->
+            viewModel.onOptionalClaimCheckedChanged(
+                id,
+                checked,
+            )
+        },
         uiState = uiState,
         modifier = modifier,
     )
@@ -82,6 +89,7 @@ private fun PresentationScreen(
     onBackCLick: () -> Unit,
     onShareClick: () -> Unit,
     onFinishClick: () -> Unit,
+    onOptionalClaimClick: (String, Boolean) -> Unit,
     uiState: PresentationUiState,
     modifier: Modifier = Modifier,
 ) {
@@ -125,7 +133,8 @@ private fun PresentationScreen(
                 }
 
                 is PresentationUiState.PresentClaims -> {
-                    val disclosedClaims = state.claims
+                    val requiredClaims = state.requiredClaims
+                    val optionalClaims = state.optionalClaims
                     Box(
                         modifier = Modifier.fillMaxSize(),
                     ) {
@@ -142,7 +151,18 @@ private fun PresentationScreen(
                                 style = DiggTextStyle.H2,
                             )
                             Spacer(Modifier.height(8.dp))
-                            ClaimList(disclosedClaims)
+                            requiredClaims.forEach { item ->
+                                ClaimList(claims = item.claims)
+                            }
+                            SelectiveDisclosureList(
+                                onClaimClick = { id, checked ->
+                                    onOptionalClaimClick.invoke(
+                                        id,
+                                        checked,
+                                    )
+                                },
+                                presentationItems = optionalClaims,
+                            )
                         }
                         PrimaryButton(
                             text = stringResource(R.string.generic_share),
@@ -169,21 +189,28 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
             .fillMaxSize()
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = stringResource(R.string.presentation_share_successful_title),
-            style = DiggTextStyle.H5,
+            style = DiggTextStyle.H1,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(50.dp))
+        Image(
+            painter = painterResource(id = R.drawable.presentation_successful),
+            contentDescription = null,
+        )
+        Spacer(Modifier.height(32.dp))
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             textAlign = TextAlign.Center,
             text = stringResource(R.string.presentation_share_successful_info),
+            style = DiggTextStyle.BodyMD,
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.weight(1f))
         PrimaryButton(
             text = stringResource(R.string.generic_close),
             onClick = { onFinishClick.invoke() },
@@ -200,7 +227,8 @@ private fun PresentationPreview() {
                 onBackCLick = { },
                 onShareClick = { },
                 onFinishClick = { },
-                uiState = PresentationUiState.Error("Error message for preview"),
+                onOptionalClaimClick = { _, _ -> },
+                uiState = PresentationUiState.ShareSuccess,
             )
         }
     }

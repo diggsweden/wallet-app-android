@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.data.ClaimUiModel
 
 @Composable
@@ -34,6 +36,13 @@ fun ClaimList(claims: List<ClaimUiModel>, modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
         ) {
+            Text(
+                text = "Uppgifter som delas:",
+                style = DiggTextStyle.H3,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp, horizontal = 20.dp),
+            )
             claims.forEach { claim ->
                 ClaimItem(
                     claim = claim,
