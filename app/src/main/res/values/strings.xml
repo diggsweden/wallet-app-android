@@ -54,8 +54,8 @@
     <string name="enrollment_credential_offer_button_accept">Approve personal data</string>
     <string name="generic_share">Share</string>
     <string name="generic_error_screen_message">Unfortunately, something went wrong, please try again and if the problem persists, contact us with an error report.</string>
-    <string name="presentation_share_successful_info">Fortsätt flödet i din webbläsare eller på din andra enhet.</string>
-    <string name="presentation_share_successful_title">Delning av data lyckades!</string>
+    <string name="presentation_share_successful_info">Du kan nu gå tillbaka till appen eller hemsidan som du kom ifrån.</string>
+    <string name="presentation_share_successful_title">Nu är det klart</string>
     <string name="presentation_share_title">Vill du dela följande data?</string>
     <string name="presentation_app_bar_title">Dela attribut</string>
     <string name="settings_app_version">App version: %1$s (%2$d)</string>

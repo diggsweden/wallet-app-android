@@ -4,11 +4,15 @@
 
 package se.digg.wallet.feature.presentation
 
-import se.digg.wallet.data.ClaimUiModel
+import se.digg.wallet.data.PresentationItem
 
 sealed interface PresentationUiState {
     object Loading : PresentationUiState
-    data class PresentClaims(val claims: List<ClaimUiModel>) : PresentationUiState
+    data class PresentClaims(
+        val requiredClaims: List<PresentationItem>,
+        val optionalClaims: List<PresentationItem>,
+    ) : PresentationUiState
+
     object ShareSuccess : PresentationUiState
     data class Error(val message: String?) : PresentationUiState
 }

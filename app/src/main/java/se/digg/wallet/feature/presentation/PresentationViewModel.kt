@@ -24,13 +24,10 @@ import eu.europa.ec.eudi.openid4vp.VpFormatsSupported
 import eu.europa.ec.eudi.openid4vp.asException
 import eu.europa.ec.eudi.openid4vp.dcql.ClaimPath as DcqlClaimPath
 import eu.europa.ec.eudi.openid4vp.dcql.ClaimPathElement as DcqlClaimPathElement
-import eu.europa.ec.eudi.openid4vp.dcql.QueryId
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.present
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serialize
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serializeWithKeyBinding
-import eu.europa.ec.eudi.sdjwt.JwtAndClaims
-import eu.europa.ec.eudi.sdjwt.SdJwt
 import eu.europa.ec.eudi.sdjwt.vc.ClaimPath as SdJwtClaimPath
 import eu.europa.ec.eudi.sdjwt.vc.ClaimPathElement as SdJwtClaimPathElement
 import io.ktor.client.HttpClient
@@ -42,6 +39,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.crypto.JwtUtils
@@ -51,8 +49,9 @@ import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.services.PresentationResult
-import se.digg.wallet.data.ClaimUiModel
+import se.digg.wallet.data.CredentialQuery
 import se.digg.wallet.data.KeybindingPayload
+import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
 import timber.log.Timber
@@ -63,11 +62,11 @@ class PresentationViewModel @Inject constructor(
     private val openIdNetworkService: OpenIdNetworkService,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
-    var claimsToPresent: List<ClaimUiModel> = emptyList()
     private var walletConfig: SiopOpenId4VPConfig? = null
     private var presentationUri: String = ""
     private var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
-    private var disclosedSdJwt: SdJwt<JwtAndClaims>? = null
+    private var optionalItemsList: List<PresentationItem> = emptyList()
+    private var requiredItemsList: List<PresentationItem> = emptyList()
 
     private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Loading)
     val uiState: StateFlow<PresentationUiState> = _uiState
@@ -129,19 +128,53 @@ class PresentationViewModel @Inject constructor(
                 val credential = checkNotNull(userRepository.getCredential()) { "No credential" }
                 val auth = checkNotNull(authorization) { "Authorization was null" }
 
-                val queryClaims = auth.query.credentials.value[0].claims
-                    ?.map { it.path.toSdJwtClaimPath() }
-                    ?.toSet()
-                    ?: emptySet()
+                val credentialQueries = auth.query.credentials.value.map { query ->
+                    val isRequired = auth.query.credentialSets?.value?.any { credentialSet ->
+                        credentialSet.options.any { credentialQueryId ->
+                            credentialQueryId.value.contains(query.id) &&
+                                credentialSet.required == true
+                        }
+                    } ?: true
+
+                    val claimPaths = query.claims?.map {
+                        it.path.toSdJwtClaimPath()
+                    }?.toSet().orEmpty()
+
+                    CredentialQuery(
+                        id = query.id.value,
+                        required = isRequired,
+                        claimPaths = claimPaths,
+                    )
+                }
+
                 val sdJwt = with(DefaultSdJwtOps) {
                     unverifiedIssuanceFrom(credential.compactSerialized).getOrThrow()
                 }
-                val disclosedSdJwt =
-                    checkNotNull(sdJwt.present(queryClaims)) { "Nothing to disclose" }
 
-                this@PresentationViewModel.disclosedSdJwt = disclosedSdJwt
-                claimsToPresent = disclosedSdJwt.toClaimUiModels(credential.claimDisplayNames)
-                _uiState.value = PresentationUiState.PresentClaims(claims = claimsToPresent)
+                val presentationItemList = credentialQueries.mapNotNull {
+                    val matchedSdJwt = sdJwt.present(it.claimPaths) ?: return@mapNotNull null
+                    val claims = matchedSdJwt.toClaimUiModels(credential.claimDisplayNames)
+
+                    PresentationItem(
+                        id = it.id,
+                        isChecked = false,
+                        isRequired = it.required,
+                        claims = claims,
+                        disclosedSdJwt = matchedSdJwt,
+                    )
+                }
+
+                val (requiredItems, optionalItems) = presentationItemList.partition {
+                    it.isRequired
+                }
+                requiredItemsList = requiredItems
+                optionalItemsList = optionalItems
+
+                _uiState.value =
+                    PresentationUiState.PresentClaims(
+                        requiredClaims = requiredItemsList,
+                        optionalClaims = optionalItemsList,
+                    )
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel - Error: ${e.message}")
                 _uiState.value = PresentationUiState.Error(message = e.message)
@@ -153,30 +186,35 @@ class PresentationViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val auth = checkNotNull(authorization) { "Authorization was null" }
-                val disclosedSdJwt = checkNotNull(disclosedSdJwt) { "Nothing was disclosed" }
+
                 val responseUrl = when (val responseMode = auth.responseMode) {
                     is ResponseMode.DirectPost -> responseMode.responseURI
                     is ResponseMode.DirectPostJwt -> responseMode.responseURI
                     else -> throw IllegalStateException("Unsupported response mode")
                 }
-                val query = auth.query.credentials.value[0]
                 val clientId = auth.client.id.originalClientId
 
-                val keyBinding = createKeyBinding(
-                    sdJwt = disclosedSdJwt.serialize(),
-                    nonce = auth.nonce,
-                    clientId = clientId,
-                )
-                val vpToken = disclosedSdJwt.serializeWithKeyBinding(
-                    kbJwt = keyBinding.serialize(),
-                )
+                val disclosedItems = requiredItemsList + optionalItemsList.filter {
+                    it.isChecked
+                }
+
+                val vpTokens = disclosedItems.associate {
+                    val keyBinding = createKeyBinding(
+                        sdJwt = it.disclosedSdJwt.serialize(),
+                        nonce = auth.nonce,
+                        clientId = clientId,
+                    )
+                    val vpToken = it.disclosedSdJwt.serializeWithKeyBinding(
+                        kbJwt = keyBinding.serialize(),
+                    )
+                    it.id to listOf(vpToken)
+                }
 
                 val response = openIdNetworkService.postVpToken(
                     url = responseUrl.toString(),
                     body = createRequestBody(
-                        vpToken = vpToken,
+                        vpToken = vpTokens,
                         state = auth.state,
-                        id = query.id,
                         nonce = auth.nonce,
                     ),
                 )
@@ -213,13 +251,40 @@ class PresentationViewModel @Inject constructor(
         return JwtUtils.signJWT(keyPair = keyPair, payload = payload, headers = headers)
     }
 
+    private fun List<PresentationItem>.updateSelection(
+        itemId: String,
+        isSelected: Boolean,
+    ): List<PresentationItem> = map { item ->
+        if (item.id == itemId) {
+            item.copy(isChecked = isSelected)
+        } else {
+            item
+        }
+    }
+
+    fun onOptionalClaimCheckedChanged(itemId: String, isSelected: Boolean) {
+        optionalItemsList = optionalItemsList.updateSelection(itemId, isSelected)
+        _uiState.update { current ->
+            when (current) {
+                is PresentationUiState.PresentClaims -> {
+                    current.copy(
+                        optionalClaims = optionalItemsList,
+                    )
+                }
+
+                else -> {
+                    current
+                }
+            }
+        }
+    }
+
     private fun createRequestBody(
-        vpToken: String,
+        vpToken: Map<String, List<String>>,
         state: String?,
-        id: QueryId,
         nonce: String,
     ): String {
-        val vpJson = Json.encodeToString(mapOf(id to listOf(vpToken)))
+        val vpJson = Json.encodeToString(vpToken)
 
         return mapOf(
             "state" to state,
