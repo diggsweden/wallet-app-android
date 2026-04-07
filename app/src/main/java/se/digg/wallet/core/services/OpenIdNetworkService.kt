@@ -17,12 +17,15 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
+import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.response.NonceResponseModel
 import se.digg.wallet.data.response.PresentationResponseModel
 
-class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClient) {
+class OpenIdNetworkService @Inject constructor(
+    @param:BaseHttpClient private val httpClient: HttpClient,
+) {
     private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun fetchCredential(
@@ -32,7 +35,7 @@ class OpenIdNetworkService @Inject constructor(private val httpClient: HttpClien
         contentType: ContentType = ContentType.Application.Json,
         acceptType: ContentType = ContentType.Application.Json,
     ): CredentialResponseModel = httpClient.post(url) {
-        header(HttpHeaders.Authorization, accessToken)
+        header(HttpHeaders.Authorization, "Bearer $accessToken")
         contentType(contentType)
         setBody(request)
         accept(acceptType)
