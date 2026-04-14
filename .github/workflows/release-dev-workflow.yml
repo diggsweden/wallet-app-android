@@ -13,12 +13,12 @@ permissions:
 jobs:
   # Build Android app with signing
   build:
-    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-app.yml@4e656557f4fa8ba4ea8ec388eda0e23914ceae7f # v2.7.7
+    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-app.yml@1e3141deda57eba0e4a9e122b015862c738a2dfb # v2.7.8
     permissions:
       contents: read
     secrets: inherit
     with:
-      reusable-ci-ref: v2.7.7
+      reusable-ci-ref: v2.7.8
       java-version: "21"
       build-module: "app"
       gradle-tasks: "assembleDemoRelease bundleDemoRelease"
@@ -28,12 +28,12 @@ jobs:
   # Publish to Google Play internal track
   publish-google-play:
     needs: build
-    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@4e656557f4fa8ba4ea8ec388eda0e23914ceae7f # v2.7.7
+    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@1e3141deda57eba0e4a9e122b015862c738a2dfb # v2.7.8
     permissions:
       contents: read
     secrets: inherit
     with:
-      reusable-ci-ref: v2.7.7
+      reusable-ci-ref: v2.7.8
       aab-artifact-name: "wallet-android-demo"
       package-name: "se.digg.wallet.demo"
       track: "internal"
