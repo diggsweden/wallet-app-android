@@ -18,6 +18,7 @@ path = [
     "feature/home/proguard-rules.pro",
     "gradle/libs.versions.toml",
     "gradle/wrapper/gradle-wrapper.properties",
+    "gradle/gradle-daemon-jvm.properties",
     "gradle.properties",
     "settings.gradle.kts",
     "**/*build.gradle.kts",
