@@ -8,6 +8,8 @@ import eu.europa.ec.eudi.openid4vci.Claim
 import java.net.URI
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -42,11 +44,20 @@ data class Credential(val credential: String)
 data class SavedCredential(
     val compactSerialized: String,
     val claimDisplayNames: Map<String, String>,
-    val claimsCount: Int,
     @Serializable(with = DateAsLongSerializer::class)
     val issuedAt: Date = Date(),
     val issuer: IssuerDisplay?,
+    val type: String = "",
+    val id: String = UUID.randomUUID().toString(),
+    val displayData: CredentialDisplayData?,
 )
+
+@Serializable
+data class CredentialDisplayData(val name: String?)
+
+enum class CredentialType(val type: String) {
+    PID("urn:eudi:pid:1"),
+}
 
 @Serializable
 data class IssuerDisplay(

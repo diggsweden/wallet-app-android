@@ -18,8 +18,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
+import androidx.navigation.toRoute
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsScreen
-import se.digg.wallet.feature.dashboard.DashboardScreen
+import se.digg.wallet.feature.dashboard.DashboardRoute
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceScreen
 import se.digg.wallet.feature.onboarding.OnboardingScreen
 import se.digg.wallet.feature.onboarding.intro.IntroScreen
@@ -85,11 +86,15 @@ fun WalletNavHost(
             route = RootGraph.DASHBOARD,
         ) {
             composable(NavigationItem.Home.route) {
-                DashboardScreen(navController = navController)
+                DashboardRoute(navController = navController)
             }
 
-            composable(NavigationItem.CredentialDetails.route) {
-                CredentialDetailsScreen(navController = navController)
+            composable<CredentialDetailsRoute> {
+                val credential = it.toRoute<CredentialDetailsRoute>()
+                CredentialDetailsScreen(
+                    credentialId = credential.id,
+                    navController = navController,
+                )
             }
 
             composable(NavigationItem.Settings.route) {

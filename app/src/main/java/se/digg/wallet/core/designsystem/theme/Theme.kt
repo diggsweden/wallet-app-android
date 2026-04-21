@@ -21,7 +21,11 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Pink80,
     surface = ContainerDarkMode,
     background = DefaultBackgroundDarkMode,
+    onSurface = TextColorDarkMode,
     errorContainer = ErrorContainerDarkMode,
+    primaryContainer = ButtonContainerPrimaryDark,
+    onPrimaryContainer = TextColor,
+
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -31,7 +35,10 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Pink40,
     surface = Container,
     background = DefaultBackground,
+    onSurface = TextColor,
     errorContainer = ErrorContainer,
+    primaryContainer = ButtonContainerPrimary,
+    onPrimaryContainer = TextColorDarkMode,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

@@ -125,7 +125,7 @@ class PresentationViewModel @Inject constructor(
     fun matchDisclosures() {
         viewModelScope.launch {
             try {
-                val credential = checkNotNull(userRepository.getCredential()) { "No credential" }
+                val credential = checkNotNull(userRepository.getPid()) { "No credential" }
                 val auth = checkNotNull(authorization) { "Authorization was null" }
 
                 val credentialQueries = auth.query.credentials.value.map { query ->

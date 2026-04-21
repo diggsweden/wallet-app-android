@@ -34,11 +34,11 @@ class CredentialDetailsViewModel @Inject constructor(private val userRepository:
     private val _uiState = MutableStateFlow<CredentialDetailsState>(CredentialDetailsState.Loading)
     val uiState: StateFlow<CredentialDetailsState> = _uiState
 
-    fun matchDisclosures() {
+    fun toUiModel(credentialId: String) {
         viewModelScope.launch {
             try {
                 val credential =
-                    checkNotNull(userRepository.getCredential()) { "No credential found" }
+                    userRepository.getCredential(id = credentialId)
                 val claims = credential.getClaimUiModels()
                 _uiState.value = CredentialDetailsState.Credential(
                     claims = claims,
@@ -50,7 +50,7 @@ class CredentialDetailsViewModel @Inject constructor(private val userRepository:
                 _uiState.value =
                     CredentialDetailsState.Error(
                         errorMessage =
-                            "Error with loading locally stored PID - Error: ${e.message}",
+                            "Error with loading locally stored credential - Error: ${e.message}",
                     )
             }
         }
