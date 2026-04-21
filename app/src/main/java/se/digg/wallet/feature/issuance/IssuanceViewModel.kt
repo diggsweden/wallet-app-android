@@ -45,6 +45,7 @@ import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.ClaimUiModel
+import se.digg.wallet.data.CredentialDisplayData
 import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseEncryptionModel
 import se.digg.wallet.data.CredentialResponseModel
@@ -154,30 +155,47 @@ class IssuanceViewModel @Inject constructor(
     fun fetchCredential(authorizedRequest: AuthorizedRequest) {
         viewModelScope.launch {
             try {
+                val credentialOffer = checkNotNull(issuer?.credentialOffer)
                 val credentialConfigurationId =
-                    issuer?.credentialOffer?.credentialConfigurationIdentifiers?.first()?.toString()
-                        ?: throw IllegalStateException("credentialConfigurationIdentifier is null")
-
+                    checkNotNull(credentialOffer.credentialConfigurationIdentifiers.first())
+                val credentialConfig =
+                    checkNotNull(
+                        credentialOffer.credentialIssuerMetadata
+                            .credentialConfigurationsSupported[credentialConfigurationId]
+                            as? SdJwtVcCredential,
+                    )
                 val accessToken = authorizedRequest.accessToken.accessToken
                 val proofs = createProof()
                 val response = fetchCredentialResponse(
                     proofs = proofs,
-                    credentialConfigurationId = credentialConfigurationId,
+                    credentialConfigurationId = credentialConfigurationId.toString(),
                     accessToken = accessToken,
                 )
-
                 val credentialSdJwt = response.credentials.firstOrNull()?.credential
                 check(credentialSdJwt != null) {
                     "No credential found"
                 }
 
-                val (credential, claims) = parseCredential(credentialSdJwt)
-                userRepository.setCredential(credential)
+                val (credential, claims) = parseCredential(
+                    credentialSdJwt,
+                    credentialConfig,
+                )
+                saveCredential(credential)
                 _uiState.value = IssuanceState.CredentialFetched(claims)
             } catch (e: Exception) {
                 _uiState.value = IssuanceState.Error
                 Timber.d("IssuanceViewModel: Fetch credential error: ${e.message}")
             }
+        }
+    }
+
+    private suspend fun saveCredential(credential: SavedCredential) {
+        if (!userRepository.isOnboarded()) {
+            userRepository.setPid(credential)
+            Timber.d("--- ISSUANCEVIEWMODEL: Saved PID ---")
+        } else {
+            userRepository.addCredentials(listOf(credential))
+            Timber.d("--- ISSUANCEVIEWMODEL:Saved Credential ---")
         }
     }
 
@@ -301,7 +319,10 @@ class IssuanceViewModel @Inject constructor(
         }
     }
 
-    fun parseCredential(credentialSdJwt: String): Pair<SavedCredential, List<ClaimUiModel>> {
+    fun parseCredential(
+        credentialSdJwt: String,
+        credentialConfiguration: SdJwtVcCredential,
+    ): Pair<SavedCredential, List<ClaimUiModel>> {
         val sdJwt: SdJwt<JwtAndClaims> = with(DefaultSdJwtOps) {
             unverifiedIssuanceFrom(credentialSdJwt).getOrThrow()
         }
@@ -309,9 +330,12 @@ class IssuanceViewModel @Inject constructor(
 
         return SavedCredential(
             compactSerialized = credentialSdJwt,
-            claimsCount = claims.size,
             claimDisplayNames = claimDisplayNames,
             issuer = displayToDisplayLocal(issuerMetadata.value?.display?.firstOrNull()),
+            type = credentialConfiguration.type,
+            displayData = CredentialDisplayData(
+                name = credentialConfiguration.credentialMetadata?.display?.firstOrNull()?.name,
+            ),
         ) to claims
     }
 

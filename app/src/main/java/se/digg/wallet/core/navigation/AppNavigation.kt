@@ -4,6 +4,13 @@
 
 package se.digg.wallet.core.navigation
 
+import android.net.Uri
+import android.os.Bundle
+import androidx.navigation.NavType
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import se.digg.wallet.data.SavedCredential
+
 enum class AppNavigation {
     HOME,
     CREDENTIAL_DETAILS,
@@ -21,6 +28,9 @@ enum class OnboardingNavigation {
     INTRO,
     ONBOARDING,
 }
+
+@Serializable
+data class CredentialDetailsRoute(val id: String)
 
 sealed class OnboardingNavItem(val route: String) {
     object Intro : OnboardingNavItem(route = OnboardingNavigation.INTRO.name)

@@ -59,7 +59,7 @@ class FetchIdViewModel @Inject constructor(
 
     val credential =
         userRepository.user
-            .map { it?.credential }
+            .map { it?.pid }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setupAccount() {

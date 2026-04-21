@@ -33,15 +33,17 @@ import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.data.SavedCredential
 
 @Composable
 fun CredentialDetailsScreen(
+    credentialId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    LaunchedEffect(Unit) { viewModel.matchDisclosures() }
+    LaunchedEffect(Unit) { viewModel.toUiModel(credentialId) }
 
     CredentialDetailsScreen(
         uiState = uiState,

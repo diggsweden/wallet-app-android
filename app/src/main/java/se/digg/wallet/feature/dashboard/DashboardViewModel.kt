@@ -16,24 +16,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import se.digg.wallet.data.SavedCredential
 import se.digg.wallet.data.UserRepository
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(private val userRepository: UserRepository) :
     ViewModel() {
 
-    val credentialDetails: StateFlow<DashboardCredentialUiModel?> =
-        userRepository.user.map {
-            it?.credential?.let { credential ->
-                DashboardCredentialUiModel(
-                    issuer = credential.issuer?.name ?: "",
-                    disclosureCount = credential.claimsCount,
-                    issueDate = formatDate(credential.issuedAt),
-                )
-            }
+    val uiState: StateFlow<DashboardUiModel> =
+        userRepository.user.map { user ->
+            checkNotNull(user)
+            DashboardUiModel(pid = user.pid, credentials = user.credentials)
         }
             .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                DashboardUiModel(null, emptyList()),
+            )
 }
 
 fun formatDate(date: Date): String {
@@ -45,8 +45,4 @@ fun formatDate(date: Date): String {
     return localDateTime.format(formatter)
 }
 
-data class DashboardCredentialUiModel(
-    val issuer: String,
-    val disclosureCount: Int,
-    val issueDate: String,
-)
+data class DashboardUiModel(val pid: SavedCredential?, val credentials: List<SavedCredential>)

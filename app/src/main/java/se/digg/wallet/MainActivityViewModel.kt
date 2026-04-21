@@ -29,7 +29,7 @@ class MainActivityViewModel @Inject constructor(private val userRepository: User
 
     init {
         viewModelScope.launch {
-            val credential = userRepository.getCredential()
+            val credential = userRepository.getPid()
             if (credential == null) {
                 goToEnrollment()
             } else {

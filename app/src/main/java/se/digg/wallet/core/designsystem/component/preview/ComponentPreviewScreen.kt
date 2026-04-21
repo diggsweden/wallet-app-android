@@ -22,8 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.core.designsystem.component.CredentialCard
-import se.digg.wallet.core.designsystem.component.NewCredentialCard
+import java.util.Date
+import se.digg.wallet.core.designsystem.component.PidCard
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 
@@ -38,14 +38,11 @@ private fun ComponentPreviewScreen() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PreviewCategoryDivider("Cards")
-            CredentialCard(
-                issuer = "Issuer",
-                disclosureCount = 7,
+            PidCard(
                 onClick = {
                 },
-                issueDate = "29 aug 2025",
+                issueDate = Date(),
             )
-            NewCredentialCard("Add new credential", onClick = {})
 
             PreviewCategoryDivider("Buttons")
             Button(onClick = {}) {

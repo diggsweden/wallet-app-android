@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.component.WalletTitle
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -42,10 +43,6 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
     val walletImageResource = when (isDarkMode) {
         true -> painterResource(id = R.drawable.wallet_logo_dark)
         false -> painterResource(id = R.drawable.wallet_logo_light)
-    }
-    val textColor = when (isDarkMode) {
-        true -> Color(0xFFDBD7D6)
-        false -> Color(0xFF6E615A)
     }
 
     Column(
@@ -69,20 +66,7 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
                 .graphicsLayer(scaleX = 1.4f, scaleY = 1.4f),
         )
         Spacer(modifier = Modifier.weight(2f))
-        Text(
-            text = stringResource(R.string.enrollment_intro_title),
-            fontSize = 40.sp,
-            fontFamily = ubuntuFontFamily,
-            fontWeight = FontWeight.Medium,
-            color = textColor,
-        )
-        Text(
-            stringResource(R.string.enrollment_intro_subtitle),
-            fontSize = 24.sp,
-            fontFamily = ubuntuFontFamily,
-            fontWeight = FontWeight.Medium,
-            color = textColor,
-        )
+        WalletTitle()
         Spacer(modifier = Modifier.weight(2f))
         PrimaryButton(
             text = stringResource(R.string.enrollment_intro_button),

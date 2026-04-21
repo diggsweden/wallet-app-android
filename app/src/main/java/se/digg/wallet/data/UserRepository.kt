@@ -42,17 +42,36 @@ class UserRepository @Inject constructor(
     ): NetworkResult<CreateAccountResponseDto> =
         accountsClient.createAccount1(createAccountRequestDto = request)
 
+    suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
     suspend fun getPin(): String? = userDao.get()?.pin
-    suspend fun getCredential(): SavedCredential? = userDao.get()?.credential
+    suspend fun getPid(): SavedCredential? = userDao.get()?.pid
+    suspend fun getCredentials(): List<SavedCredential> = userDao.get()?.credentials ?: emptyList()
+    suspend fun getCredential(id: String): SavedCredential {
+        val user = checkNotNull(userDao.get())
+        val matchingCredential =
+            listOfNotNull(user.pid, *user.credentials.toTypedArray()).firstOrNull { it.id == id }
+        checkNotNull(value = matchingCredential) {
+            "Cant find credential matching id"
+        }
+        return matchingCredential
+    }
+
     suspend fun getEmail(): String? = userDao.get()?.email
     suspend fun getPhone(): String? = userDao.get()?.phone
+    suspend fun getAccountId(): String? = userDao.get()?.accountId
 
     suspend fun setPin(pin: String) = updateUser { it.copy(pin = pin) }
     suspend fun setUuid(uuid: UUID) = updateUser { it.copy(uuid = uuid) }
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
-    suspend fun setWua(wua: String) = updateUser { it.copy(wua = wua) }
-    suspend fun setCredential(credential: SavedCredential) =
-        updateUser { it.copy(credential = credential) }
+    suspend fun setPid(credential: SavedCredential) {
+        check(credential.type == CredentialType.PID.type) {
+            "Invalid PID credential"
+        }
+        updateUser { it.copy(pid = credential) }
+    }
+
+    suspend fun addCredentials(credentials: List<SavedCredential>) =
+        updateUser { it.copy(credentials = it.credentials + credentials) }
 
     suspend fun setEmail(email: String) = updateUser { it.copy(email = email) }
     suspend fun setPhone(phone: String) = updateUser { it.copy(phone = phone) }
@@ -67,8 +86,8 @@ class UserRepository @Inject constructor(
             phone = null,
             uuid = null,
             accountId = null,
-            wua = null,
-            credential = null,
+            pid = null,
+            credentials = emptyList(),
         )
         val next = transform(current)
         userDao.upsert(next)

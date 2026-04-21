@@ -28,11 +28,7 @@ class SettingsViewModel @Inject constructor(private val userRepository: UserRepo
     fun onLogout() {
         viewModelScope.launch {
             try {
-                val credentialPre = userRepository.getCredential()
-                Timber.d("Settings - credential= $credentialPre")
                 userRepository.wipeAll()
-                val credential = userRepository.getCredential()
-                Timber.d("Settings - credential= $credential")
                 _events.emit(UiEvent.LocalStorageCleared)
             } catch (e: Exception) {
                 // TODO handle error?
