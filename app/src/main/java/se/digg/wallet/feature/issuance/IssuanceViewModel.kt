@@ -18,6 +18,7 @@ import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import eu.europa.ec.eudi.openid4vci.CredentialOffer
 import eu.europa.ec.eudi.openid4vci.CredentialRequestEncryption
 import eu.europa.ec.eudi.openid4vci.CredentialResponseEncryptionPolicy
+import eu.europa.ec.eudi.openid4vci.DPoPUsage
 import eu.europa.ec.eudi.openid4vci.Display
 import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
 import eu.europa.ec.eudi.openid4vci.Issuer
@@ -79,6 +80,7 @@ class IssuanceViewModel @Inject constructor(
             rcaKeySize = 256,
             credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
         ),
+        dPoPUsage = DPoPUsage.Never,
     )
 
     private var claimDisplayNames: Map<String, String> = mutableMapOf()
