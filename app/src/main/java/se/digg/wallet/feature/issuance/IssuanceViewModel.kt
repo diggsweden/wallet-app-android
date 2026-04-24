@@ -8,12 +8,14 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.jwk.Curve
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vci.AuthorizationCode
 import eu.europa.ec.eudi.openid4vci.AuthorizedRequest
 import eu.europa.ec.eudi.openid4vci.ClientAuthentication
 import eu.europa.ec.eudi.openid4vci.CredentialConfiguration
+import eu.europa.ec.eudi.openid4vci.CredentialConfigurationIdentifier
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import eu.europa.ec.eudi.openid4vci.CredentialOffer
 import eu.europa.ec.eudi.openid4vci.CredentialRequestEncryption
@@ -21,9 +23,13 @@ import eu.europa.ec.eudi.openid4vci.CredentialResponseEncryptionPolicy
 import eu.europa.ec.eudi.openid4vci.DPoPUsage
 import eu.europa.ec.eudi.openid4vci.Display
 import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
+import eu.europa.ec.eudi.openid4vci.HasKeyAttestationRequirement
 import eu.europa.ec.eudi.openid4vci.Issuer
+import eu.europa.ec.eudi.openid4vci.KeyAttestationRequirement
 import eu.europa.ec.eudi.openid4vci.MsoMdocCredential
 import eu.europa.ec.eudi.openid4vci.OpenId4VCIConfig
+import eu.europa.ec.eudi.openid4vci.ProofType
+import eu.europa.ec.eudi.openid4vci.ProofTypeMeta
 import eu.europa.ec.eudi.openid4vci.SdJwtVcCredential
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps
 import eu.europa.ec.eudi.sdjwt.JwtAndClaims
@@ -39,6 +45,7 @@ import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
+import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
@@ -117,9 +124,12 @@ class IssuanceViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val issuer = issuer ?: throw IllegalStateException("Issuer = null")
-                val prepareAuthorizationRequest = issuer.prepareAuthorizationRequest().getOrThrow()
+                val preparedAuthorizationRequest = with(issuer) {
+                    prepareAuthorizationRequest().getOrThrow()
+                }
                 val authCodeUrl =
-                    prepareAuthorizationRequest.authorizationCodeURL.toString().toUri()
+                    preparedAuthorizationRequest.authorizationCodeURL.toString().toUri()
+
                 when (
                     val oAuthCallback = oAuthCoordinator.authorize(
                         url = authCodeUrl,
@@ -127,24 +137,28 @@ class IssuanceViewModel @Inject constructor(
                         launchAuthTab = launchAuthTab,
                     )
                 ) {
-                    OAuthResult.Cancelled -> {
-                        _uiState.value = IssuanceState.Error
-                    }
-
-                    is OAuthResult.Failure -> {
-                        _uiState.value = IssuanceState.Error
-                    }
-
                     is OAuthResult.Success -> {
-                        val authCode = oAuthCallback.uri.getQueryParameter("code")
-                            ?: throw Exception("Failed OAuth callback")
+                        val uri = oAuthCallback.uri
+                        val authCode = checkNotNull(uri.getQueryParameter("code")) {
+                            "No auth code"
+                        }
+
+                        val state =
+                            uri.getQueryParameter("state") ?: preparedAuthorizationRequest.state
+
                         val authRequest = with(issuer) {
-                            prepareAuthorizationRequest.authorizeWithAuthorizationCode(
-                                AuthorizationCode(code = authCode),
-                                prepareAuthorizationRequest.state,
-                            )
-                        }.getOrThrow()
+                            with(preparedAuthorizationRequest) {
+                                authorizeWithAuthorizationCode(
+                                    AuthorizationCode(code = authCode),
+                                    state,
+                                ).getOrThrow()
+                            }
+                        }
                         fetchCredential(authRequest)
+                    }
+
+                    else -> {
+                        throw IllegalStateException()
                     }
                 }
             } catch (e: Exception) {
@@ -167,7 +181,7 @@ class IssuanceViewModel @Inject constructor(
                             as? SdJwtVcCredential,
                     )
                 val accessToken = authorizedRequest.accessToken.accessToken
-                val proofs = createProof()
+                val proofs = createProof(credentialConfig)
                 val response = fetchCredentialResponse(
                     proofs = proofs,
                     credentialConfigurationId = credentialConfigurationId.toString(),
@@ -194,40 +208,47 @@ class IssuanceViewModel @Inject constructor(
     private suspend fun saveCredential(credential: SavedCredential) {
         if (!userRepository.isOnboarded()) {
             userRepository.setPid(credential)
-            Timber.d("--- ISSUANCEVIEWMODEL: Saved PID ---")
         } else {
             userRepository.addCredentials(listOf(credential))
-            Timber.d("--- ISSUANCEVIEWMODEL:Saved Credential ---")
         }
     }
 
-    private suspend fun createProof(): Proof {
+    private suspend fun createProof(credentialConfiguration: SdJwtVcCredential): Proof {
+        val proofTypeJwt =
+            checkNotNull(
+                credentialConfiguration.proofTypesSupported[ProofType.JWT] as? ProofTypeMeta.Jwt,
+            ) {
+                "Unsupported Prooftype"
+            }
         val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
         val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value.toString()
         val aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString()
         val headers = mutableMapOf(
             "typ" to "openid4vci-proof+jwt",
         )
-        val payload: IssuanceProofPayload
 
         val nonceUrl = issuerMetadata.value?.nonceEndpoint?.value
-        if (nonceUrl != null) {
-            val nonce = openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
-            val wua = userRepository.fetchWua(nonce = nonce)
-
-            headers["key_attestation"] = wua
-            payload = IssuanceProofPayload(
-                nonce = nonce,
-                aud = aud,
-            )
+        val nonce = if (nonceUrl != null) {
+            openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
         } else {
-            payload = IssuanceProofPayload(
-                nonce = null,
-                aud = aud,
-            )
+            null
         }
 
-        val jwtProof = JwtUtils.signJWT(keyPair, payload, headers).serialize()
+        val payload = IssuanceProofPayload(
+            nonce = nonce,
+            aud = aud,
+            iss = "wallet-app",
+        )
+        val isKeyAttestationRequired =
+            proofTypeJwt.keyAttestationRequirement is KeyAttestationRequirement.Required
+
+        if (isKeyAttestationRequired) {
+            val wua = userRepository.fetchWua(nonce = nonce)
+            headers["key_attestation"] = wua
+        }
+
+        val jwtProof =
+            JwtUtils.signJWT(keyPair, payload, headers, !isKeyAttestationRequired).serialize()
         return Proof(listOf(jwtProof))
     }
 
@@ -261,11 +282,12 @@ class IssuanceViewModel @Inject constructor(
         accessToken: String,
     ): CredentialResponseModel {
         val softwareKeyPair = KeystoreManager.createSoftwareEcdhKey()
+        val algorithm = JWEAlgorithm.ECDH_ES
         val credentialRequest = CredentialRequestModel(
             credentialConfigurationId = credentialConfigurationId,
             proofs = proof,
             credentialResponseEncryption = CredentialResponseEncryptionModel(
-                jwk = JwtUtils.exportJwk(softwareKeyPair).toJwkModel(),
+                jwk = softwareKeyPair.toECKey(algorithm = algorithm).toJwkModel(),
                 enc = EncryptionMethod.A128GCM.name,
             ),
         )
@@ -274,6 +296,7 @@ class IssuanceViewModel @Inject constructor(
             payload = credentialRequest,
             recipientKey = requestEncryption.jwk,
             encryptionMethod = requestEncryption.encryptionMethod,
+            algorithm = algorithm,
         )
         val response = openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),

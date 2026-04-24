@@ -37,10 +37,16 @@ class UserRepository @Inject constructor(
             }
         }
 
-    suspend fun createAccount(
-        request: CreateAccountRequestDto,
-    ): NetworkResult<CreateAccountResponseDto> =
-        accountsClient.createAccount1(createAccountRequestDto = request)
+    suspend fun createAccount(request: CreateAccountRequestDto): String =
+        when (val response = accountsClient.createAccount1(createAccountRequestDto = request)) {
+            is NetworkResult.Failure -> {
+                throw IllegalStateException("Failed creating account: ${response.error}")
+            }
+
+            is NetworkResult.Success -> {
+                return response.data.accountId
+            }
+        }
 
     suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
     suspend fun getPin(): String? = userDao.get()?.pin

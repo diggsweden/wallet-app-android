@@ -11,13 +11,13 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jwt.JWT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
+import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig
+import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig.Companion.SelfIssued
+import eu.europa.ec.eudi.openid4vp.OpenId4Vp
 import eu.europa.ec.eudi.openid4vp.Resolution
 import eu.europa.ec.eudi.openid4vp.ResolvedRequestObject
 import eu.europa.ec.eudi.openid4vp.ResponseEncryptionConfiguration
 import eu.europa.ec.eudi.openid4vp.ResponseMode
-import eu.europa.ec.eudi.openid4vp.SiopOpenId4VPConfig
-import eu.europa.ec.eudi.openid4vp.SiopOpenId4VPConfig.Companion.SelfIssued
-import eu.europa.ec.eudi.openid4vp.SiopOpenId4Vp
 import eu.europa.ec.eudi.openid4vp.SupportedClientIdPrefix
 import eu.europa.ec.eudi.openid4vp.VPConfiguration
 import eu.europa.ec.eudi.openid4vp.VpFormatsSupported
@@ -62,9 +62,9 @@ class PresentationViewModel @Inject constructor(
     private val openIdNetworkService: OpenIdNetworkService,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
-    private var walletConfig: SiopOpenId4VPConfig? = null
+    private var walletConfig: OpenId4VPConfig? = null
     private var presentationUri: String = ""
-    private var authorization: ResolvedRequestObject.OpenId4VPAuthorization? = null
+    private var authorization: ResolvedRequestObject? = null
     private var optionalItemsList: List<PresentationItem> = emptyList()
     private var requiredItemsList: List<PresentationItem> = emptyList()
 
@@ -81,7 +81,7 @@ class PresentationViewModel @Inject constructor(
 
     private fun setupWalletConfig() {
         viewModelScope.launch {
-            walletConfig = SiopOpenId4VPConfig(
+            walletConfig = OpenId4VPConfig(
                 issuer = SelfIssued,
                 jarConfiguration = JarConfiguration.Default,
                 responseEncryptionConfiguration = ResponseEncryptionConfiguration.Supported(
@@ -101,7 +101,7 @@ class PresentationViewModel @Inject constructor(
                 ),
             )
             try {
-                val resolution = SiopOpenId4Vp.invoke(walletConfig!!, httpClient)
+                val resolution = OpenId4Vp.invoke(walletConfig!!, httpClient)
                     .resolveRequestUri(presentationUri)
                 when (resolution) {
                     is Resolution.Invalid -> {
@@ -109,14 +109,14 @@ class PresentationViewModel @Inject constructor(
                     }
 
                     is Resolution.Success -> {
-                        authorization =
-                            resolution.requestObject as ResolvedRequestObject.OpenId4VPAuthorization
+                        authorization = resolution.requestObject
+
                         matchDisclosures()
                     }
                 }
-                Timber.d("PresentationViewModel - SiopOpenId4Vp requestobject fetched")
+                Timber.d("PresentationViewModel - Openid4Vp requestobject fetched")
             } catch (e: RuntimeException) {
-                Timber.d("PresentationViewModel - SiopOpenId4Vp invoke: ${e.message}")
+                Timber.d("PresentationViewModel - Openid4Vp invoke: ${e.message}")
                 _uiState.value = PresentationUiState.Error(message = e.message)
             }
         }

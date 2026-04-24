@@ -4,7 +4,6 @@
 
 package se.digg.wallet.core.crypto
 
-import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
@@ -15,28 +14,16 @@ import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.jwk.Curve
-import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.security.KeyPair
-import java.security.interfaces.ECPublicKey
 import java.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import se.digg.wallet.core.extensions.toECKey
 
 object JwtUtils {
-    fun exportJwk(keyPair: KeyPair, algorithm: Algorithm = JWEAlgorithm.ECDH_ES): ECKey {
-        val publicKey = keyPair.public as? ECPublicKey
-            ?: error("No publicKey")
-
-        val jwk: ECKey = ECKey.Builder(Curve.P_256, publicKey).apply {
-            algorithm(algorithm)
-            keyIDFromThumbprint()
-        }.build()
-        return jwk
-    }
-
     inline fun <reified T> encryptJwe(
         payload: T,
         recipientKey: JWK,
@@ -82,14 +69,14 @@ object JwtUtils {
         )
         val algorithm = JWSAlgorithm.ES256
 
-        val exportedECKey = exportJwk(keyPair, algorithm)
-        val publicECKey = exportedECKey.toPublicJWK()
-
-        val header = JWSHeader.Builder(algorithm).customParams(headers).apply {
-            if (includeJwk) {
-                jwk(publicECKey)
+        val header = JWSHeader.Builder(algorithm)
+            .customParams(headers)
+            .apply {
+                if (includeJwk) {
+                    jwk(keyPair.toECKey())
+                }
             }
-        }.build()
+            .build()
 
         val claimsSet = JWTClaimsSet.parse(encoded)
         val signedJwt = SignedJWT(header, claimsSet)

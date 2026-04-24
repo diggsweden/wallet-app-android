@@ -28,8 +28,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
-import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
@@ -66,7 +66,7 @@ class FetchIdViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val jwk = JwtUtils.exportJwk(keyPair)
+                val ecKey = keyPair.toECKey(withThumbprint = true)
                 val email = userRepository.getEmail() ?: ""
                 val phone = userRepository.getPhone() ?: ""
 
@@ -77,25 +77,15 @@ class FetchIdViewModel @Inject constructor(
                         telephoneNumber = phone,
                         publicKey =
                             JwkDto(
-                                kty = jwk.keyType.value,
-                                crv = jwk.curve.name,
-                                x = jwk.x.toString(),
-                                y = jwk.y.toString(),
-                                kid = jwk.keyID,
+                                kty = ecKey.keyType.value,
+                                crv = ecKey.curve.name,
+                                x = ecKey.x.toString(),
+                                y = ecKey.y.toString(),
+                                kid = ecKey.keyID,
                             ),
                     )
-                val response = userRepository.createAccount(requestBody)
-                val accountId =
-                    when (response) {
-                        is NetworkResult.Failure -> {
-                            throw Exception("Kunde inte skapa konto")
-                        }
 
-                        is NetworkResult.Success -> {
-                            response.data.accountId ?: ""
-                        }
-                    }
-                Timber.d("ContactInfo - Response: $response")
+                val accountId = userRepository.createAccount(requestBody)
                 userRepository.setAccountId(accountId)
                 _uiState.value = FetchIdUiState.Idle
             } catch (e: Exception) {
