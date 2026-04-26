@@ -218,6 +218,13 @@ tasks.named("preBuild") {
     dependsOn(fabriktGenerateTask)
 }
 
+tasks.withType<LintTask>().configureEach {
+    dependsOn(fabriktGenerateTask)
+}
+tasks.withType<FormatTask>().configureEach {
+    dependsOn(fabriktGenerateTask)
+}
+
 hilt {
     enableAggregatingTask = false
 }
