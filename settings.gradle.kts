@@ -28,5 +28,6 @@ dependencyResolutionManagement {
     }
 }
 
+
 rootProject.name = "Wallet"
 include(":app")
