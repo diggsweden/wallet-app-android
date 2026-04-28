@@ -11,7 +11,8 @@ import androidx.room.TypeConverters
 @Database(
     entities = [User::class],
     version = 2,
-    exportSchema = false,
+    exportSchema = true,
+    autoMigrations = [],
 )
 @TypeConverters(DbConverters::class)
 abstract class AppDatabase : RoomDatabase() {

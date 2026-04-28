@@ -38,6 +38,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.fabrikt)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -139,6 +140,12 @@ android {
     sourceSets.named("main") {
         kotlin.directories += fabriktOutputDirectory.get().asFile.path
     }
+    sourceSets.named("androidTest") {
+        assets.directories.add("$projectDir/schemas")
+    }
+}
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
@@ -160,6 +167,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    debugImplementation(libs.leakcanary)
 
     implementation(libs.nimbus)
     implementation(libs.timber)
@@ -170,9 +178,8 @@ dependencies {
     implementation(libs.bundles.ktor)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+    androidTestImplementation(libs.room.testing)
 }
 
 kotlinter {
