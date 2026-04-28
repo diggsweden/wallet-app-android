@@ -61,7 +61,7 @@ fun SettingsRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
+private fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
