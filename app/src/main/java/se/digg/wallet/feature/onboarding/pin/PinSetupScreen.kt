@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,13 +29,13 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun PinSetupScreen(
+fun PinSetupRoute(
     pageNumber: Int,
     onNext: () -> Unit,
     onBack: () -> Unit,
@@ -83,17 +82,22 @@ private fun PinSetupScreen(
         if (verifyPin) {
             OnboardingHeader(
                 pageNumber = pageNumber,
-                pageTitle = "Bekräfta pinkod för identifiering",
+                pageTitle = stringResource(R.string.onboarding_pin_verify_title),
             )
         } else {
-            OnboardingHeader(pageNumber = pageNumber, pageTitle = "Ange pinkod för identifiering")
+            OnboardingHeader(
+                pageNumber = pageNumber,
+                pageTitle = stringResource(
+                    R.string.onboarding_pin_title,
+                ),
+            )
         }
         Spacer(Modifier.weight(1f))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "Pinkod används när du ska identifiera dig",
-            style = DiggTextStyle.BodyLG,
+            text = stringResource(R.string.onboarding_pin_description_1),
+            style = WalletTextStyle.BodyLG,
         )
         Spacer(Modifier.height(16.dp))
         PinInput(
@@ -120,15 +124,13 @@ private fun PinSetupScreen(
 @Composable
 @PreviewsWallet
 private fun PinSetupScreenPreview() {
-    WalletTheme {
-        Surface {
-            PinSetupScreen(
-                uiState = PinSetupUiState(),
-                pageNumber = 6,
-                verifyPin = true,
-                onNext = {},
-                onVerify = {},
-            )
-        }
+    WalletPreview {
+        PinSetupScreen(
+            uiState = PinSetupUiState(),
+            pageNumber = 6,
+            verifyPin = true,
+            onNext = {},
+            onVerify = {},
+        )
     }
 }

@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -36,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,19 +43,19 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
-import se.digg.wallet.feature.onboarding.consent.ConsentScreen
-import se.digg.wallet.feature.onboarding.email.EmailScreen
-import se.digg.wallet.feature.onboarding.emailverify.EmailVerifyScreen
-import se.digg.wallet.feature.onboarding.fetchid.FetchIdScreen
-import se.digg.wallet.feature.onboarding.issuance.OnboardingIssuanceScreen
-import se.digg.wallet.feature.onboarding.phone.PhoneScreen
-import se.digg.wallet.feature.onboarding.phoneverify.PhoneVerifyScreen
-import se.digg.wallet.feature.onboarding.pin.PinSetupScreen
+import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.feature.onboarding.consent.ConsentRoute
+import se.digg.wallet.feature.onboarding.email.EmailRoute
+import se.digg.wallet.feature.onboarding.emailverify.EmailVerifyRoute
+import se.digg.wallet.feature.onboarding.fetchid.FetchIdRoute
+import se.digg.wallet.feature.onboarding.issuance.OnboardingIssuanceRoute
+import se.digg.wallet.feature.onboarding.phone.PhoneRoute
+import se.digg.wallet.feature.onboarding.phoneverify.PhoneVerifyRoute
+import se.digg.wallet.feature.onboarding.pin.PinSetupRoute
 
 @Composable
-fun OnboardingScreen(
+fun OnboardingRoute(
     navController: NavController,
     onFinish: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel(),
@@ -88,7 +88,7 @@ fun OnboardingScreen(
 }
 
 @Composable
-fun OnboardingScreen(
+private fun OnboardingScreen(
     uiState: OnboardingUiState,
     onNext: () -> Unit,
     onBack: () -> Unit,
@@ -120,7 +120,7 @@ fun OnboardingScreen(
                                 IconButton(onClick = { onBack.invoke() }) {
                                     Icon(
                                         painter = painterResource(R.drawable.arrow_left),
-                                        contentDescription = "",
+                                        contentDescription = null,
                                     )
                                 }
                             }
@@ -128,7 +128,7 @@ fun OnboardingScreen(
                             IconButton(onClick = { onCloseOnboarding.invoke() }) {
                                 Icon(
                                     painter = painterResource(R.drawable.close_x),
-                                    contentDescription = "",
+                                    contentDescription = null,
                                 )
                             }
                         }
@@ -143,7 +143,11 @@ fun OnboardingScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(horizontal = 24.dp),
-                    text = "Steg $currentStep av ${uiState.totalSteps}",
+                    text = stringResource(
+                        R.string.onboarding_step_title,
+                        currentStep,
+                        uiState.totalSteps,
+                    ),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 AnimatedLinearProgress(
@@ -197,51 +201,51 @@ fun OnboardingStepContent(
     onCredentialOfferFetch: (String) -> Unit,
 ) {
     when (step) {
-        OnboardingStep.NOTIFICATION -> ConsentScreen(
+        OnboardingStep.NOTIFICATION -> ConsentRoute(
             onNext = {
                 onNext.invoke()
             },
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.PHONE_NUMBER -> PhoneScreen(
+        OnboardingStep.PHONE_NUMBER -> PhoneRoute(
             onNext = { onNext.invoke() },
             onSkip = { onSkip.invoke() },
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.VERIFY_PHONE -> PhoneVerifyScreen(
+        OnboardingStep.VERIFY_PHONE -> PhoneVerifyRoute(
             onNext = { onNext.invoke() },
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.EMAIL -> EmailScreen(onNext = { onNext.invoke() }, pageNumber = pageNumber)
+        OnboardingStep.EMAIL -> EmailRoute(onNext = { onNext.invoke() }, pageNumber = pageNumber)
 
-        OnboardingStep.VERIFY_EMAIL -> EmailVerifyScreen(
+        OnboardingStep.VERIFY_EMAIL -> EmailVerifyRoute(
             onNext = { onNext.invoke() },
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.PIN -> PinSetupScreen(
+        OnboardingStep.PIN -> PinSetupRoute(
             onNext = { onNext.invoke() },
             onBack = {},
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.VERIFY_PIN -> PinSetupScreen(
+        OnboardingStep.VERIFY_PIN -> PinSetupRoute(
             onNext = { onNext.invoke() },
             verifyPin = true,
             onBack = { onBack.invoke() },
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.FETCH_PID -> FetchIdScreen(
+        OnboardingStep.FETCH_PID -> FetchIdRoute(
             onNext = { onFinish.invoke() },
             onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
             pageNumber = pageNumber,
         )
 
-        OnboardingStep.CREDENTIAL_OFFER -> OnboardingIssuanceScreen(
+        OnboardingStep.CREDENTIAL_OFFER -> OnboardingIssuanceRoute(
             onBack = {},
             onFinish = { onFinish.invoke() },
             pageNumber = pageNumber,
@@ -252,17 +256,15 @@ fun OnboardingStepContent(
 @Composable
 @PreviewsWallet
 private fun EnrollmentPreview() {
-    WalletTheme {
-        Surface {
-            OnboardingScreen(
-                uiState = OnboardingUiState(currentStep = OnboardingStep.NOTIFICATION),
-                onNext = {},
-                onBack = {},
-                onSkip = {},
-                onCloseOnboarding = {},
-                onFinishOnboarding = {},
-                onCredentialOfferFetch = {},
-            )
-        }
+    WalletPreview {
+        OnboardingScreen(
+            uiState = OnboardingUiState(currentStep = OnboardingStep.NOTIFICATION),
+            onNext = {},
+            onBack = {},
+            onSkip = {},
+            onCloseOnboarding = {},
+            onFinishOnboarding = {},
+            onCredentialOfferFetch = {},
+        )
     }
 }

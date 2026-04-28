@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,11 +22,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.theme.Yellow100
 import se.digg.wallet.core.designsystem.theme.Yellow130
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun DocumentCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -58,7 +57,7 @@ fun DocumentCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifi
                 modifier = Modifier.size(29.dp),
                 colorFilter = ColorFilter.tint(color = Color.White),
             )
-            Text(title, color = Color.White, style = DiggTextStyle.H4)
+            Text(title, color = Color.White, style = WalletTextStyle.H4)
         }
     }
 }
@@ -66,12 +65,10 @@ fun DocumentCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifi
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
-        Surface {
-            DocumentCard(
-                title = "Document",
-                onClick = {},
-            )
-        }
+    WalletPreview {
+        DocumentCard(
+            title = "Document",
+            onClick = {},
+        )
     }
 }

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,13 +32,13 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.OutLinedInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun PhoneScreen(
+fun PhoneRoute(
     pageNumber: Int,
     onNext: () -> Unit,
     onSkip: () -> Unit,
@@ -80,15 +79,20 @@ private fun PhoneScreen(
             .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Ditt telefonnummer")
+        OnboardingHeader(
+            pageNumber = pageNumber,
+            pageTitle = stringResource(
+                R.string.onboarding_phone_title,
+            ),
+        )
         OutLinedInput(
             value = uiState.phone,
-            labelText = stringResource(R.string.contact_info_phone_label),
+            labelText = stringResource(R.string.onboarding_phone_input_label),
             onValueChange = { onInputChange.invoke(it) },
             modifier = Modifier.onFocusChanged { state ->
             },
-            hintText = stringResource(R.string.contact_info_phone_placeholder),
-            errorText = "Ogiltigt telefonnummer",
+            hintText = stringResource(R.string.onboarding_phone_input_placeholder),
+            errorText = stringResource(R.string.onboarding_phone_error_validation),
             isError = uiState.showError,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -108,9 +112,9 @@ private fun PhoneScreen(
                 .clickable {
                     onSkip.invoke()
                 },
-            text = "Hoppa över",
+            text = stringResource(R.string.generic_skip),
             textDecoration = TextDecoration.Underline,
-            style = DiggTextStyle.BodyMD,
+            style = WalletTextStyle.BodyMD,
             textAlign = TextAlign.Center,
         )
     }
@@ -119,15 +123,13 @@ private fun PhoneScreen(
 @Composable
 @PreviewsWallet
 private fun PhoneScreenPreview() {
-    WalletTheme {
-        Surface {
-            PhoneScreen(
-                uiState = PhoneUiState(),
-                pageNumber = 2,
-                onInputChange = {},
-                onNext = {},
-                onSkip = {},
-            )
-        }
+    WalletPreview {
+        PhoneScreen(
+            uiState = PhoneUiState(),
+            pageNumber = 2,
+            onInputChange = {},
+            onNext = {},
+            onSkip = {},
+        )
     }
 }

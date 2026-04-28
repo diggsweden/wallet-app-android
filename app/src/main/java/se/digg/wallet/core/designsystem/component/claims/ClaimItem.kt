@@ -19,15 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.ClaimValue
 
@@ -35,7 +36,7 @@ import se.digg.wallet.data.ClaimValue
 fun ClaimItem(
     claim: ClaimUiModel,
     modifier: Modifier = Modifier,
-    labelStyle: TextStyle = DiggTextStyle.H5,
+    labelStyle: TextStyle = WalletTextStyle.H5,
 ) {
     Column(modifier = modifier) {
         if (claim.displayName != null) {
@@ -50,22 +51,22 @@ fun ClaimItem(
 private fun ClaimContent(value: ClaimValue) {
     when (value) {
         is ClaimValue.TextValue -> {
-            Text(text = value.value, style = DiggTextStyle.BodyMD)
+            Text(text = value.value, style = WalletTextStyle.BodyMD)
         }
 
         is ClaimValue.DateValue -> {
             val formatted = value.value.format(
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG),
             )
-            Text(text = formatted, style = DiggTextStyle.BodyMD)
+            Text(text = formatted, style = WalletTextStyle.BodyMD)
         }
 
         is ClaimValue.IntValue -> {
-            Text(text = value.value.toString(), style = DiggTextStyle.BodyMD)
+            Text(text = value.value.toString(), style = WalletTextStyle.BodyMD)
         }
 
         is ClaimValue.DoubleValue -> {
-            Text(text = value.value.toString(), style = DiggTextStyle.BodyMD)
+            Text(text = value.value.toString(), style = WalletTextStyle.BodyMD)
         }
 
         is ClaimValue.BooleanValue -> {
@@ -89,16 +90,22 @@ private fun ClaimContent(value: ClaimValue) {
                     },
                 )
                 Text(
-                    text = if (value.value) "Ja" else "Nej",
-                    style = DiggTextStyle.BodyMD,
+                    text = if (value.value) {
+                        stringResource(R.string.generic_yes)
+                    } else {
+                        stringResource(
+                            R.string.generic_no,
+                        )
+                    },
+                    style = WalletTextStyle.BodyMD,
                 )
             }
         }
 
         is ClaimValue.NullValue -> {
             Text(
-                text = "Ingen uppgift",
-                style = DiggTextStyle.BodyMD,
+                text = stringResource(R.string.claim_item_missing_value),
+                style = WalletTextStyle.BodyMD,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -107,7 +114,7 @@ private fun ClaimContent(value: ClaimValue) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 value.items.forEach { item ->
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(text = "\u2022", style = DiggTextStyle.BodyMD)
+                        Text(text = "\u2022", style = WalletTextStyle.BodyMD)
                         ClaimContent(value = item.value)
                     }
                 }
@@ -123,7 +130,7 @@ private fun ClaimContent(value: ClaimValue) {
                     ClaimItem(
                         claim = child,
                         modifier = Modifier.padding(start = 8.dp),
-                        labelStyle = DiggTextStyle.H6,
+                        labelStyle = WalletTextStyle.H6,
                     )
                 }
             }
@@ -131,7 +138,7 @@ private fun ClaimContent(value: ClaimValue) {
     }
 }
 
-@Preview(showBackground = true)
+@PreviewsWallet
 @Composable
 private fun ClaimItemPreview() {
     val claims = listOf(
@@ -163,7 +170,7 @@ private fun ClaimItemPreview() {
             ),
         ),
     )
-    WalletTheme {
+    WalletPreview {
         Column(modifier = Modifier.padding(16.dp)) {
             claims.forEach { claim ->
                 ClaimItem(

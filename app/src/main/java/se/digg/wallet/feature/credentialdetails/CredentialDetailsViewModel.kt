@@ -12,20 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.extensions.getClaimUiModels
-import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
-
-sealed interface CredentialDetailsState {
-    object Loading : CredentialDetailsState
-    data class Credential(
-        val claims: List<ClaimUiModel>,
-        val issuer: String?,
-        val issuerImgUrl: String,
-    ) : CredentialDetailsState
-
-    data class Error(val errorMessage: String) : CredentialDetailsState
-}
 
 @HiltViewModel
 class CredentialDetailsViewModel @Inject constructor(private val userRepository: UserRepository) :

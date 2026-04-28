@@ -25,52 +25,61 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
+fun SettingsRoute(
     navController: NavController,
     onLogout: () -> Unit,
-    modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                SettingsViewModel.UiEvent.LocalStorageCleared -> {
+                SettingsUiEvent.LocalStorageCleared -> {
                     onLogout.invoke()
                 }
             }
         }
     }
 
+    SettingsScreen(
+        onBackClick = { navController.navigateUp() },
+        onLogoutClick = { viewModel.onLogout() },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsScreen(
+    onBackClick: () -> Unit,
+    onLogoutClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = stringResource(R.string.settings_title),
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = { onBackClick.invoke() }) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = "",
+                            contentDescription = null,
                         )
                     }
                 },
@@ -86,7 +95,7 @@ fun SettingsScreen(
                     .padding(horizontal = 16.dp),
             ) {
                 SettingsHeader()
-                SettingsContent(onLogoutClick = { viewModel.onLogout() })
+                SettingsContent(onLogoutClick = { onLogoutClick.invoke() })
             }
         }
     }
@@ -94,8 +103,6 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsHeader() {
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 64.dp)
@@ -105,7 +112,7 @@ private fun SettingsHeader() {
     ) {
         Image(
             painter = painterResource(R.drawable.playstore_icon),
-            contentDescription = "Logo",
+            contentDescription = null,
             modifier = Modifier
                 .width(160.dp)
                 .height(160.dp),
@@ -127,10 +134,11 @@ private fun SettingsContent(onLogoutClick: () -> Unit) {
 
 @Composable
 @PreviewsWallet
-private fun Preview() {
-    WalletTheme {
-        Surface {
-            SettingsScreen(navController = rememberNavController(), onLogout = {})
-        }
+private fun SettingsScreenPreview() {
+    WalletPreview {
+        SettingsScreen(
+            onBackClick = {},
+            onLogoutClick = {},
+        )
     }
 }

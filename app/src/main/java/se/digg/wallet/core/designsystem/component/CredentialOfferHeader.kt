@@ -15,11 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
+import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 
 @Composable
 fun CredentialOfferHeader(issuer: CredentialIssuerMetadata?, modifier: Modifier = Modifier) {
@@ -38,22 +40,22 @@ fun CredentialOfferHeader(issuer: CredentialIssuerMetadata?, modifier: Modifier 
                     ?.logo
                     ?.uri
                     .toString(),
-                contentDescription = "-",
+                contentDescription = null,
             )
         }
         Spacer(modifier = Modifier.height(36.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "Utfärdare:",
-            style = DiggTextStyle.H3,
+            text = stringResource(R.string.credential_offer_issuer),
+            style = WalletTextStyle.H3,
         )
         Spacer(modifier = Modifier.height(5.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = issuer?.display?.first()?.name ?: "-",
-            style = DiggTextStyle.BodyMD,
+            style = WalletTextStyle.BodyMD,
         )
     }
 }

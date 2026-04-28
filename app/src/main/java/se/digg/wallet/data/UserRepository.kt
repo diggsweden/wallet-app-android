@@ -14,7 +14,6 @@ import se.wallet.client.gateway.client.AccountsClient
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.WuaClient
 import se.wallet.client.gateway.models.CreateAccountRequestDto
-import se.wallet.client.gateway.models.CreateAccountResponseDto
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,

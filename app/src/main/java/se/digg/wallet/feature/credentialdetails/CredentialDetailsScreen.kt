@@ -14,7 +14,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -31,12 +30,11 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
-import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
-fun CredentialDetailsScreen(
+fun CredentialDetailsRoute(
     credentialId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
@@ -75,7 +73,7 @@ private fun CredentialDetailsScreen(
                     IconButton(onClick = { onBackClick.invoke() }) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = "",
+                            contentDescription = null,
                         )
                     }
                 },
@@ -109,12 +107,10 @@ private fun CredentialDetailsScreen(
 @Composable
 @PreviewsWallet
 private fun CredentialDetailsScreenPreview() {
-    WalletTheme {
-        Surface {
-            CredentialDetailsScreen(
-                uiState = CredentialDetailsState.Loading,
-                onBackClick = {},
-            )
-        }
+    WalletPreview {
+        CredentialDetailsScreen(
+            uiState = CredentialDetailsState.Loading,
+            onBackClick = {},
+        )
     }
 }

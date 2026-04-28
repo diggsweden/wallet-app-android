@@ -19,13 +19,13 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
-import se.digg.wallet.feature.credentialdetails.CredentialDetailsScreen
+import se.digg.wallet.feature.credentialdetails.CredentialDetailsRoute
 import se.digg.wallet.feature.dashboard.DashboardRoute
-import se.digg.wallet.feature.issuance.DeepLinkedIssuanceScreen
-import se.digg.wallet.feature.onboarding.OnboardingScreen
-import se.digg.wallet.feature.onboarding.intro.IntroScreen
-import se.digg.wallet.feature.presentation.PresentationScreen
-import se.digg.wallet.feature.settings.SettingsScreen
+import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
+import se.digg.wallet.feature.onboarding.OnboardingRoute
+import se.digg.wallet.feature.onboarding.intro.IntroRoute
+import se.digg.wallet.feature.presentation.PresentationRoute
+import se.digg.wallet.feature.settings.SettingsRoute
 
 @Composable
 fun WalletNavHost(
@@ -73,7 +73,7 @@ fun WalletNavHost(
                 ),
         ) { backStackEntry ->
             val fullUri = backStackEntry.deepLinkUri()
-            DeepLinkedIssuanceScreen(
+            DeepLinkedIssuanceRoute(
                 onBackClick = { navController.navigateUp() },
                 onFinishClick = { navController.navigateUp() },
                 credentialOfferUri = fullUri.toString(),
@@ -91,14 +91,14 @@ fun WalletNavHost(
 
             composable<CredentialDetailsRoute> {
                 val credential = it.toRoute<CredentialDetailsRoute>()
-                CredentialDetailsScreen(
+                CredentialDetailsRoute(
                     credentialId = credential.id,
                     navController = navController,
                 )
             }
 
             composable(NavigationItem.Settings.route) {
-                SettingsScreen(navController = navController, onLogout = { onLogout.invoke() })
+                SettingsRoute(navController = navController, onLogout = { onLogout.invoke() })
             }
 
             composable(
@@ -118,7 +118,7 @@ fun WalletNavHost(
                     ),
             ) { backStackEntry ->
                 val fullUri = backStackEntry.deepLinkUri()
-                PresentationScreen(navController = navController, fullUri = fullUri.toString())
+                PresentationRoute(navController = navController, fullUri = fullUri.toString())
             }
             composable(
                 route = "presentation",
@@ -137,7 +137,7 @@ fun WalletNavHost(
                     ),
             ) { backStackEntry ->
                 val fullUri = backStackEntry.deepLinkUri()
-                PresentationScreen(navController = navController, fullUri = fullUri.toString())
+                PresentationRoute(navController = navController, fullUri = fullUri.toString())
             }
         }
 
@@ -147,14 +147,14 @@ fun WalletNavHost(
             route = RootGraph.ONBOARDING,
         ) {
             composable(OnboardingNavItem.Intro.route) {
-                IntroScreen(
+                IntroRoute(
                     onContinue = {
                         navController.navigate(OnboardingNavItem.Onboarding.route)
                     },
                 )
             }
             composable(OnboardingNavItem.Onboarding.route) {
-                OnboardingScreen(
+                OnboardingRoute(
                     navController = navController,
                     onFinish = {
                         navController.navigate(NavigationItem.Home.route) {

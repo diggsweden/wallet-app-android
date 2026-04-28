@@ -14,28 +14,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletTitle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
-fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
+fun IntroRoute(onContinue: () -> Unit, modifier: Modifier = Modifier) {
+    IntroScreen(onContinue = { onContinue.invoke() }, modifier = modifier)
+}
+
+@Composable
+private fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
     BackHandler {
     }
 
@@ -54,12 +53,12 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         Image(
             painter = walletImageResource,
-            contentDescription = "Logo",
+            contentDescription = null,
         )
         Spacer(modifier = Modifier.height(53.dp))
         Image(
             painter = painterResource(R.drawable.digg_intro_man_bun),
-            contentDescription = stringResource(R.string.enrollment_intro_logo_description),
+            contentDescription = null,
             modifier = Modifier
                 .width(333.dp)
                 .height(341.dp)
@@ -69,7 +68,7 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
         WalletTitle()
         Spacer(modifier = Modifier.weight(2f))
         PrimaryButton(
-            text = stringResource(R.string.enrollment_intro_button),
+            text = stringResource(R.string.onboarding_intro_button),
             onClick = {
                 onContinue.invoke()
             },
@@ -83,10 +82,8 @@ fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
 
 @Composable
 @PreviewsWallet
-private fun Preview() {
-    WalletTheme {
-        Surface {
-            IntroScreen(onContinue = {})
-        }
+private fun IntroScreenPreview() {
+    WalletPreview {
+        IntroScreen(onContinue = {})
     }
 }

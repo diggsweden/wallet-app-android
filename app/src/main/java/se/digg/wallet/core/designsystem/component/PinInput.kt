@@ -26,7 +26,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,9 +49,9 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.theme.DiggBlack
 import se.digg.wallet.core.designsystem.theme.DiggBrown
 import se.digg.wallet.core.designsystem.theme.DiggPink
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun PinInput(
@@ -313,7 +312,7 @@ private fun T9IconButton(
             Icon(
                 modifier = Modifier.size(32.dp),
                 painter = painterResource,
-                contentDescription = contentDescription,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
             )
         }
@@ -390,9 +389,7 @@ data class Numerics(val number: String, val letters: String)
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
-        Surface {
-            PinInput(onPinChange = {})
-        }
+    WalletPreview {
+        PinInput(onPinChange = {})
     }
 }

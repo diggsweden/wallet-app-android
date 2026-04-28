@@ -30,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.R
@@ -39,7 +38,6 @@ import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 
 @Composable
@@ -83,7 +81,7 @@ fun IssuanceScreen(
             is IssuanceState.IssuerFetched -> {
                 Spacer(modifier = Modifier.weight(1f))
                 PrimaryButton(
-                    text = "Logga in",
+                    text = stringResource(R.string.generic_login),
                     onClick = { viewModel.authorize(launchAuthTab) },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -94,7 +92,7 @@ fun IssuanceScreen(
                 ClaimList(claims = currentState.claims)
                 Spacer(modifier = Modifier.height(24.dp))
                 PrimaryButton(
-                    text = stringResource(R.string.enrollment_credential_offer_button_accept),
+                    text = stringResource(R.string.issuance_approve_button),
                     onClick = { onFinishClick.invoke() },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -104,7 +102,7 @@ fun IssuanceScreen(
 }
 
 @Composable
-fun DeepLinkedIssuanceScreen(
+fun DeepLinkedIssuanceRoute(
     onBackClick: () -> Unit,
     onFinishClick: () -> Unit,
     credentialOfferUri: String,
@@ -116,7 +114,7 @@ fun DeepLinkedIssuanceScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Hämta attributsintyg",
+                        text = stringResource(R.string.issuance_app_bar_title),
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -129,7 +127,7 @@ fun DeepLinkedIssuanceScreen(
                     IconButton(onClick = { onBackClick.invoke() }) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = "",
+                            contentDescription = null,
                         )
                     }
                 },
@@ -146,12 +144,5 @@ fun DeepLinkedIssuanceScreen(
                 credentialOfferUri = credentialOfferUri,
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun IssuancePreview() {
-    WalletTheme {
     }
 }

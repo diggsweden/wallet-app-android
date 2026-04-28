@@ -16,7 +16,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -33,9 +32,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun ConfirmCode(
@@ -101,7 +100,7 @@ fun NumberCell(char: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier.height(48.dp)) {
         Text(
             text = char.ifEmpty { "" },
-            style = DiggTextStyle.H2,
+            style = WalletTextStyle.H2,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .width(30.dp)
@@ -120,9 +119,7 @@ fun NumberCell(char: String, modifier: Modifier = Modifier) {
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
-        Surface {
-            ConfirmCode(value = "123456", onValueChange = {}, onDone = {})
-        }
+    WalletPreview {
+        ConfirmCode(value = "123456", onValueChange = {}, onDone = {})
     }
 }

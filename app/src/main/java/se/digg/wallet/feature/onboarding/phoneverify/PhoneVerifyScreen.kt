@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,13 +30,13 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.ConfirmCode
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun PhoneVerifyScreen(
+fun PhoneVerifyRoute(
     pageNumber: Int,
     onNext: () -> Unit,
     viewModel: PhoneVerifyViewModel = hiltViewModel(),
@@ -75,19 +74,24 @@ private fun PhoneVerifyScreen(
             .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Bekräfta telefonnummer")
+        OnboardingHeader(
+            pageNumber = pageNumber,
+            pageTitle = stringResource(
+                R.string.onboarding_phone_verify_title,
+            ),
+        )
 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Text(
                 text =
-                    "En kod för att bekräfta ditt telefonnummer  har skickats till ${uiState.phone}.",
-                style = DiggTextStyle.BodyMD,
+                    stringResource(R.string.onboarding_phone_verify_description_1, uiState.phone),
+                style = WalletTextStyle.BodyMD,
                 modifier = Modifier.weight(1f),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 painter = painterResource(R.drawable.pinphone),
-                contentDescription = "",
+                contentDescription = null,
                 modifier = Modifier
                     .width(135.dp)
                     .height(161.dp),
@@ -96,16 +100,19 @@ private fun PhoneVerifyScreen(
         Spacer(Modifier.height(16.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Det kan ta några minuter innan du får din kod, den är aktiv i en timme. \n" +
-                "Kom inte koden gå ett steg tillbaka",
-            style = DiggTextStyle.BodySM,
+            text = buildString {
+                append(stringResource(R.string.onboarding_phone_verify_description_2))
+                append("\n")
+                append(stringResource(R.string.onboarding_phone_verify_description_3))
+            },
+            style = WalletTextStyle.BodySM,
         )
         Spacer(Modifier.height(64.dp))
 
         ConfirmCode(
             value = uiState.code,
             onValueChange = { onConfirmCodeChange.invoke(it) },
-            onDone = { /* submit code */ },
+            onDone = { },
         )
 
         Spacer(Modifier.weight(1f))
@@ -122,18 +129,16 @@ private fun PhoneVerifyScreen(
 @Composable
 @PreviewsWallet
 private fun PhoneVerifyScreenPreview() {
-    WalletTheme {
-        Surface {
-            PhoneVerifyScreen(
-                uiState = PhoneVerifyUiState(
-                    code = "124574",
-                    showError = false,
-                    phone = "12345678",
-                ),
-                pageNumber = 5,
-                onNext = {},
-                onConfirmCodeChange = {},
-            )
-        }
+    WalletPreview {
+        PhoneVerifyScreen(
+            uiState = PhoneVerifyUiState(
+                code = "124574",
+                showError = false,
+                phone = "12345678",
+            ),
+            pageNumber = 5,
+            onNext = {},
+            onConfirmCodeChange = {},
+        )
     }
 }

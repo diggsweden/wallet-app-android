@@ -24,8 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.util.Date
 import se.digg.wallet.core.designsystem.component.PidCard
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 private fun ComponentPreviewScreen() {
@@ -81,9 +81,7 @@ private fun PreviewCategoryDivider(categoryName: String) {
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
-        Surface {
-            ComponentPreviewScreen()
-        }
+    WalletPreview {
+        ComponentPreviewScreen()
     }
 }

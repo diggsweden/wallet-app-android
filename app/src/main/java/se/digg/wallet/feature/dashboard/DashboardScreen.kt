@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -40,9 +39,9 @@ import se.digg.wallet.core.designsystem.component.DocumentCard
 import se.digg.wallet.core.designsystem.component.PidCard
 import se.digg.wallet.core.designsystem.component.WalletTitle
 import se.digg.wallet.core.designsystem.theme.Brown100
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.navigation.CredentialDetailsRoute
 import se.digg.wallet.core.navigation.NavigationItem
 import se.digg.wallet.data.SavedCredential
@@ -114,7 +113,7 @@ private fun DashboardTopBar(onSettingsClick: () -> Unit) {
             IconButton(onClick = onSettingsClick) {
                 Icon(
                     painter = painterResource(R.drawable.settings_24px),
-                    contentDescription = "",
+                    contentDescription = null,
                 )
             }
         },
@@ -126,7 +125,7 @@ private fun AddCredentialFab(onClick: () -> Unit) {
     FloatingActionButton(onClick = onClick) {
         Icon(
             painter = painterResource(R.drawable.add),
-            contentDescription = "",
+            contentDescription = null,
         )
     }
 }
@@ -177,7 +176,7 @@ private fun CredentialsSection(
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(
             stringResource(R.string.dashboard_credentials_header),
-            style = DiggTextStyle.H2,
+            style = WalletTextStyle.H2,
             color = Brown100,
         )
         for (credential in credentials) {
@@ -191,17 +190,15 @@ private fun CredentialsSection(
 
 @Composable
 @PreviewsWallet
-private fun PhoneScreenPreview() {
-    WalletTheme {
-        Surface {
-            DashboardScreen(
-                credentialDetails = DashboardUiModel(
-                    pid = null,
-                    credentials = emptyList(),
-                ),
-                onCredentialClick = {},
-                onSettingsClick = {},
-            )
-        }
+private fun DashboardScreenPreview() {
+    WalletPreview {
+        DashboardScreen(
+            credentialDetails = DashboardUiModel(
+                pid = null,
+                credentials = emptyList(),
+            ),
+            onCredentialClick = {},
+            onSettingsClick = {},
+        )
     }
 }

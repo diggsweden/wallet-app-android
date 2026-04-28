@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,12 +41,12 @@ import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
-fun PresentationScreen(
+fun PresentationRoute(
     navController: NavController,
     fullUri: String,
     modifier: Modifier = Modifier,
@@ -109,7 +108,7 @@ private fun PresentationScreen(
                     IconButton(onClick = { onBackCLick.invoke() }) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = "",
+                            contentDescription = null,
                         )
                     }
                 },
@@ -123,9 +122,9 @@ private fun PresentationScreen(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp),
         ) {
-            when (val state = uiState) {
+            when (uiState) {
                 is PresentationUiState.Error -> {
-                    GenericErrorScreen(errorMessage = state.message)
+                    GenericErrorScreen(errorMessage = uiState.message)
                 }
 
                 PresentationUiState.Loading -> {
@@ -133,8 +132,8 @@ private fun PresentationScreen(
                 }
 
                 is PresentationUiState.PresentClaims -> {
-                    val requiredClaims = state.requiredClaims
-                    val optionalClaims = state.optionalClaims
+                    val requiredClaims = uiState.requiredClaims
+                    val optionalClaims = uiState.optionalClaims
                     Box(
                         modifier = Modifier.fillMaxSize(),
                     ) {
@@ -148,21 +147,23 @@ private fun PresentationScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
                                 text = stringResource(R.string.presentation_share_title),
-                                style = DiggTextStyle.H2,
+                                style = WalletTextStyle.H2,
                             )
                             Spacer(Modifier.height(8.dp))
                             requiredClaims.forEach { item ->
                                 ClaimList(claims = item.claims)
                             }
-                            SelectiveDisclosureList(
-                                onClaimClick = { id, checked ->
-                                    onOptionalClaimClick.invoke(
-                                        id,
-                                        checked,
-                                    )
-                                },
-                                presentationItems = optionalClaims,
-                            )
+                            if (optionalClaims.isNotEmpty()) {
+                                SelectiveDisclosureList(
+                                    onClaimClick = { id, checked ->
+                                        onOptionalClaimClick.invoke(
+                                            id,
+                                            checked,
+                                        )
+                                    },
+                                    presentationItems = optionalClaims,
+                                )
+                            }
                         }
                         PrimaryButton(
                             text = stringResource(R.string.generic_share),
@@ -194,7 +195,7 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = stringResource(R.string.presentation_share_successful_title),
-            style = DiggTextStyle.H1,
+            style = WalletTextStyle.H1,
         )
         Spacer(Modifier.height(50.dp))
         Image(
@@ -208,7 +209,7 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
                 .padding(horizontal = 8.dp),
             textAlign = TextAlign.Center,
             text = stringResource(R.string.presentation_share_successful_info),
-            style = DiggTextStyle.BodyMD,
+            style = WalletTextStyle.BodyMD,
         )
         Spacer(Modifier.weight(1f))
         PrimaryButton(
@@ -221,15 +222,13 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
 @PreviewsWallet
 @Composable
 private fun PresentationPreview() {
-    WalletTheme {
-        Surface {
-            PresentationScreen(
-                onBackCLick = { },
-                onShareClick = { },
-                onFinishClick = { },
-                onOptionalClaimClick = { _, _ -> },
-                uiState = PresentationUiState.ShareSuccess,
-            )
-        }
+    WalletPreview {
+        PresentationScreen(
+            onBackCLick = { },
+            onShareClick = { },
+            onFinishClick = { },
+            onOptionalClaimClick = { _, _ -> },
+            uiState = PresentationUiState.ShareSuccess,
+        )
     }
 }

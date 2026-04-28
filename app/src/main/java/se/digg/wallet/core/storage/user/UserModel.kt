@@ -8,7 +8,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import java.util.UUID
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import se.digg.wallet.data.SavedCredential
 

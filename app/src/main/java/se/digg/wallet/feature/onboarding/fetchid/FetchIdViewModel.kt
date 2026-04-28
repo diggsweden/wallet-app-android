@@ -36,7 +36,6 @@ import se.digg.wallet.core.oauth.OAuthResult
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
-import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.models.CreateAccountRequestDto
 import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber

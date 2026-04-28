@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,9 +18,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun GenericErrorScreen(
@@ -39,20 +38,23 @@ fun GenericErrorScreen(
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = errorTitle ?: "Något gick fel",
-            style = DiggTextStyle.H3,
+            text = errorTitle ?: stringResource(R.string.error_something_went_wrong),
+            style = WalletTextStyle.H3,
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = errorMessage
-                ?: stringResource(R.string.generic_error_screen_message),
-            style = DiggTextStyle.BodyMD,
+                ?: stringResource(R.string.error_generic_screen_message),
+            style = WalletTextStyle.BodyMD,
         )
         Spacer(modifier = Modifier.height(24.dp))
         if (onClick != null) {
-            PrimaryButton(text = "Försök igen", onClick = { onClick.invoke() })
+            PrimaryButton(
+                text = stringResource(R.string.generic_retry),
+                onClick = { onClick.invoke() },
+            )
         }
     }
 }
@@ -60,9 +62,7 @@ fun GenericErrorScreen(
 @Composable
 @PreviewsWallet
 private fun GenericErrorScreenPreview() {
-    WalletTheme {
-        Surface {
-            GenericErrorScreen(errorTitle = null, errorMessage = null, onClick = {})
-        }
+    WalletPreview {
+        GenericErrorScreen(errorTitle = null, errorMessage = null, onClick = {})
     }
 }

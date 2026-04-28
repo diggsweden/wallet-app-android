@@ -49,7 +49,7 @@ val UbuntuTypography = Typography(
     labelSmall = DefaultM3.labelSmall.copy(fontFamily = ubuntuFontFamily),
 )
 
-object DiggTextStyle {
+object WalletTextStyle {
     val H1 = TextStyle(
         fontFamily = ubuntuFontFamily,
         fontWeight = FontWeight.Bold,
