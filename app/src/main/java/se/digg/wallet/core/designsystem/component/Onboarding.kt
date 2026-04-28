@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 
 @Composable
 fun OnboardingHeader(pageNumber: Int, pageTitle: String, modifier: Modifier = Modifier) {
@@ -22,8 +22,8 @@ fun OnboardingHeader(pageNumber: Int, pageTitle: String, modifier: Modifier = Mo
         Spacer(Modifier.height(24.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.onboarding_page_title, pageNumber, pageTitle),
-            style = DiggTextStyle.H1,
+            text = stringResource(R.string.onboarding_screen_header_title, pageNumber, pageTitle),
+            style = WalletTextStyle.H1,
         )
         Spacer(Modifier.height(70.dp))
     }

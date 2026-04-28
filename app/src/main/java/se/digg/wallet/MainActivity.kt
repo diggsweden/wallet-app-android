@@ -105,7 +105,7 @@ fun AppRoot(
     when (app.flow) {
         AppFlow.Enrollment -> {
             WalletNavHost(
-                { viewModel.goToDashboard() },
+                onLogout = { viewModel.goToEnrollment() },
                 navController = navHostController,
             )
         }

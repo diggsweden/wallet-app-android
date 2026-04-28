@@ -17,18 +17,18 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun InfoCheckBox(
@@ -87,21 +87,21 @@ fun InfoCheckBox(
         Column {
             Text(
                 text = title,
-                style = DiggTextStyle.BodyMD,
+                style = WalletTextStyle.BodyMD,
                 fontWeight = FontWeight.Bold,
                 color = textColor,
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = description,
-                style = DiggTextStyle.BodyMD,
+                style = WalletTextStyle.BodyMD,
                 color = textColor,
             )
             if (showError) {
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = errorText ?: "Error",
-                    style = DiggTextStyle.BodySM,
+                    style = WalletTextStyle.BodySM,
                     color = errorTextColor,
                 )
             }
@@ -112,15 +112,13 @@ fun InfoCheckBox(
 @PreviewsWallet
 @Composable
 private fun InfoCheckBoxPreview() {
-    WalletTheme {
-        Surface {
-            InfoCheckBox(
-                title = "Title",
-                description = "Description text that describes what needs to be described",
-                onCheckedChange = {},
-                showError = false,
-                errorText = "Error",
-            )
-        }
+    WalletPreview {
+        InfoCheckBox(
+            title = "Title",
+            description = "Description text that describes what needs to be described",
+            onCheckedChange = {},
+            showError = false,
+            errorText = stringResource(R.string.generic_error),
+        )
     }
 }

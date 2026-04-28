@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,9 +19,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun TextWithLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -37,7 +36,7 @@ fun TextWithLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
     ) {
         Text(
             text = text,
-            style = DiggTextStyle.BodyMD,
+            style = WalletTextStyle.BodyMD,
             textDecoration = TextDecoration.Underline,
             color = linkColor,
 
@@ -54,12 +53,10 @@ fun TextWithLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
 @Composable
 @PreviewsWallet
 private fun InfoCheckBox() {
-    WalletTheme {
-        Surface {
-            TextWithLink(
-                text = "This text will be clickable",
-                onClick = {},
-            )
-        }
+    WalletPreview {
+        TextWithLink(
+            text = "This text will be clickable",
+            onClick = {},
+        )
     }
 }

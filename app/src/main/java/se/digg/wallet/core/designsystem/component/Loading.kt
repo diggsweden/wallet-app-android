@@ -9,13 +9,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun GenericLoading(modifier: Modifier = Modifier) {
@@ -31,9 +30,7 @@ fun GenericLoading(modifier: Modifier = Modifier) {
 @PreviewsWallet
 @Composable
 private fun GenericLoadingPreview() {
-    WalletTheme {
-        Surface {
-            GenericLoading()
-        }
+    WalletPreview {
+        GenericLoading()
     }
 }

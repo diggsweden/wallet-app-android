@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,9 +29,9 @@ import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimary
 import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimaryDark
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimary
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimaryDark
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun PrimaryButton(
@@ -79,7 +78,7 @@ fun PrimaryButton(
             ) {
                 Text(
                     text = text,
-                    style = DiggTextStyle.BodyMD,
+                    style = WalletTextStyle.BodyMD,
                 )
                 rightIcon?.let {
                     Spacer(Modifier.width(4.dp))
@@ -96,13 +95,11 @@ fun PrimaryButton(
 @Composable
 @PreviewsWallet
 private fun WalletButtonPreview() {
-    WalletTheme {
-        Surface {
-            PrimaryButton(
-                text = "Preview of button",
-                onClick = {},
-                rightIcon = R.drawable.arrow_left,
-            )
-        }
+    WalletPreview {
+        PrimaryButton(
+            text = "Preview of button",
+            onClick = {},
+            rightIcon = R.drawable.arrow_left,
+        )
     }
 }

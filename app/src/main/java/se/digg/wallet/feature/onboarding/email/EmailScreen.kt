@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,13 +34,13 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.OutLinedInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun EmailScreen(pageNumber: Int, onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel()) {
+fun EmailRoute(pageNumber: Int, onNext: () -> Unit, viewModel: EmailViewModel = hiltViewModel()) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -76,17 +75,35 @@ private fun EmailScreen(
     onVerifyEmailFocusChange: (Boolean) -> Unit,
 ) {
     val emailErrorCopy = when (uiState.emailError) {
-        EmailValidationError.EMPTY -> "Tom epost ej giltig"
-        EmailValidationError.NOT_VALID_EMAIL -> "Inte valid epost"
-        EmailValidationError.NOT_SAME -> "Inte samma"
-        null -> ""
+        EmailValidationError.EMPTY -> stringResource(
+            R.string.onboarding_email_error_validation_empty,
+        )
+
+        EmailValidationError.NOT_VALID_EMAIL -> stringResource(
+            R.string.onboarding_email_error_validation_invalid_email,
+        )
+
+        EmailValidationError.NOT_SAME -> stringResource(
+            R.string.onboarding_email_error_validation_not_same,
+        )
+
+        null -> stringResource(R.string.generic_error)
     }
 
     val verifyEmailErrorCopy = when (uiState.verifyEmailError) {
-        EmailValidationError.EMPTY -> "Tom epost ej giltig"
-        EmailValidationError.NOT_VALID_EMAIL -> "Inte valid epost"
-        EmailValidationError.NOT_SAME -> "Inte samma"
-        null -> ""
+        EmailValidationError.EMPTY -> stringResource(
+            R.string.onboarding_email_error_validation_empty,
+        )
+
+        EmailValidationError.NOT_VALID_EMAIL -> stringResource(
+            R.string.onboarding_email_error_validation_invalid_email,
+        )
+
+        EmailValidationError.NOT_SAME -> stringResource(
+            R.string.onboarding_email_error_validation_not_same,
+        )
+
+        null -> stringResource(R.string.generic_error)
     }
 
     Column(
@@ -96,32 +113,40 @@ private fun EmailScreen(
             .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Din e-postadress")
+        OnboardingHeader(
+            pageNumber = pageNumber,
+            pageTitle = stringResource(
+                R.string.onboarding_email_title,
+            ),
+        )
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Image(
                 painter = painterResource(R.drawable.pinphone),
-                contentDescription = "",
+                contentDescription = null,
                 modifier = Modifier
                     .width(135.dp)
                     .height(161.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Vi behöver din e-postadress för att skapa ett konto. \n" +
-                    "Kontot används för att administrera din plånbok om du till exempel skulle tappa din enhet.",
-                style = DiggTextStyle.BodyMD,
+                text = buildString {
+                    append(stringResource(R.string.onboarding_email_description_1))
+                    append("\n")
+                    append(stringResource(R.string.onboarding_email_description_2))
+                },
+                style = WalletTextStyle.BodyMD,
                 modifier = Modifier.weight(1f),
             )
         }
         Spacer(Modifier.height(48.dp))
         OutLinedInput(
             value = uiState.email,
-            labelText = "Din e-postadress",
+            labelText = stringResource(R.string.onboarding_email_input_label),
             onValueChange = { onEmailChange.invoke(it) },
             modifier = Modifier.onFocusChanged { state ->
                 onEmailFocusChange.invoke(state.isFocused)
             },
-            hintText = stringResource(R.string.contact_info_email_placeholder),
+            hintText = stringResource(R.string.onboarding_email_input_placeholder),
             errorText = emailErrorCopy,
             isError = uiState.emailError != null,
             keyboardOptions = KeyboardOptions(
@@ -132,12 +157,12 @@ private fun EmailScreen(
         Spacer(modifier = Modifier.height(16.dp))
         OutLinedInput(
             value = uiState.verifyEmail,
-            labelText = "Din e-postadress igen",
+            labelText = stringResource(R.string.onboarding_email_input_label_2),
             onValueChange = { onVerifyEmailChange.invoke(it) },
             modifier = Modifier.onFocusChanged { state ->
                 onVerifyEmailFocusChange.invoke(state.isFocused)
             },
-            hintText = stringResource(R.string.contact_info_email_placeholder),
+            hintText = stringResource(R.string.onboarding_email_input_placeholder),
             errorText = verifyEmailErrorCopy,
             isError = uiState.verifyEmailError != null,
             keyboardOptions = KeyboardOptions(
@@ -156,18 +181,16 @@ private fun EmailScreen(
 
 @Composable
 @PreviewsWallet
-private fun PhoneScreenPreview() {
-    WalletTheme {
-        Surface {
-            EmailScreen(
-                uiState = EmailUiState(),
-                pageNumber = 4,
-                onNext = {},
-                onEmailChange = {},
-                onEmailFocusChange = {},
-                onVerifyEmailChange = {},
-                onVerifyEmailFocusChange = {},
-            )
-        }
+private fun EmailScreenPreview() {
+    WalletPreview {
+        EmailScreen(
+            uiState = EmailUiState(),
+            pageNumber = 4,
+            onNext = {},
+            onEmailChange = {},
+            onEmailFocusChange = {},
+            onVerifyEmailChange = {},
+            onVerifyEmailFocusChange = {},
+        )
     }
 }

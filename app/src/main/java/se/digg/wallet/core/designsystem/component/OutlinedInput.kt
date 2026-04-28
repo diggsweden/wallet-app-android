@@ -17,7 +17,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -33,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.ErrorContainer
 import se.digg.wallet.core.designsystem.theme.ErrorContainerDarkMode
 import se.digg.wallet.core.designsystem.theme.ErrorOutline
@@ -48,8 +46,9 @@ import se.digg.wallet.core.designsystem.theme.PlaceholderText
 import se.digg.wallet.core.designsystem.theme.PlaceholderTextDarkMode
 import se.digg.wallet.core.designsystem.theme.TextColor
 import se.digg.wallet.core.designsystem.theme.TextColorDarkMode
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun OutLinedInput(
@@ -94,7 +93,7 @@ fun OutLinedInput(
         modifier = modifier
             .fillMaxWidth(),
     ) {
-        Text(text = labelText, style = DiggTextStyle.H6)
+        Text(text = labelText, style = WalletTextStyle.H6)
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             modifier = Modifier
@@ -110,10 +109,14 @@ fun OutLinedInput(
             value = value,
             onValueChange = onValueChange,
             placeholder = {
-                Text(text = hintText ?: "", style = DiggTextStyle.BodyMD, color = placeholderColor)
+                Text(
+                    text = hintText ?: "",
+                    style = WalletTextStyle.BodyMD,
+                    color = placeholderColor,
+                )
             },
             shape = RoundedCornerShape(cornerRadius),
-            textStyle = DiggTextStyle.BodyMD,
+            textStyle = WalletTextStyle.BodyMD,
             isError = isError,
             singleLine = singleLine,
             colors = TextFieldDefaults.colors(
@@ -147,7 +150,7 @@ fun OutLinedInput(
                 Spacer(modifier = Modifier.width(width = 6.dp))
                 Text(
                     text = errorText ?: "Error",
-                    style = DiggTextStyle.BodySM,
+                    style = WalletTextStyle.BodySM,
                     color = errorTextColor,
                 )
             }
@@ -158,37 +161,35 @@ fun OutLinedInput(
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
-        Surface {
-            Column {
-                OutLinedInput(
-                    value = "",
-                    labelText = "Label text goes here",
-                    onValueChange = {},
-                    hintText = "Hint text goes here",
-                )
+    WalletPreview {
+        Column {
+            OutLinedInput(
+                value = "",
+                labelText = "Label text goes here",
+                onValueChange = {},
+                hintText = "Hint text goes here",
+            )
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                OutLinedInput(
-                    value = "Agagag",
-                    labelText = "Label text goes here",
-                    onValueChange = {},
-                    hintText = "Hint text goes here",
-                )
+            OutLinedInput(
+                value = "Agagag",
+                labelText = "Label text goes here",
+                onValueChange = {},
+                hintText = "Hint text goes here",
+            )
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                OutLinedInput(
-                    value = "Halloj",
-                    labelText = "Label text goes here",
-                    onValueChange = {},
-                    hintText = "Hint text goes here",
-                    errorText = @Suppress("ktlint:standard:max-line-length")
-                    "Error error error asd aopsdi iojsdoi joiajsdo ijaosidj oij adosijaoisdj oijas doija",
-                    isError = true,
-                )
-            }
+            OutLinedInput(
+                value = "Halloj",
+                labelText = "Label text goes here",
+                onValueChange = {},
+                hintText = "Hint text goes here",
+                errorText = @Suppress("ktlint:standard:max-line-length")
+                "Error error error asd aopsdi iojsdoi joiajsdo ijaosidj oij adosijaoisdj oijas doija",
+                isError = true,
+            )
         }
     }
 }

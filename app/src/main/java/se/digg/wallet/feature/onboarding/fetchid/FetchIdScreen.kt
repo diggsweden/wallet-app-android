@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -35,14 +35,14 @@ import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun FetchIdScreen(
+fun FetchIdRoute(
     pageNumber: Int,
     onNext: () -> Unit,
     onCredentialOfferFetch: (String) -> Unit,
@@ -100,8 +100,8 @@ private fun Error() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Error", style = DiggTextStyle.H2)
-        Text("Något gick fel, försök igen.", style = DiggTextStyle.BodyMD)
+        Text(stringResource(R.string.generic_error), style = WalletTextStyle.H2)
+        Text(stringResource(R.string.generic_error_retry), style = WalletTextStyle.BodyMD)
     }
 }
 
@@ -114,14 +114,19 @@ private fun Content(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> U
             .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
-        OnboardingHeader(pageNumber = pageNumber, pageTitle = "Hämta personuppgifter")
+        OnboardingHeader(
+            pageNumber = pageNumber,
+            pageTitle = stringResource(
+                R.string.onboarding_fetch_id_title,
+            ),
+        )
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
                 painter = painterResource(R.drawable.pinphone),
-                contentDescription = "",
+                contentDescription = null,
                 modifier = Modifier
                     .width(135.dp)
                     .height(161.dp),
@@ -129,22 +134,21 @@ private fun Content(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> U
         }
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Varför?",
-            style = DiggTextStyle.BodyMD,
+            text = stringResource(R.string.onboarding_fetch_id_description_1),
+            style = WalletTextStyle.BodyMD,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = @Suppress("ktlint:standard:max-line-length")
-            "För att kunna använda plånboken behöver vi hämta uppgifter om dig. Uppgifterna som hämtas används som ett id-kort.",
-            style = DiggTextStyle.BodyMD,
+            text = (stringResource(R.string.onboarding_fetch_id_description_2)),
+            style = WalletTextStyle.BodyMD,
         )
         Spacer(modifier = Modifier.height(24.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Läs mer om de uppgifter vi hämtar",
-                style = DiggTextStyle.BodyMD,
+                text = stringResource(R.string.onboarding_fetch_id_link_description),
+                style = WalletTextStyle.BodyMD,
                 textDecoration = TextDecoration.Underline,
                 color = Color(0xFF556951),
             )
@@ -158,7 +162,7 @@ private fun Content(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> U
 
         Spacer(Modifier.weight(1f))
         PrimaryButton(
-            text = "Hämta personuppgifter",
+            text = stringResource(R.string.onboarding_fetch_id_button),
             onClick = {
                 onFetchId.invoke()
             },
@@ -174,20 +178,18 @@ private fun Loading() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Loading...", style = DiggTextStyle.H2)
+        Text(stringResource(R.string.generic_loading), style = WalletTextStyle.H2)
     }
 }
 
 @Composable
 @PreviewsWallet
 private fun FetchIdScreenPreview() {
-    WalletTheme {
-        Surface {
-            FetchIdScreen(
-                uiState = FetchIdUiState.Idle,
-                pageNumber = 8,
-                onFetchId = {},
-            )
-        }
+    WalletPreview {
+        FetchIdScreen(
+            uiState = FetchIdUiState.Idle,
+            pageNumber = 8,
+            onFetchId = {},
+        )
     }
 }

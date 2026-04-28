@@ -4,17 +4,16 @@
 
 package se.digg.wallet.feature.onboarding.issuance
 
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
-import se.digg.wallet.core.designsystem.theme.WalletTheme
-import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.feature.issuance.IssuanceScreen
 import se.digg.wallet.feature.onboarding.OnboardingViewModel
 
 @Composable
-fun OnboardingIssuanceScreen(
+fun OnboardingIssuanceRoute(
     pageNumber: Int,
     onBack: () -> Unit,
     onFinish: () -> Unit,
@@ -26,17 +25,13 @@ fun OnboardingIssuanceScreen(
         onBackClick = {},
         onFinishClick = { onFinish.invoke() },
         headerContent = {
-            OnboardingHeader(pageNumber = pageNumber, pageTitle = "Hämta personuppgifter")
+            OnboardingHeader(
+                pageNumber = pageNumber,
+                pageTitle = stringResource(
+                    R.string.onboarding_issuance_title,
+                ),
+            )
         },
         credentialOfferUri = credentialOfferUri,
     )
-}
-
-@Composable
-@PreviewsWallet
-private fun CredentialOfferPreview() {
-    WalletTheme {
-        Surface {
-        }
-    }
 }

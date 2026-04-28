@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,12 +25,12 @@ import se.digg.wallet.core.designsystem.component.InfoCheckBox
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.TextWithLink
-import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun ConsentScreen(
+fun ConsentRoute(
     pageNumber: Int,
     onNext: () -> Unit,
     viewModel: ConsentViewModel = hiltViewModel(),
@@ -102,9 +101,7 @@ private fun ConsentScreen(
 @Composable
 @PreviewsWallet
 private fun ConsentScreenPreview() {
-    WalletTheme {
-        Surface {
-            ConsentScreen(uiState = ConsentUiState(), onNext = {}, onConsent = {}, pageNumber = 1)
-        }
+    WalletPreview {
+        ConsentScreen(uiState = ConsentUiState(), onNext = {}, onConsent = {}, pageNumber = 1)
     }
 }

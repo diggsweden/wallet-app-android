@@ -10,19 +10,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -31,16 +24,14 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Date
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.Brown70
-import se.digg.wallet.core.designsystem.theme.DiggTextStyle
 import se.digg.wallet.core.designsystem.theme.TextColor
-import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.dashboard.formatDate
 
 @Composable
@@ -79,8 +70,8 @@ fun PidCard(issueDate: Date, onClick: () -> Unit, modifier: Modifier = Modifier)
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 val formattedDate = formatDate(issueDate)
-                Text("Min ID-handling", style = DiggTextStyle.H5)
-                Text("Uppdaterad: $formattedDate", style = DiggTextStyle.BodySM)
+                Text("Min ID-handling", style = WalletTextStyle.H5)
+                Text("Uppdaterad: $formattedDate", style = WalletTextStyle.BodySM)
             }
         }
     }
@@ -89,12 +80,10 @@ fun PidCard(issueDate: Date, onClick: () -> Unit, modifier: Modifier = Modifier)
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
-        Surface {
-            PidCard(
-                onClick = {},
-                issueDate = Date(),
-            )
-        }
+    WalletPreview {
+        PidCard(
+            onClick = {},
+            issueDate = Date(),
+        )
     }
 }

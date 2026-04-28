@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 private fun TypePreviewScreen() {
@@ -29,6 +30,19 @@ private fun TypePreviewScreen() {
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            Text("Digg text style H1", style = WalletTextStyle.H1)
+            Text("Digg text style H2", style = WalletTextStyle.H2)
+            Text("Digg text style H3", style = WalletTextStyle.H3)
+            Text("Digg text style H4", style = WalletTextStyle.H4)
+            Text("Digg text style H5", style = WalletTextStyle.H5)
+            Text("Digg text style H6", style = WalletTextStyle.H6)
+            Text("Digg text style Body", style = WalletTextStyle.BodyPreamble)
+            Text("Digg text style Body", style = WalletTextStyle.BodyLG)
+            Text("Digg text style Body", style = WalletTextStyle.BodyMD)
+            Text("Digg text style Body", style = WalletTextStyle.BodySM)
+
+            HorizontalDivider()
+
             Text("Display Large", style = MaterialTheme.typography.displayLarge)
             Text("Display Medium", style = MaterialTheme.typography.displayMedium)
             Text("Display Small", style = MaterialTheme.typography.displaySmall)
@@ -63,7 +77,7 @@ private fun TypePreviewScreen() {
 @Composable
 @PreviewsWallet
 private fun Preview() {
-    WalletTheme {
+    WalletPreview {
         TypePreviewScreen()
     }
 }

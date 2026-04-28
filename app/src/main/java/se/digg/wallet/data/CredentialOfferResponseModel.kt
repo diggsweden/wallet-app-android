@@ -9,7 +9,6 @@ import java.net.URI
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import kotlin.uuid.Uuid
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
