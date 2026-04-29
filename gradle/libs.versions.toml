@@ -90,6 +90,8 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt"
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
+accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.2"}
+
 [bundles]
 images = ["coil-compose", "coil-network"]
 eudi = ["eudi-openid4vci", "eudi-openid4vp", "eudi-sdjwt"]

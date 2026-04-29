@@ -176,6 +176,8 @@ dependencies {
     implementation(libs.bundles.storage)
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
+    implementation(libs.accessMechanism)
+
     ksp(libs.hilt.compiler)
 
     ksp(libs.room.compiler)
