@@ -12,6 +12,7 @@ activityCompose = "1.13.0"
 composeBom = "2026.04.01"
 navigationCompose = "2.9.8"
 timber = "5.0.1"
+leakcanary = "3.0-alpha-8"
 eudi-openid4vci = "0.10.0"
 eudi-openid4vp = "0.13.0"
 ktor = "3.4.2"
@@ -57,6 +58,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 
 #Network - Ktor
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -67,6 +69,9 @@ ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-jso
 
 #Logging
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+#Leakcanary
+leakcanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 
 #Eudi
 eudi-openid4vci = { group = "eu.europa.ec.eudi", name = "eudi-lib-jvm-openid4vci-kt", version.ref = "eudi-openid4vci" }
@@ -89,11 +94,12 @@ hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", ve
 images = ["coil-compose", "coil-network"]
 eudi = ["eudi-openid4vci", "eudi-openid4vp", "eudi-sdjwt"]
 ktor = ["ktor-core", "ktor-okhttp", "ktor-logging", "ktor-content-negotiation", "ktor-serialization"]
-storage = ["datastore", "kotlinx-serialization-json"]
+storage = ["datastore", "kotlinx-serialization-json", "room-runtime", "room-ktx"]
 di = ["hilt-android", "hilt-navigation-compose"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+room = { id = "androidx.room", version.ref = "room" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
