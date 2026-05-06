@@ -15,8 +15,13 @@ artifacts:
       - google-play
     config:
       java-version: 21
-      gradle-tasks: build assembleDemoRelease bundleDemoRelease
       build-module: app
+      # Declarative variant selection: the orchestrator (v2.8.3+) derives
+      # gradle tasks from product-flavor + build-types + include-aab. The
+      # build's AAB upload name uses artifacts.yml `name:` so it lines up
+      # with what release-publish-stage forwards to publish-google-play.
+      product-flavor: demo
+      build-types: release
       gradle-version-file: gradle.properties
       # Signing configuration (requires secrets)
       enable-android-signing: true

@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   release:
-    uses: diggsweden/reusable-ci/.github/workflows/release-orchestrator.yml@d31c989acd139c3e8754e116496c826af8dbbca0 # v2.8.2
+    uses: diggsweden/reusable-ci/.github/workflows/release-orchestrator.yml@68338adeadf2e60b7d865f7e24fc195b6ff8334f # v2.8.3
     permissions:
       contents: write
       packages: write
@@ -31,7 +31,7 @@ jobs:
       actions: read
     secrets: inherit
     with:
-      reusable-ci-ref: d31c989acd139c3e8754e116496c826af8dbbca0
+      reusable-ci-ref: 68338adeadf2e60b7d865f7e24fc195b6ff8334f
       artifacts-config: .github/artifacts.yml
       release.attachartifacts: |
         app/build/outputs/apk/demo/release/*.apk
