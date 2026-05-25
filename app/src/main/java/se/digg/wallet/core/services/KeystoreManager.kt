@@ -17,6 +17,8 @@ import timber.log.Timber
 enum class KeyAlias(val value: String) {
     DEVICE_KEY("device_key_alias"),
     WALLET_KEY("wallet_key_alias"),
+
+    PIN_KEY("pin_key_alias"),
 }
 
 object KeystoreManager {
@@ -24,17 +26,24 @@ object KeystoreManager {
 
     fun getOrCreateEs256Key(alias: KeyAlias, tryStrongBox: Boolean = true): KeyPair {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        /*
         if (ks.containsAlias(alias.value)) {
-            val entry = runCatching {
-                ks.getEntry(alias.value, null) as KeyStore.PrivateKeyEntry
-            }.getOrNull()
-
-            if (entry != null) {
-                val pub = entry.certificate.publicKey as ECPublicKey
-                val private: PrivateKey = entry.privateKey
-                return KeyPair(pub, private)
-            }
+            val publicKey = ks.getCertificate(alias.value).publicKey as ECPublicKey
+            val privateKey = ks.getKey(alias.value, null) as ECPrivateKey
+            return KeyPair(publicKey, privateKey)
         }
+         */
+
+        val entry = runCatching {
+            ks.getEntry(alias.value, null) as KeyStore.PrivateKeyEntry
+        }.getOrNull()
+
+        if (entry != null) {
+            val pub = entry.certificate.publicKey as ECPublicKey
+            val private: PrivateKey = entry.privateKey
+            return KeyPair(pub, private)
+        }
+
         return generateEs256Key(alias, tryStrongBox)
     }
 
@@ -67,5 +76,28 @@ object KeystoreManager {
         val kpg = KeyPairGenerator.getInstance("EC")
         kpg.initialize(ECGenParameterSpec("secp256r1"))
         return kpg.generateKeyPair()
+    }
+
+    fun getPinStretchPrivateKey(): PrivateKey {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply {
+            load(null)
+        }
+
+        if (!keyStore.containsAlias(KeyAlias.PIN_KEY.value)) {
+            val generator = KeyPairGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_EC,
+                ANDROID_KEYSTORE,
+            )
+            val parameterSpec = KeyGenParameterSpec.Builder(
+                KeyAlias.PIN_KEY.value,
+                KeyProperties.PURPOSE_AGREE_KEY,
+            ).setAlgorithmParameterSpec(
+                ECGenParameterSpec("secp256r1"),
+            ).build()
+
+            generator.initialize(parameterSpec)
+            generator.generateKeyPair()
+        }
+        return keyStore.getKey(KeyAlias.PIN_KEY.value, null) as PrivateKey
     }
 }

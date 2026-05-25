@@ -100,19 +100,19 @@ fun AppRoot(
     navHostController: NavHostController,
     viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
-    val app by viewModel.enrollmentState.collectAsState()
+    val app by viewModel.onboardingState.collectAsState()
 
     when (app.flow) {
-        AppFlow.Enrollment -> {
+        AppFlow.Onboarding -> {
             WalletNavHost(
-                onLogout = { viewModel.goToEnrollment() },
+                onLogout = { viewModel.goToOnboarding() },
                 navController = navHostController,
             )
         }
 
         AppFlow.Dashboard -> {
             WalletNavHost(
-                { viewModel.goToEnrollment() },
+                { viewModel.goToOnboarding() },
                 navController = navHostController,
                 isEnrolled = true,
             )

@@ -4,7 +4,7 @@
 
 package se.digg.wallet.feature.onboarding.pin
 
-data class PinSetupUiState(val pin: String = "")
+data class PinSetupUiState(val pin: String = "", val capturedPin: String = "")
 
 sealed interface PinSetupUiEvent {
     object NextClicked : PinSetupUiEvent

@@ -57,8 +57,8 @@ fun PinSetupRoute(
         uiState = uiState,
         pageNumber = pageNumber,
         verifyPin = verifyPin,
-        onNext = { viewModel.setPin(it) },
-        onVerify = { viewModel.checkIfValid(isVerifyScreen = verifyPin, code = it) },
+        onNext = { pin -> viewModel.setPin(pin) },
+        onVerify = { viewModel.checkIfValid(code = it) },
     )
 }
 

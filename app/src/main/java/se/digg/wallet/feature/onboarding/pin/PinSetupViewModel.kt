@@ -15,11 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.data.UserRepository
 
 @HiltViewModel
-class PinSetupViewModel @Inject constructor(private val userRepository: UserRepository) :
-    ViewModel() {
+class PinSetupViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(PinSetupUiState())
     val uiState: StateFlow<PinSetupUiState> = _uiState.asStateFlow()
@@ -29,20 +27,17 @@ class PinSetupViewModel @Inject constructor(private val userRepository: UserRepo
 
     fun setPin(pinCode: String) {
         viewModelScope.launch {
-            userRepository.setPin(pinCode)
+            _uiState.value = _uiState.value.copy(capturedPin = pinCode)
             _effects.emit(PinSetupUiEffect.OnNext)
         }
     }
 
-    fun checkIfValid(isVerifyScreen: Boolean, code: String) {
+    fun checkIfValid(code: String) {
         viewModelScope.launch {
-            val storedCode = userRepository.getPin()
-            storedCode?.let {
-                if (storedCode == code) {
-                    _effects.emit(PinSetupUiEffect.OnNext)
-                } else {
-                    _effects.emit(PinSetupUiEffect.OnGoBack)
-                }
+            if (_uiState.value.capturedPin == code) {
+                _effects.emit(PinSetupUiEffect.OnNext)
+            } else {
+                _effects.emit(PinSetupUiEffect.OnGoBack)
             }
         }
     }

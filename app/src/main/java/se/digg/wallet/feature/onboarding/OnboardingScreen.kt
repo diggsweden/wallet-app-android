@@ -45,14 +45,11 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.feature.onboarding.consent.ConsentRoute
-import se.digg.wallet.feature.onboarding.email.EmailRoute
-import se.digg.wallet.feature.onboarding.emailverify.EmailVerifyRoute
-import se.digg.wallet.feature.onboarding.fetchid.FetchIdRoute
 import se.digg.wallet.feature.onboarding.issuance.OnboardingIssuanceRoute
-import se.digg.wallet.feature.onboarding.phone.PhoneRoute
-import se.digg.wallet.feature.onboarding.phoneverify.PhoneVerifyRoute
+import se.digg.wallet.feature.onboarding.pidsetup.PidSetupRoute
 import se.digg.wallet.feature.onboarding.pin.PinSetupRoute
+import se.digg.wallet.feature.onboarding.pin.PinSetupViewModel
+import se.digg.wallet.feature.onboarding.walletsetup.WalletSetupRoute
 
 @Composable
 fun OnboardingRoute(
@@ -199,37 +196,16 @@ fun OnboardingStepContent(
     onSkip: () -> Unit,
     onFinish: () -> Unit,
     onCredentialOfferFetch: (String) -> Unit,
+    pinSetupViewModel: PinSetupViewModel = hiltViewModel(),
 ) {
+    val pinUiState by pinSetupViewModel.uiState.collectAsStateWithLifecycle()
+
     when (step) {
-        OnboardingStep.NOTIFICATION -> ConsentRoute(
-            onNext = {
-                onNext.invoke()
-            },
-            pageNumber = pageNumber,
-        )
-
-        OnboardingStep.PHONE_NUMBER -> PhoneRoute(
-            onNext = { onNext.invoke() },
-            onSkip = { onSkip.invoke() },
-            pageNumber = pageNumber,
-        )
-
-        OnboardingStep.VERIFY_PHONE -> PhoneVerifyRoute(
-            onNext = { onNext.invoke() },
-            pageNumber = pageNumber,
-        )
-
-        OnboardingStep.EMAIL -> EmailRoute(onNext = { onNext.invoke() }, pageNumber = pageNumber)
-
-        OnboardingStep.VERIFY_EMAIL -> EmailVerifyRoute(
-            onNext = { onNext.invoke() },
-            pageNumber = pageNumber,
-        )
-
-        OnboardingStep.PIN -> PinSetupRoute(
+        OnboardingStep.SETUP_PIN -> PinSetupRoute(
             onNext = { onNext.invoke() },
             onBack = {},
             pageNumber = pageNumber,
+            viewModel = pinSetupViewModel,
         )
 
         OnboardingStep.VERIFY_PIN -> PinSetupRoute(
@@ -237,9 +213,16 @@ fun OnboardingStepContent(
             verifyPin = true,
             onBack = { onBack.invoke() },
             pageNumber = pageNumber,
+            viewModel = pinSetupViewModel,
         )
 
-        OnboardingStep.FETCH_PID -> FetchIdRoute(
+        OnboardingStep.SETUP_WALLET -> WalletSetupRoute(
+            pageNumber = pageNumber,
+            pin = pinUiState.capturedPin,
+            onNext = { onNext.invoke() },
+        )
+
+        OnboardingStep.SETUP_PID -> PidSetupRoute(
             onNext = { onFinish.invoke() },
             onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
             pageNumber = pageNumber,
@@ -258,7 +241,7 @@ fun OnboardingStepContent(
 private fun EnrollmentPreview() {
     WalletPreview {
         OnboardingScreen(
-            uiState = OnboardingUiState(currentStep = OnboardingStep.NOTIFICATION),
+            uiState = OnboardingUiState(currentStep = OnboardingStep.SETUP_PIN),
             onNext = {},
             onBack = {},
             onSkip = {},

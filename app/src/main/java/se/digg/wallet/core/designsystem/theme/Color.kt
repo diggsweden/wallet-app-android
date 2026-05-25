@@ -100,4 +100,4 @@ val ProgressDarkMode = Color(0xFFDEA673)
 val Track = Color(0xFFF3F3F3)
 val TrackDarkMode = Color(0xFF1E1D1B)
 
-// Enrollment
+// Onboarding
