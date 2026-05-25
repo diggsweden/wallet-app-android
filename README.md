@@ -12,7 +12,8 @@
 
 ---
 
-You must add the API keys by copying the secrets.properties.example file and renaming it to secrets.properties in the root folder of the project.
+You must add the API keys by copying the secrets.properties.example file and renaming it to
+secrets.properties in the root folder of the project.
 
 ```bash
 cp secrets.properties.example secrets.properties
@@ -52,7 +53,10 @@ Choose the desired variant from the dropdown menu
 
 ## Running the Android app against a local setup
 
-To run the app against a local setup of wallet-ecosystem you have to fetch and follow the steps described [in the wallet-ecosystem repository](https://github.com/diggsweden/wallet-ecosystem). After you have successfully got the wallet-ecosystem running on your machine build the Android app with the localDebug build variant on your emulator.
+To run the app against a local setup of wallet-ecosystem you have to fetch and follow the steps
+described [in the wallet-ecosystem repository](https://github.com/diggsweden/wallet-ecosystem).
+After you have successfully got the wallet-ecosystem running on your machine build the Android app
+with the localDebug build variant on your emulator.
 
 ### Setup platform-tools
 
@@ -62,7 +66,9 @@ Make sure that the path to your platform-tools is added in the ~/.zshrc.
 nano ~/.zshrc
 ```
 
-If you do not have a path to your platform-tools add it here. If you are using the default install location you can add the following line, otherwise locate your installation and add that path instead:
+If you do not have a path to your platform-tools add it here. If you are using the default install
+location you can add the following line, otherwise locate your installation and add that path
+instead:
 
 ```bash
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
@@ -76,7 +82,9 @@ adb version
 
 ### Installing the CA certificate on the emulator
 
-The local setup uses TLS certificates issued by a local CA (via [mkcert](https://github.com/FiloSottile/mkcert)). To make the emulator trust these certificates, run:
+The local setup uses TLS certificates issued by a local CA (
+via [mkcert](https://github.com/FiloSottile/mkcert)). To make the emulator trust these certificates,
+run:
 
 ```bash
 just emulator-install-cert
@@ -88,7 +96,8 @@ Or directly:
 ./scripts/emulator-install-cert.sh
 ```
 
-This pushes the mkcert root CA certificate to the emulator and opens the certificate settings. Follow the on-screen instructions to install it as a trusted CA certificate.
+This pushes the mkcert root CA certificate to the emulator and opens the certificate settings.
+Follow the on-screen instructions to install it as a trusted CA certificate.
 
 You can also pass a custom certificate path:
 
@@ -97,9 +106,75 @@ just emulator-install-cert /path/to/cert.pem
 ```
 
 **To install the certificate click:**
-CA Certificate -> CA Certificate (on "Install a certificate" page) -> "Install anyway" -> Select "Downloads" from the hamburger menu -> Now click on the file "rootCA.pem"
+CA Certificate -> CA Certificate (on "Install a certificate" page) -> "Install anyway" -> Select "
+Downloads" from the hamburger menu -> Now click on the file "rootCA.pem"
 
 Your device is now ready to connect to your local services.
+
+## Local Testing with JaCoCo
+
+---
+
+JaCoCo (Java Code Coverage) is used to measure unit test coverage locally. Follow the steps below to
+run tests and generate a coverage report.
+
+### Step 1 — Discover available coverage tasks (optional)
+
+To list all available coverage-related Gradle tasks:
+
+```bash
+./gradlew tasks --all | grep -i coverage
+```
+
+### Step 2 — Run the unit tests and generate the coverage report
+
+Run tests and produce the HTML/XML coverage report in one step. Choose the variant that matches your
+build:
+
+**localDebug** (default for local development):
+
+```bash
+./gradlew createLocalDebugUnitTestCoverageReport
+```
+
+**demoDebug** (demo flavor):
+
+```bash
+./gradlew createDemoDebugUnitTestCoverageReport
+```
+
+Or run both at once:
+
+```bash
+./gradlew createLocalDebugUnitTestCoverageReport createDemoDebugUnitTestCoverageReport
+```
+
+Or using just:
+
+```bash
+just test
+```
+
+### Step 3 — View the report
+
+Open the generated HTML report in a browser:
+
+**localDebug:**
+
+```bash
+open app/build/reports/coverage/test/local/debug/index.html
+```
+
+**demoDebug:**
+
+```bash
+open app/build/reports/coverage/test/demo/debug/index.html
+```
+
+The report shows overall coverage percentages and highlights which lines, branches, and methods are
+covered or missed.
+
+---
 
 ## Licenses
 
@@ -107,4 +182,5 @@ Your device is now ready to connect to your local services.
 
 Source code is EUPL-1.2. Most other assets are CC0-1.0
 
-Copies from Google Play Store are licensed under their store EULA plus our Terms of Use; that doesn’t change the EUPL license for the source.
+Copies from Google Play Store are licensed under their store EULA plus our Terms of Use; that
+doesn’t change the EUPL license for the source.
