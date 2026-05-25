@@ -8,20 +8,26 @@ import io.ktor.client.HttpClient
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AccountsClient
+import se.wallet.client.gateway.client.ApiConfiguration
 import se.wallet.client.gateway.client.NetworkResult
+import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
 import se.wallet.client.gateway.client.WuaClient
 import se.wallet.client.gateway.models.CreateAccountRequestDto
+import se.wallet.client.gateway.models.KeyRequest
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
     private val gatewayClient: HttpClient,
+    private val sessionManager: SessionManager,
 ) {
     val user: Flow<User?> = userDao.observe()
     val accountsClient = AccountsClient(gatewayClient)
     val wuaClient = WuaClient(gatewayClient)
+    val postWalletKey = V0AccountsWalletKeysClient(gatewayClient)
 
     suspend fun fetchWua(nonce: String? = null): String =
         when (val response = wuaClient.createWua(nonce = nonce)) {
@@ -37,7 +43,7 @@ class UserRepository @Inject constructor(
         }
 
     suspend fun createAccount(request: CreateAccountRequestDto): String =
-        when (val response = accountsClient.createAccount1(createAccountRequestDto = request)) {
+        when (val response = accountsClient.createAccount(createAccountRequestDto = request)) {
             is NetworkResult.Failure -> {
                 throw IllegalStateException("Failed creating account: ${response.error}")
             }
@@ -47,8 +53,23 @@ class UserRepository @Inject constructor(
             }
         }
 
+    suspend fun postWalletKey(request: KeyRequest) {
+        val customHeaders = mapOf("Accept" to "application/problem+json")
+        when (
+            val response = postWalletKey.addAccountWalletKey(
+                keyRequest = request,
+                apiConfiguration = ApiConfiguration(customHeaders = customHeaders),
+            )
+        ) {
+            is NetworkResult.Failure -> throw IllegalStateException(
+                "Failed posting wallet key: ${response.error}",
+            )
+
+            is NetworkResult.Success -> Unit
+        }
+    }
+
     suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
-    suspend fun getPin(): String? = userDao.get()?.pin
     suspend fun getPid(): SavedCredential? = userDao.get()?.pid
     suspend fun getCredentials(): List<SavedCredential> = userDao.get()?.credentials ?: emptyList()
     suspend fun getCredential(id: String): SavedCredential {
@@ -61,11 +82,8 @@ class UserRepository @Inject constructor(
         return matchingCredential
     }
 
-    suspend fun getEmail(): String? = userDao.get()?.email
-    suspend fun getPhone(): String? = userDao.get()?.phone
     suspend fun getAccountId(): String? = userDao.get()?.accountId
 
-    suspend fun setPin(pin: String) = updateUser { it.copy(pin = pin) }
     suspend fun setUuid(uuid: UUID) = updateUser { it.copy(uuid = uuid) }
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
     suspend fun setPid(credential: SavedCredential) {
@@ -78,17 +96,14 @@ class UserRepository @Inject constructor(
     suspend fun addCredentials(credentials: List<SavedCredential>) =
         updateUser { it.copy(credentials = it.credentials + credentials) }
 
-    suspend fun setEmail(email: String) = updateUser { it.copy(email = email) }
-    suspend fun setPhone(phone: String) = updateUser { it.copy(phone = phone) }
-
-    suspend fun wipeAll() = userDao.clear()
+    suspend fun wipeAll() {
+        sessionManager.reset()
+        userDao.clear()
+    }
 
     private suspend inline fun updateUser(crossinline transform: (User) -> User) {
         val current = userDao.get() ?: User(
             id = 0,
-            pin = null,
-            email = null,
-            phone = null,
             uuid = null,
             accountId = null,
             pid = null,

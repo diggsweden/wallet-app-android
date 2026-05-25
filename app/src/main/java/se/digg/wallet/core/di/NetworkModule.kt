@@ -125,30 +125,39 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideSessionManager(@BaseHttpClient base: HttpClient, userDao: UserDao): SessionManager {
+        val client = base.config {
+            defaultRequest {
+                url {
+                    protocol = URLProtocol.HTTPS
+                    host = BuildConfig.BASE_URL
+                }
+                header("X-API-KEY", BuildConfig.API_KEY)
+            }
+        }
+        return SessionManager(
+            challengeClient = PublicAuthSessionChallengeClient(client),
+            validateClient = PublicAuthSessionResponseClient(client),
+            userDao = userDao,
+        )
+    }
+
+    @Provides
+    @Singleton
     @GatewayHttpClient
     fun provideGatewayClient(
-        @BaseHttpClient
-        base: HttpClient,
-        userDao: UserDao,
+        @BaseHttpClient base: HttpClient,
+        sessionManager: SessionManager,
     ): HttpClient {
-        val client =
-            base.config {
-                defaultRequest {
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        host = BuildConfig.BASE_URL
-                    }
-                    header("X-API-KEY", BuildConfig.API_KEY)
+        val client = base.config {
+            defaultRequest {
+                url {
+                    protocol = URLProtocol.HTTPS
+                    host = BuildConfig.BASE_URL
                 }
+                header("X-API-KEY", BuildConfig.API_KEY)
             }
-
-        val sessionManager =
-            SessionManager(
-                challengeClient = PublicAuthSessionChallengeClient(client),
-                validateClient = PublicAuthSessionResponseClient(client),
-                userDao = userDao,
-            )
-
+        }
         return client.config {
             install(authPlugin) {
                 this.sessionManager = sessionManager

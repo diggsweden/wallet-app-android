@@ -22,12 +22,8 @@ class SettingsViewModel @Inject constructor(private val userRepository: UserRepo
 
     fun onLogout() {
         viewModelScope.launch {
-            try {
-                userRepository.wipeAll()
-                _events.emit(SettingsUiEvent.LocalStorageCleared)
-            } catch (e: Exception) {
-                // TODO handle error?
-            }
+            userRepository.wipeAll()
+            _events.emit(SettingsUiEvent.LocalStorageCleared)
         }
     }
 }

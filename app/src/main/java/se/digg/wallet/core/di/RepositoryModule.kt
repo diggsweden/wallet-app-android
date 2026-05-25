@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import javax.inject.Singleton
+import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.storage.user.UserDao
 import se.digg.wallet.data.UserRepository
 
@@ -22,5 +23,10 @@ object RepositoryModule {
     fun provideUserRepository(
         userDao: UserDao,
         @GatewayHttpClient gatewayClient: HttpClient,
-    ): UserRepository = UserRepository(userDao = userDao, gatewayClient = gatewayClient)
+        sessionManager: SessionManager,
+    ): UserRepository = UserRepository(
+        userDao = userDao,
+        gatewayClient = gatewayClient,
+        sessionManager = sessionManager,
+    )
 }

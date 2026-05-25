@@ -24,6 +24,7 @@ import se.digg.wallet.feature.dashboard.DashboardRoute
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
 import se.digg.wallet.feature.onboarding.OnboardingRoute
 import se.digg.wallet.feature.onboarding.intro.IntroRoute
+import se.digg.wallet.feature.onboarding.registerpin.RegisterPinRoute
 import se.digg.wallet.feature.presentation.PresentationRoute
 import se.digg.wallet.feature.settings.SettingsRoute
 
@@ -98,7 +99,19 @@ fun WalletNavHost(
             }
 
             composable(NavigationItem.Settings.route) {
-                SettingsRoute(navController = navController, onLogout = { onLogout.invoke() })
+                SettingsRoute(
+                    navController = navController,
+                    onLogout = {
+                        navController.navigate(RootGraph.ONBOARDING) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                )
+            }
+
+            composable(NavigationItem.RegisterPin.route) {
+                RegisterPinRoute(navController = navController)
             }
 
             composable(
@@ -147,6 +160,9 @@ fun WalletNavHost(
             route = RootGraph.ONBOARDING,
         ) {
             composable(OnboardingNavItem.Intro.route) {
+                /*
+                RegisterPinRoute(navController = navController)
+                 */
                 IntroRoute(
                     onContinue = {
                         navController.navigate(OnboardingNavItem.Onboarding.route)

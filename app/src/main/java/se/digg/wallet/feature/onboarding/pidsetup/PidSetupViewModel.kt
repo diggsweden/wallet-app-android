@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.feature.onboarding.fetchid
+package se.digg.wallet.feature.onboarding.pidsetup
 
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
@@ -29,70 +29,29 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.di.BaseHttpClient
-import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
-import se.digg.wallet.core.services.KeyAlias
-import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
-import se.wallet.client.gateway.models.CreateAccountRequestDto
-import se.wallet.client.gateway.models.JwkDto
 import timber.log.Timber
 
 @HiltViewModel
-class FetchIdViewModel @Inject constructor(
+class PidSetupViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val oAuthCoordinator: OAuthCoordinator,
     @BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
-    init {
-        setupAccount()
-    }
 
-    private val _uiState = MutableStateFlow<FetchIdUiState>(FetchIdUiState.Loading)
-    val uiState: StateFlow<FetchIdUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<PidSetupUiState>(PidSetupUiState.Idle)
+    val uiState: StateFlow<PidSetupUiState> = _uiState.asStateFlow()
 
-    private val _effects = MutableSharedFlow<FetchIdUiEffect>()
-    val effects: SharedFlow<FetchIdUiEffect> = _effects.asSharedFlow()
+    private val _effects = MutableSharedFlow<PidSetupUiEffect>()
+    val effects: SharedFlow<PidSetupUiEffect> = _effects.asSharedFlow()
 
     val credential =
         userRepository.user
             .map { it?.pid }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    fun setupAccount() {
-        viewModelScope.launch {
-            try {
-                val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-                val ecKey = keyPair.toECKey(withThumbprint = true)
-                val email = userRepository.getEmail() ?: ""
-                val phone = userRepository.getPhone() ?: ""
-
-                val requestBody =
-                    CreateAccountRequestDto(
-                        personalIdentityNumber = "12345678",
-                        emailAdress = email,
-                        telephoneNumber = phone,
-                        publicKey =
-                            JwkDto(
-                                kty = ecKey.keyType.value,
-                                crv = ecKey.curve.name,
-                                x = ecKey.x.toString(),
-                                y = ecKey.y.toString(),
-                                kid = ecKey.keyID,
-                            ),
-                    )
-
-                val accountId = userRepository.createAccount(requestBody)
-                userRepository.setAccountId(accountId)
-                _uiState.value = FetchIdUiState.Idle
-            } catch (e: Exception) {
-                Timber.d("ContactInfo - Account creation error: ${e.message}")
-                _uiState.value = FetchIdUiState.Error
-            }
-        }
-    }
 
     fun getCredentialOffer(launchAuthTab: LaunchAuthTab) {
         viewModelScope.launch {
@@ -101,11 +60,11 @@ class FetchIdViewModel @Inject constructor(
                     generateCredentialOffer() ?: generateOfferInBrowser(launchAuthTab)
 
                 _effects.emit(
-                    FetchIdUiEffect.OnCredentialOfferFetched(credentialOffer = credentialOffer),
+                    PidSetupUiEffect.OnCredentialOfferFetched(credentialOffer = credentialOffer),
                 )
             } catch (e: Exception) {
                 Timber.d("Credential offer not fetched - ${e.message}")
-                _uiState.value = FetchIdUiState.Error
+                _uiState.value = PidSetupUiState.Error
             }
         }
     }
@@ -138,13 +97,13 @@ class FetchIdViewModel @Inject constructor(
     ) {
         OAuthResult.Cancelled -> {
             Timber.d("OAuth cancelled")
-            _uiState.value = FetchIdUiState.Idle
+            _uiState.value = PidSetupUiState.Idle
             throw IllegalStateException("OAuth session cancelled")
         }
 
         is OAuthResult.Failure -> {
             Timber.d("OAuth failed: ${oAuthCallback.message}")
-            _uiState.value = FetchIdUiState.Idle
+            _uiState.value = PidSetupUiState.Idle
             throw IllegalStateException("OAuth session failed")
         }
 

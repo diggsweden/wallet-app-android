@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.feature.onboarding.fetchid
+package se.digg.wallet.feature.onboarding.pidsetup
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -42,18 +42,18 @@ import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun FetchIdRoute(
+fun PidSetupRoute(
     pageNumber: Int,
     onNext: () -> Unit,
     onCredentialOfferFetch: (String) -> Unit,
-    viewModel: FetchIdViewModel = hiltViewModel(),
+    viewModel: PidSetupViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                FetchIdUiEffect.OnNext -> {}
+                PidSetupUiEffect.OnNext -> {}
 
-                is FetchIdUiEffect.OnCredentialOfferFetched -> {
+                is PidSetupUiEffect.OnCredentialOfferFetched -> {
                     onCredentialOfferFetch.invoke(effect.credentialOffer)
                 }
             }
@@ -71,7 +71,7 @@ fun FetchIdRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val launchAuthTab = LocalAuthTabLauncher.current
 
-    FetchIdScreen(
+    PidSetupScreen(
         uiState = uiState,
         pageNumber = pageNumber,
         onFetchId = { viewModel.getCredentialOffer(launchAuthTab) },
@@ -79,17 +79,17 @@ fun FetchIdRoute(
 }
 
 @Composable
-private fun FetchIdScreen(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> Unit) {
+private fun PidSetupScreen(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> Unit) {
     when (uiState) {
-        FetchIdUiState.Error -> Error()
+        PidSetupUiState.Error -> Error()
 
-        FetchIdUiState.Idle -> Content(
+        PidSetupUiState.Idle -> Content(
             uiState = uiState,
             pageNumber = pageNumber,
             onFetchId = { onFetchId.invoke() },
         )
 
-        FetchIdUiState.Loading -> Loading()
+        PidSetupUiState.Loading -> Loading()
     }
 }
 
@@ -106,7 +106,7 @@ private fun Error() {
 }
 
 @Composable
-private fun Content(uiState: FetchIdUiState, pageNumber: Int, onFetchId: () -> Unit) {
+private fun Content(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -184,10 +184,10 @@ private fun Loading() {
 
 @Composable
 @PreviewsWallet
-private fun FetchIdScreenPreview() {
+private fun PidSetupScreenPreview() {
     WalletPreview {
-        FetchIdScreen(
-            uiState = FetchIdUiState.Idle,
+        PidSetupScreen(
+            uiState = PidSetupUiState.Idle,
             pageNumber = 8,
             onFetchId = {},
         )

@@ -56,7 +56,7 @@ android {
 
     defaultConfig {
         applicationId = "se.digg.wallet"
-        minSdk = 28
+        minSdk = 29
         targetSdk = 36
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: getVersionCode()
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
@@ -176,6 +176,8 @@ dependencies {
     implementation(libs.bundles.storage)
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
+    implementation(libs.accessMechanism)
+
     ksp(libs.hilt.compiler)
 
     ksp(libs.room.compiler)
@@ -199,7 +201,7 @@ tasks.withType<FormatTask> {
 
 fabrikt {
     generate("client-gateway") {
-        apiFile = file("src/main/openapi/client-gateway.json")
+        apiFile = file("src/main/openapi/client-gateway.yaml")
         outputDirectory = fabriktOutputDirectory
         basePackage = "se.wallet.client.gateway"
         addFileDisclaimer = enabled

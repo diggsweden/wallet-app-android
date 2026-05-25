@@ -11,12 +11,14 @@ enum class AppNavigation {
     CREDENTIAL_DETAILS,
     SETTINGS,
     ISSUANCE,
+    REGISTER_PIN,
 }
 
 sealed class NavigationItem(val route: String) {
     object Home : NavigationItem(route = AppNavigation.HOME.name)
     object CredentialDetails : NavigationItem(route = AppNavigation.CREDENTIAL_DETAILS.name)
     object Settings : NavigationItem(route = AppNavigation.SETTINGS.name)
+    object RegisterPin : NavigationItem(route = AppNavigation.REGISTER_PIN.name)
 }
 
 enum class OnboardingNavigation {

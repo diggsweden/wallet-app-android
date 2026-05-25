@@ -25,8 +25,7 @@ class DashboardViewModel @Inject constructor(private val userRepository: UserRep
 
     val uiState: StateFlow<DashboardUiModel> =
         userRepository.user.map { user ->
-            checkNotNull(user)
-            DashboardUiModel(pid = user.pid, credentials = user.credentials)
+            DashboardUiModel(pid = user?.pid, credentials = user?.credentials ?: emptyList())
         }
             .distinctUntilChanged()
             .stateIn(
