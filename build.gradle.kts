@@ -9,4 +9,12 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.fabrikt) apply false
     alias(libs.plugins.kotlinter) apply false
+    alias(libs.plugins.sonarqube)
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "wallet-app-android")
+        property("sonar.projectName", "wallet-app-android")
+    }
 }
