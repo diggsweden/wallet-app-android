@@ -28,8 +28,8 @@ externalDocs:
 servers:
   - url: '/'
 security:
-  - ApiKeyScheme: [ ]
-    SessionIdScheme: [ ]
+  - ApiKeyScheme: []
+    SessionIdScheme: []
 tags:
   - name: API-info
     description: Information about the API

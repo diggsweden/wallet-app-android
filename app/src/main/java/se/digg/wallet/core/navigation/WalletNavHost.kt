@@ -4,21 +4,15 @@
 
 package se.digg.wallet.core.navigation
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
-import androidx.navigation.navigation
-import androidx.navigation.toRoute
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsRoute
 import se.digg.wallet.feature.dashboard.DashboardRoute
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
@@ -29,164 +23,82 @@ import se.digg.wallet.feature.presentation.PresentationRoute
 import se.digg.wallet.feature.settings.SettingsRoute
 
 @Composable
-fun WalletNavHost(
-    onLogout: () -> Unit,
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
-    isEnrolled: Boolean = false,
-) {
-    val startDestination = if (isEnrolled) RootGraph.DASHBOARD else RootGraph.ONBOARDING
-
-    NavHost(
+fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) {
+    NavDisplay(
+        backStack = navigator.backStack,
         modifier = modifier,
-        navController = navController,
-        startDestination = startDestination,
-        enterTransition = {
-            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+        onBack = { navigator.goBack() },
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        transitionSpec = {
+            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
         },
-        exitTransition = {
-            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+        popTransitionSpec = {
+            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
         },
-        popEnterTransition = {
-            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+        predictivePopTransitionSpec = {
+            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
         },
-        popExitTransition = {
-            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
-        },
-    ) {
-        composable(
-            route = "homescreen?credentialOfferUri={credential_offer_uri}",
-            arguments =
-                listOf(
-                    navArgument("credential_offer_uri") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                    },
-                ),
-            deepLinks =
-                listOf(
-                    // TODO look into uriPattern
-                    navDeepLink {
-                        uriPattern =
-                            "openid-credential-offer://?credential_offer={credential_offer_uri}"
-                    },
-                ),
-        ) { backStackEntry ->
-            val fullUri = backStackEntry.deepLinkUri()
-            DeepLinkedIssuanceRoute(
-                onBackClick = { navController.navigateUp() },
-                onFinishClick = { navController.navigateUp() },
-                credentialOfferUri = fullUri.toString(),
-            )
-        }
-
-        // Enrolled
-        navigation(
-            startDestination = NavigationItem.Home.route,
-            route = RootGraph.DASHBOARD,
-        ) {
-            composable(NavigationItem.Home.route) {
-                DashboardRoute(navController = navController)
-            }
-
-            composable<CredentialDetailsRoute> {
-                val credential = it.toRoute<CredentialDetailsRoute>()
-                CredentialDetailsRoute(
-                    credentialId = credential.id,
-                    navController = navController,
-                )
-            }
-
-            composable(NavigationItem.Settings.route) {
-                SettingsRoute(
-                    navController = navController,
-                    onLogout = {
-                        navController.navigate(RootGraph.ONBOARDING) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                )
-            }
-
-            composable(NavigationItem.RegisterPin.route) {
-                RegisterPinRoute(navController = navController)
-            }
-
-            composable(
-                route = "presentation_eudi",
-                arguments =
-                    listOf(
-                        navArgument("requestUri") {
-                            type = NavType.StringType
-                            nullable = true
-                        },
-                    ),
-                deepLinks =
-                    listOf(
-                        navDeepLink {
-                            uriPattern = "eudi-openid4vp://?{requestUri}"
-                        },
-                    ),
-            ) { backStackEntry ->
-                val fullUri = backStackEntry.deepLinkUri()
-                PresentationRoute(navController = navController, fullUri = fullUri.toString())
-            }
-            composable(
-                route = "presentation",
-                arguments =
-                    listOf(
-                        navArgument("requestUri") {
-                            type = NavType.StringType
-                            nullable = true
-                        },
-                    ),
-                deepLinks =
-                    listOf(
-                        navDeepLink {
-                            uriPattern = "openid4vp://?{requestUri}"
-                        },
-                    ),
-            ) { backStackEntry ->
-                val fullUri = backStackEntry.deepLinkUri()
-                PresentationRoute(navController = navController, fullUri = fullUri.toString())
-            }
-        }
-
-        // Non-Enrolled
-        navigation(
-            startDestination = OnboardingNavItem.Intro.route,
-            route = RootGraph.ONBOARDING,
-        ) {
-            composable(OnboardingNavItem.Intro.route) {
-                /*
-                RegisterPinRoute(navController = navController)
-                 */
+        entryProvider = entryProvider {
+            entry<IntroKey> {
                 IntroRoute(
-                    onContinue = {
-                        navController.navigate(OnboardingNavItem.Onboarding.route)
-                    },
+                    onContinue = { navigator.navigate(OnboardingKey) },
                 )
             }
-            composable(OnboardingNavItem.Onboarding.route) {
+            entry<OnboardingKey> {
                 OnboardingRoute(
-                    navController = navController,
-                    onFinish = {
-                        navController.navigate(NavigationItem.Home.route) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    },
+                    onBack = { navigator.goBack() },
+                    onFinish = { navigator.resetToDashboard() },
                 )
             }
-        }
-    }
+            entry<HomeKey> {
+                DashboardRoute(
+                    onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
+                    onSettingsClick = { navigator.navigate(SettingsKey) },
+                )
+            }
+            entry<CredentialDetailsKey> { key ->
+                CredentialDetailsRoute(
+                    credentialId = key.id,
+                    onBack = { navigator.goBack() },
+                )
+            }
+            entry<SettingsKey> {
+                SettingsRoute(
+                    onBack = { navigator.goBack() },
+                    onLogout = { navigator.resetToOnboarding() },
+                )
+            }
+            entry<RegisterPinKey> {
+                RegisterPinRoute(
+                    onBack = { navigator.goBack() },
+                )
+            }
+            entry<IssuanceDeepLinkKey> { key ->
+                DeepLinkedIssuanceRoute(
+                    onBackClick = { navigator.goBack() },
+                    onFinishClick = { navigator.goBack() },
+                    credentialOfferUri = key.fullUri,
+                )
+            }
+            entry<PresentationEudiKey> { key ->
+                PresentationRoute(
+                    onBack = { navigator.goBack() },
+                    onFinish = { navigator.goBack() },
+                    onPopBack = { navigator.goBack() },
+                    fullUri = key.fullUri,
+                )
+            }
+            entry<PresentationKey> { key ->
+                PresentationRoute(
+                    onBack = { navigator.goBack() },
+                    onFinish = { navigator.goBack() },
+                    onPopBack = { navigator.goBack() },
+                    fullUri = key.fullUri,
+                )
+            }
+        },
+    )
 }
-
-fun NavBackStackEntry.deepLinkIntent(): Intent? =
-    arguments?.getParcelable(NavController.KEY_DEEP_LINK_INTENT)
-
-fun NavBackStackEntry.deepLinkUri(): Uri? = deepLinkIntent()?.data

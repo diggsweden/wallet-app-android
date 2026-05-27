@@ -4,37 +4,40 @@
 
 package se.digg.wallet.core.navigation
 
+import android.net.Uri
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-enum class AppNavigation {
-    HOME,
-    CREDENTIAL_DETAILS,
-    SETTINGS,
-    ISSUANCE,
-    REGISTER_PIN,
-}
-
-sealed class NavigationItem(val route: String) {
-    object Home : NavigationItem(route = AppNavigation.HOME.name)
-    object CredentialDetails : NavigationItem(route = AppNavigation.CREDENTIAL_DETAILS.name)
-    object Settings : NavigationItem(route = AppNavigation.SETTINGS.name)
-    object RegisterPin : NavigationItem(route = AppNavigation.REGISTER_PIN.name)
-}
-
-enum class OnboardingNavigation {
-    INTRO,
-    ONBOARDING,
-}
+@Serializable
+data object HomeKey : NavKey
 
 @Serializable
-data class CredentialDetailsRoute(val id: String)
+data object SettingsKey : NavKey
 
-sealed class OnboardingNavItem(val route: String) {
-    object Intro : OnboardingNavItem(route = OnboardingNavigation.INTRO.name)
-    object Onboarding : OnboardingNavItem(route = OnboardingNavigation.ONBOARDING.name)
-}
+@Serializable
+data object RegisterPinKey : NavKey
 
-object RootGraph {
-    const val ONBOARDING = "onboarding_graph"
-    const val DASHBOARD = "dashboard_graph"
+@Serializable
+data class CredentialDetailsKey(val id: String) : NavKey
+
+@Serializable
+data object IntroKey : NavKey
+
+@Serializable
+data object OnboardingKey : NavKey
+
+@Serializable
+data class IssuanceDeepLinkKey(val fullUri: String) : NavKey
+
+@Serializable
+data class PresentationEudiKey(val fullUri: String) : NavKey
+
+@Serializable
+data class PresentationKey(val fullUri: String) : NavKey
+
+fun Uri.toNavKey(): NavKey? = when (scheme) {
+    "openid-credential-offer" -> IssuanceDeepLinkKey(toString())
+    "eudi-openid4vp" -> PresentationEudiKey(toString())
+    "openid4vp" -> PresentationKey(toString())
+    else -> null
 }
