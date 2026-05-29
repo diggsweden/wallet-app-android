@@ -53,7 +53,7 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
                     onFinish = { navigator.resetToDashboard() },
                 )
             }
-            entry<HomeKey> {
+            entry<DashboardKey> {
                 DashboardRoute(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
                     onSettingsClick = { navigator.navigate(SettingsKey) },
@@ -81,14 +81,6 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
                     onBackClick = { navigator.goBack() },
                     onFinishClick = { navigator.goBack() },
                     credentialOfferUri = key.fullUri,
-                )
-            }
-            entry<PresentationEudiKey> { key ->
-                PresentationRoute(
-                    onBack = { navigator.goBack() },
-                    onFinish = { navigator.goBack() },
-                    onPopBack = { navigator.goBack() },
-                    fullUri = key.fullUri,
                 )
             }
             entry<PresentationKey> { key ->

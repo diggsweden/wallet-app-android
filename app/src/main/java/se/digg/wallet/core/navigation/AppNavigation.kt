@@ -9,7 +9,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object HomeKey : NavKey
+data object DashboardKey : NavKey
 
 @Serializable
 data object SettingsKey : NavKey
@@ -30,14 +30,10 @@ data object OnboardingKey : NavKey
 data class IssuanceDeepLinkKey(val fullUri: String) : NavKey
 
 @Serializable
-data class PresentationEudiKey(val fullUri: String) : NavKey
-
-@Serializable
 data class PresentationKey(val fullUri: String) : NavKey
 
 fun Uri.toNavKey(): NavKey? = when (scheme) {
-    "openid-credential-offer" -> IssuanceDeepLinkKey(toString())
-    "eudi-openid4vp" -> PresentationEudiKey(toString())
-    "openid4vp" -> PresentationKey(toString())
+    "openid-credential-offer", "haip-vci" -> IssuanceDeepLinkKey(toString())
+    "eudi-openid4vp", "openid4vp" -> PresentationKey(toString())
     else -> null
 }

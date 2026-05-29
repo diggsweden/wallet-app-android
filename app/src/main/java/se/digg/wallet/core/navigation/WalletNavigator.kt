@@ -24,6 +24,6 @@ class WalletNavigator(val backStack: NavBackStack<NavKey>) {
 
     fun resetToDashboard() {
         backStack.clear()
-        backStack.add(HomeKey)
+        backStack.add(DashboardKey)
     }
 }
