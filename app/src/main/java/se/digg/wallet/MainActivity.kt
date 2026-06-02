@@ -5,6 +5,7 @@
 package se.digg.wallet
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -51,7 +52,7 @@ class MainActivity : ComponentActivity() {
             oAuthCoordinator.onResult(result)
         }
 
-    private fun launchAuthTab(url: android.net.Uri, redirectScheme: String) {
+    private fun launchAuthTab(url: Uri, redirectScheme: String) {
         val authTabIntent = AuthTabIntent.Builder().build()
         authTabIntent.launch(authLauncher, url, redirectScheme)
     }
