@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
@@ -36,7 +35,7 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 @Composable
 fun CredentialDetailsRoute(
     credentialId: String,
-    navController: NavController,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailsViewModel = hiltViewModel(),
 ) {
@@ -45,7 +44,7 @@ fun CredentialDetailsRoute(
 
     CredentialDetailsScreen(
         uiState = uiState,
-        onBackClick = { navController.navigateUp() },
+        onBackClick = onBack,
         modifier = modifier,
     )
 }

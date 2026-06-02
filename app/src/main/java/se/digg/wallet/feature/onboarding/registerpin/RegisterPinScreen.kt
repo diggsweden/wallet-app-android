@@ -19,19 +19,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun RegisterPinRoute(
-    navController: NavController,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RegisterPinViewModel = hiltViewModel(),
 ) {
     RegisterPinScreen(
-        onBackClick = { navController.navigateUp() },
+        onBackClick = onBack,
         onRegisterNewState = { viewModel.registerNewState() },
         onRegisterPin = { viewModel.registerPin() },
         onChangePin = { viewModel.changePin() },

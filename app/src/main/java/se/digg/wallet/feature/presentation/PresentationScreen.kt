@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -34,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
@@ -47,13 +47,16 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun PresentationRoute(
-    navController: NavController,
+    onBack: () -> Unit,
+    onFinish: () -> Unit,
+    onPopBack: () -> Unit,
     fullUri: String,
     modifier: Modifier = Modifier,
     viewModel: PresentationViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val uriHandler = LocalUriHandler.current
+    val currentOnPopBack by rememberUpdatedState(onPopBack)
 
     LaunchedEffect(Unit) {
         viewModel.init(fullUri)
@@ -62,15 +65,15 @@ fun PresentationRoute(
             when (effect) {
                 is PresentationUiEffect.OpenUrl -> {
                     uriHandler.openUri(effect.url)
-                    navController.popBackStack()
+                    currentOnPopBack()
                 }
             }
         }
     }
     PresentationScreen(
-        onBackCLick = { navController.navigateUp() },
+        onBackCLick = onBack,
         onShareClick = { viewModel.sendData() },
-        onFinishClick = { navController.navigateUp() },
+        onFinishClick = onFinish,
         onOptionalClaimClick = { id, checked ->
             viewModel.onOptionalClaimCheckedChanged(
                 id,
