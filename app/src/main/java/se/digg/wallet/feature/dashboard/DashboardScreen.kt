@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.DocumentCard
@@ -42,13 +41,12 @@ import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.navigation.CredentialDetailsRoute
-import se.digg.wallet.core.navigation.NavigationItem
 import se.digg.wallet.data.SavedCredential
 
 @Composable
 fun DashboardRoute(
-    navController: NavController,
+    onCredentialClick: (String) -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
@@ -56,12 +54,9 @@ fun DashboardRoute(
 
     DashboardScreen(
         credentialDetails = credentialDetails,
-        onCredentialClick = { navController.navigate(route = CredentialDetailsRoute(it)) },
-        onSettingsClick = {
-            navController.navigate(
-                NavigationItem.Settings.route,
-            )
-        },
+        onCredentialClick = onCredentialClick,
+        onSettingsClick = onSettingsClick,
+        modifier = modifier,
     )
 }
 

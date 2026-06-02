@@ -33,13 +33,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
@@ -53,14 +53,15 @@ import se.digg.wallet.feature.onboarding.walletsetup.WalletSetupRoute
 
 @Composable
 fun OnboardingRoute(
-    navController: NavController,
+    onBack: () -> Unit,
     onFinish: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
+    val currentOnBack by rememberUpdatedState(onBack)
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             if (event is OnboardingUiEvent.LocalStorageCleared) {
-                navController.popBackStack()
+                currentOnBack()
             }
         }
     }
