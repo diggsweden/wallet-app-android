@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R as DesignR
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PrimaryButton
@@ -110,7 +111,7 @@ private fun PresentationScreen(
                 navigationIcon = {
                     IconButton(onClick = { onBackCLick.invoke() }) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_left),
+                            painter = painterResource(DesignR.drawable.arrow_left),
                             contentDescription = null,
                         )
                     }

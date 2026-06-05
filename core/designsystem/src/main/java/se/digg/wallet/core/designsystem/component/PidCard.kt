@@ -24,15 +24,16 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
-import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.Brown70
 import se.digg.wallet.core.designsystem.theme.TextColor
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.feature.dashboard.formatDate
 
 @Composable
 fun PidCard(issueDate: Date, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -75,6 +76,11 @@ fun PidCard(issueDate: Date, onClick: () -> Unit, modifier: Modifier = Modifier)
             }
         }
     }
+}
+
+private fun formatDate(date: Date): String {
+    val localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+    return DateTimeFormatter.ofPattern("dd MMM yyyy").format(localDateTime)
 }
 
 @Composable

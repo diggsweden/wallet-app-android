@@ -179,6 +179,7 @@ dependencies {
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
     implementation(libs.accessMechanism)
+    implementation(project(":core:designsystem"))
 
     ksp(libs.hilt.compiler)
 

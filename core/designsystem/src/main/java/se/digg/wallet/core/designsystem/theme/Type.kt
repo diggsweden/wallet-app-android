@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R
 
 val ubuntuFontFamily = FontFamily(
     Font(R.font.ubuntu_light, FontWeight.Light),

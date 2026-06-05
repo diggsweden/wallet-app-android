@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="credential_offer_issuer">Utfärdare:</string>
+    <string name="error_generic_screen_message">Något gick tyvärr fel, vänligen försök igen och om problemet kvarstår så kontakta oss med en felrapport.</string>
+    <string name="error_something_went_wrong">Något gick fel</string>
+    <string name="generic_error">Fel</string>
+    <string name="generic_no">Nej</string>
+    <string name="generic_retry">Försök igen</string>
+    <string name="generic_yes">Ja</string>
+    <string name="onboarding_intro_subtitle">Din data, ditt val</string>
+    <string name="onboarding_intro_title">Plånboken</string>
+    <string name="settings_app_version">App version: %1$s (%2$d)</string>
+</resources>

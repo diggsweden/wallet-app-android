@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R as DesignR
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
@@ -67,7 +68,10 @@ fun IssuanceScreen(
         } else {
             Spacer(Modifier.height(26.dp))
         }
-        CredentialOfferHeader(issuer = issuerMetadata)
+        CredentialOfferHeader(
+            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
+            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
+        )
 
         when (val currentState = uiState) {
             IssuanceState.Loading -> {
@@ -126,7 +130,7 @@ fun DeepLinkedIssuanceRoute(
                 navigationIcon = {
                     IconButton(onClick = { onBackClick.invoke() }) {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_left),
+                            painter = painterResource(DesignR.drawable.arrow_left),
                             contentDescription = null,
                         )
                     }

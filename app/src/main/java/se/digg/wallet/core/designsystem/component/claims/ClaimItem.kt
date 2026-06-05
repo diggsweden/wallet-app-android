@@ -26,6 +26,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R as DesignR
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -77,9 +78,9 @@ private fun ClaimContent(value: ClaimValue) {
                 Icon(
                     painter = painterResource(
                         if (value.value) {
-                            R.drawable.check_circle
+                            DesignR.drawable.check_circle
                         } else {
-                            R.drawable.cancel
+                            DesignR.drawable.cancel
                         },
                     ),
                     contentDescription = null,
@@ -91,10 +92,10 @@ private fun ClaimContent(value: ClaimValue) {
                 )
                 Text(
                     text = if (value.value) {
-                        stringResource(R.string.generic_yes)
+                        stringResource(DesignR.string.generic_yes)
                     } else {
                         stringResource(
-                            R.string.generic_no,
+                            DesignR.string.generic_no,
                         )
                     },
                     style = WalletTextStyle.BodyMD,

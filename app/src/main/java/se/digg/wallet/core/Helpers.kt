@@ -13,23 +13,6 @@ import timber.log.Timber
 
 private const val CUSTOM_TABS_ACTION = "android.support.customtabs.action.CustomTabsService"
 
-fun getAppVersion(context: Context): AppVersionInfo = try {
-    val packageInfo = context.packageManager.getPackageInfo(
-        context.packageName,
-        0,
-    )
-
-    val versionName = packageInfo.versionName ?: ""
-    val versionCode = packageInfo.longVersionCode
-
-    AppVersionInfo(versionName = versionName, versionCode = versionCode)
-} catch (e: Exception) {
-    Timber.d("Unable to get version")
-    AppVersionInfo(versionName = "?", versionCode = 0)
-}
-
-data class AppVersionInfo(val versionName: String, val versionCode: Long)
-
 fun getCustomTabsProvider(context: Context): String? {
     val packageManager = context.packageManager
 
