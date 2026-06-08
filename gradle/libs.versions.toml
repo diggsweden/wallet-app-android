@@ -27,7 +27,7 @@ hiltNavigationCompose = "1.3.0"
 fabrikt = "1.33.0"
 androidBrowser = "1.10.0"
 kotlinter = "5.4.2"
-sonarqube = "7.3.0.8198"
+
 eudiSDJWT = "0.20.0"
 
 [libraries]
@@ -108,4 +108,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 fabrikt = { id = "ch.acanda.gradle.fabrikt", version.ref = "fabrikt" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
-sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+

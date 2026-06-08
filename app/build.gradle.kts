@@ -231,16 +231,3 @@ tasks.named("preBuild") {
 hilt {
     enableAggregatingTask = false
 }
-
-sonar {
-    properties {
-        property(
-            "sonar.coverage.jacoco.xmlReportPaths",
-            "${layout.buildDirectory.get()}/reports/coverage/test/**/report.xml",
-        )
-    }
-}
-
-tasks.matching { it.name == "sonarResolver" }.configureEach {
-    dependsOn(tasks.matching { it.name.startsWith("copyRoomSchemasToAndroidTestAssets") })
-}
