@@ -42,7 +42,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.R as DesignR
 import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -118,7 +117,7 @@ private fun OnboardingScreen(
                             if (uiState.enableBack.contains(uiState.currentStep)) {
                                 IconButton(onClick = { onBack.invoke() }) {
                                     Icon(
-                                        painter = painterResource(DesignR.drawable.arrow_left),
+                                        painter = painterResource(R.drawable.arrow_left),
                                         contentDescription = null,
                                     )
                                 }

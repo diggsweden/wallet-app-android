@@ -30,6 +30,8 @@ import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.getAppVersion
 
+private const val CLIPBOARD_LABEL = "version"
+
 @Composable
 fun AppVersionText(modifier: Modifier = Modifier) {
     val clipboard = LocalClipboard.current
@@ -46,7 +48,7 @@ fun AppVersionText(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.clickable {
             scope.launch {
-                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("version", string)))
+                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(CLIPBOARD_LABEL, string)))
             }
         },
         verticalAlignment = Alignment.CenterVertically,

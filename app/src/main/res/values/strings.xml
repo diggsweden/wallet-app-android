@@ -1,24 +1,19 @@
 <resources>
     <string name="app_name">ID-plånboken</string>
-    <!-- onboarding_intro_subtitle moved to :core:designsystem -->
     <string name="generic_ok">Okay</string>
     <string name="generic_continue">Continue</string>
-    <!-- generic_error, generic_retry moved to :core:designsystem -->
     <string name="settings_logout">Sign out</string>
     <string name="generic_close">Close</string>
     <string name="generic_next">Next</string>
     <string name="issuance_approve_button">Approve personal data</string>
     <string name="generic_share">Share</string>
-    <!-- error_generic_screen_message moved to :core:designsystem -->
     <string name="presentation_share_successful_info">You can now go back to the app or website you came from.</string>
     <string name="presentation_share_successful_title">Done</string>
     <string name="presentation_share_title">Would you like to share the following data?</string>
     <string name="presentation_app_bar_title">Share attributes</string>
-    <!-- settings_app_version, onboarding_screen_header_title moved to :core:designsystem -->
     <string name="dashboard_credentials_header">Documents</string>
     <string name="generic_skip">Skip</string>
     <string name="settings_title">Settings</string>
-    <!-- error_something_went_wrong moved to :core:designsystem -->
     <string name="presentation_required_claims_title">"Data to shared: "</string>
     <string name="generic_error_retry">Something went wrong, try again.</string>
     <string name="onboarding_fetch_id_title">Download personal data</string>
@@ -32,12 +27,9 @@
     <string name="onboarding_pin_description_1">PIN code is used when you identify yourself</string>
     <string name="generic_login">Sign in</string>
     <string name="issuance_app_bar_title">Fetch credential</string>
-    <!-- moved to :core:designsystem -->
-    <!-- generic_yes, generic_no, credential_offer_issuer -->
     <string name="claim_item_missing_value">No data</string>
     <string name="presentation_selective_disclosure_title">Optional data:</string>
     <string name="onboarding_step_title">Step %1$d of %2$d</string>
-    <!-- onboarding_intro_title moved to :core:designsystem -->
     <string name="onboarding_intro_button">Get started with the wallet</string>
     <string name="onboarding_fetch_id_description_2">In order to use the wallet, we need to collect information about you. The information collected is used as an ID card.</string>
     <string name="generic_cancel">Cancel</string>

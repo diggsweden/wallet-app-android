@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.R as DesignR
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -88,7 +87,7 @@ private fun StepFailedScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("${step.displayName()} failed")
-        PrimaryButton(text = stringResource(DesignR.string.generic_retry), onClick = onRetry)
+        PrimaryButton(text = stringResource(R.string.generic_retry), onClick = onRetry)
         PrimaryButton(text = stringResource(R.string.generic_cancel), onClick = onCancel)
     }
 }

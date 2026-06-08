@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ID-plånboken</string>
-    <!-- onboarding_intro_subtitle moved to :core:designsystem -->
     <string name="generic_ok">Ok</string>
     <string name="generic_continue">Fortsätt</string>
-    <!-- generic_error, generic_retry moved to :core:designsystem -->
     <string name="settings_logout">Logga ut</string>
-    <!-- settings_app_version moved to :core:designsystem -->
     <string name="generic_close">Stäng</string>
     <string name="generic_next">Nästa</string>
     <string name="issuance_approve_button">Godkänn personuppgifter</string>
     <string name="generic_share">Dela</string>
-    <!-- error_generic_screen_message moved to :core:designsystem -->
     <string name="presentation_share_successful_info">Du kan nu gå tillbaka till appen eller hemsidan som du kom ifrån.</string>
     <string name="presentation_share_successful_title">Nu är det klart</string>
     <string name="presentation_share_title">Vill du dela följande data?</string>
@@ -19,7 +15,6 @@
     <string name="dashboard_credentials_header">Handlingar</string>
     <string name="generic_skip">Hoppa över</string>
     <string name="settings_title">Inställningar</string>
-    <!-- error_something_went_wrong moved to :core:designsystem -->
     <string name="presentation_required_claims_title">Uppgifter som delas:</string>
     <string name="generic_error_retry">Något gick fel, försök igen.</string>
     <string name="onboarding_fetch_id_title">Hämta personuppgifter</string>
@@ -33,12 +28,10 @@
     <string name="onboarding_pin_description_1">Pinkod används när du ska identifiera dig</string>
     <string name="generic_login">Logga in</string>
     <string name="issuance_app_bar_title">Hämta attributsintyg</string>
-    <!-- credential_offer_issuer, generic_yes, generic_no moved to :core:designsystem -->
     <string name="claim_item_missing_value">Ingen uppgift</string>
     <string name="presentation_selective_disclosure_title">Valfria uppgifter:</string>
     <string name="onboarding_step_title">Steg %1$d av %2$d</string>
     <string name="onboarding_fetch_id_button">Hämta personuppgifter</string>
-    <!-- onboarding_intro_title moved to :core:designsystem -->
     <string name="onboarding_intro_button">Kom igång med plånboken</string>
     <string name="generic_cancel">Avbryt</string>
 </resources>

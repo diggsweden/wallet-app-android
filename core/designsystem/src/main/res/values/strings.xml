@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="credential_offer_issuer">Issuer:</string>
     <string name="error_generic_screen_message">Unfortunately, something went wrong, please try again and if the problem persists, contact us with an error report.</string>

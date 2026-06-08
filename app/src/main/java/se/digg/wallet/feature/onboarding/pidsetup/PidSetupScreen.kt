@@ -33,7 +33,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.R as DesignR
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
@@ -101,7 +100,7 @@ private fun Error() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(stringResource(DesignR.string.generic_error), style = WalletTextStyle.H2)
+        Text(stringResource(R.string.generic_error), style = WalletTextStyle.H2)
         Text(stringResource(R.string.generic_error_retry), style = WalletTextStyle.BodyMD)
     }
 }
@@ -155,7 +154,7 @@ private fun Content(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> 
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(DesignR.drawable.open_in_new),
+                painter = painterResource(R.drawable.open_in_new),
                 contentDescription = null,
                 tint = Color(0xFF556951),
             )
