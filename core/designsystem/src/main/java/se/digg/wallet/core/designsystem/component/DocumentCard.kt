@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.theme.Yellow100
 import se.digg.wallet.core.designsystem.theme.Yellow130

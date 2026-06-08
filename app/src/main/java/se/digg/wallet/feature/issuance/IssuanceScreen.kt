@@ -67,7 +67,10 @@ fun IssuanceScreen(
         } else {
             Spacer(Modifier.height(26.dp))
         }
-        CredentialOfferHeader(issuer = issuerMetadata)
+        CredentialOfferHeader(
+            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
+            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
+        )
 
         when (val currentState = uiState) {
             IssuanceState.Loading -> {

@@ -19,12 +19,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
-import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 
 @Composable
-fun CredentialOfferHeader(issuer: CredentialIssuerMetadata?, modifier: Modifier = Modifier) {
+fun CredentialOfferHeader(logoUrl: String?, issuerName: String?, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Box(
             modifier =
@@ -34,12 +33,7 @@ fun CredentialOfferHeader(issuer: CredentialIssuerMetadata?, modifier: Modifier 
             contentAlignment = Alignment.Center,
         ) {
             AsyncImage(
-                model = issuer
-                    ?.display
-                    ?.first()
-                    ?.logo
-                    ?.uri
-                    .toString(),
+                model = logoUrl,
                 contentDescription = null,
             )
         }
@@ -54,7 +48,7 @@ fun CredentialOfferHeader(issuer: CredentialIssuerMetadata?, modifier: Modifier 
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = issuer?.display?.first()?.name ?: "-",
+            text = issuerName ?: "-",
             style = WalletTextStyle.BodyMD,
         )
     }

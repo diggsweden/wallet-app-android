@@ -24,7 +24,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimary
 import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimaryDark
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimary

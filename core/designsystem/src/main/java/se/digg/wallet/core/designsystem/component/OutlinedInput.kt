@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.ErrorContainer
 import se.digg.wallet.core.designsystem.theme.ErrorContainerDarkMode
 import se.digg.wallet.core.designsystem.theme.ErrorOutline
