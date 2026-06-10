@@ -17,7 +17,7 @@ kotlin {
 
 android {
     namespace = "se.digg.wallet.core.designsystem"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 29

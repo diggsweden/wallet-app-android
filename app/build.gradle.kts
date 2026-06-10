@@ -47,7 +47,7 @@ kotlin {
 
 android {
     namespace = "se.digg.wallet"
-    compileSdk = 36
+    compileSdk = 37
 
     // TODO this can be removed when eudi-libraries are removed.
     packaging {
