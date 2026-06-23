@@ -69,6 +69,3 @@ class JwtClaimsSerializer<T>(private val payloadSerializer: KSerializer<T>) :
         )
     }
 }
-
-fun <T> jwtClaimsSerializer(payloadSerializer: KSerializer<T>): KSerializer<JwtClaims<T>> =
-    JwtClaimsSerializer(payloadSerializer)

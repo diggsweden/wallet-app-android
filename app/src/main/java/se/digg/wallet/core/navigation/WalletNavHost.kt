@@ -18,7 +18,6 @@ import se.digg.wallet.feature.dashboard.DashboardRoute
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
 import se.digg.wallet.feature.onboarding.OnboardingRoute
 import se.digg.wallet.feature.onboarding.intro.IntroRoute
-import se.digg.wallet.feature.onboarding.registerpin.RegisterPinRoute
 import se.digg.wallet.feature.presentation.PresentationRoute
 import se.digg.wallet.feature.settings.SettingsRoute
 
@@ -69,11 +68,6 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
                 SettingsRoute(
                     onBack = { navigator.goBack() },
                     onLogout = { navigator.resetToOnboarding() },
-                )
-            }
-            entry<RegisterPinKey> {
-                RegisterPinRoute(
-                    onBack = { navigator.goBack() },
                 )
             }
             entry<IssuanceDeepLinkKey> { key ->

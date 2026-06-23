@@ -4,20 +4,24 @@
 
 package se.digg.wallet.data
 
+import com.nimbusds.jose.jwk.Curve
+import com.nimbusds.jose.jwk.ECKey
 import io.ktor.client.HttpClient
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import se.digg.wallet.access_mechanism.model.ServerParameters
 import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
-import se.wallet.client.gateway.client.AccountsClient
 import se.wallet.client.gateway.client.ApiConfiguration
 import se.wallet.client.gateway.client.NetworkResult
+import se.wallet.client.gateway.client.V0AccountsClient
 import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
 import se.wallet.client.gateway.client.WuaClient
-import se.wallet.client.gateway.models.CreateAccountRequestDto
-import se.wallet.client.gateway.models.KeyRequest
+import se.wallet.client.gateway.models.CreateAccountRequest
+import se.wallet.client.gateway.models.EcJwkRequest
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
@@ -25,9 +29,9 @@ class UserRepository @Inject constructor(
     private val sessionManager: SessionManager,
 ) {
     val user: Flow<User?> = userDao.observe()
-    val accountsClient = AccountsClient(gatewayClient)
-    val wuaClient = WuaClient(gatewayClient)
-    val postWalletKey = V0AccountsWalletKeysClient(gatewayClient)
+    private val accountsClient = V0AccountsClient(gatewayClient)
+    private val wuaClient = WuaClient(gatewayClient)
+    private val walletKeysClient = V0AccountsWalletKeysClient(gatewayClient)
 
     suspend fun fetchWua(nonce: String? = null): String =
         when (val response = wuaClient.createWua(nonce = nonce)) {
@@ -42,8 +46,8 @@ class UserRepository @Inject constructor(
             }
         }
 
-    suspend fun createAccount(request: CreateAccountRequestDto): String =
-        when (val response = accountsClient.createAccount(createAccountRequestDto = request)) {
+    suspend fun createAccount(request: CreateAccountRequest): String =
+        when (val response = accountsClient.createAccount(createAccountRequest = request)) {
             is NetworkResult.Failure -> {
                 throw IllegalStateException("Failed creating account: ${response.error}")
             }
@@ -53,12 +57,10 @@ class UserRepository @Inject constructor(
             }
         }
 
-    suspend fun postWalletKey(request: KeyRequest) {
-        val customHeaders = mapOf("Accept" to "application/problem+json")
+    suspend fun postWalletKey(request: EcJwkRequest) {
         when (
-            val response = postWalletKey.addAccountWalletKey(
-                keyRequest = request,
-                apiConfiguration = ApiConfiguration(customHeaders = customHeaders),
+            val response = walletKeysClient.addAccountWalletKey(
+                ecJwkRequest = request,
             )
         ) {
             is NetworkResult.Failure -> throw IllegalStateException(
@@ -95,6 +97,31 @@ class UserRepository @Inject constructor(
 
     suspend fun addCredentials(credentials: List<SavedCredential>) =
         updateUser { it.copy(credentials = it.credentials + credentials) }
+
+    suspend fun saveServerParameters(params: ServerParameters) {
+        val jwk = ECKey.Builder(Curve.P_256, params.serverPublicKey).build().toJSONString()
+        updateUser {
+            it.copy(
+                opaqueSession = OpaqueSession(
+                    serverPublicKeyJwk = jwk,
+                    opaqueServerId = params.opaqueServerId,
+                    stateId = params.stateId,
+                    opaqueContext = params.opaqueContext,
+                ),
+            )
+        }
+    }
+
+    suspend fun getServerParameters(): ServerParameters? {
+        val session = userDao.get()?.opaqueSession ?: return null
+        val publicKey = ECKey.parse(session.serverPublicKeyJwk).toECPublicKey()
+        return ServerParameters(
+            serverPublicKey = publicKey,
+            opaqueServerId = session.opaqueServerId,
+            stateId = session.stateId,
+            opaqueContext = session.opaqueContext,
+        )
+    }
 
     suspend fun wipeAll() {
         sessionManager.reset()

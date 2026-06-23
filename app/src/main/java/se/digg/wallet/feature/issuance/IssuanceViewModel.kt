@@ -38,12 +38,14 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
+import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
@@ -62,11 +64,26 @@ import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.toJwkModel
 import timber.log.Timber
 
+/**
+ * The authorized context accumulated once the user has logged in. These three values always
+ * travel together through the remaining issuance steps, so they are grouped rather than tracked
+ * as separate fields.
+ */
+data class AuthorizedSession(
+    val issuer: Issuer,
+    val authorizedRequest: AuthorizedRequest,
+    val credentialConfig: SdJwtVcCredential,
+)
+
 sealed interface IssuanceState {
-    data class IssuerFetched(val credentialOffer: CredentialOffer) : IssuanceState
+    val onRetry: (() -> Unit)? get() = null
+
+    data object Loading : IssuanceState
+    data class Error(override val onRetry: (() -> Unit)? = null) : IssuanceState
+    data class IssuerFetched(val issuer: Issuer) : IssuanceState
+    data class ReadyToSign(val session: AuthorizedSession) : IssuanceState
+    data class ReadyToFetch(val session: AuthorizedSession, val proof: Proof) : IssuanceState
     data class CredentialFetched(val claims: List<ClaimUiModel>) : IssuanceState
-    object Loading : IssuanceState
-    object Error : IssuanceState
 }
 
 @HiltViewModel
@@ -74,6 +91,7 @@ class IssuanceViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val oAuthCoordinator: OAuthCoordinator,
     private val openIdNetworkService: OpenIdNetworkService,
+    private val opaqueTransport: WalletOpaqueClient,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
@@ -89,7 +107,7 @@ class IssuanceViewModel @Inject constructor(
     )
 
     private var claimDisplayNames: Map<String, String> = mutableMapOf()
-    private var issuer: Issuer? = null
+    private var authenticatedOpaqueClient: OpaqueClient? = null
 
     private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Loading)
     val uiState: StateFlow<IssuanceState> = _uiState
@@ -101,27 +119,29 @@ class IssuanceViewModel @Inject constructor(
         _uiState.value = IssuanceState.Loading
         viewModelScope.launch {
             try {
-                val issuerFetched = Issuer.make(
+                val issuer = Issuer.make(
                     config = openId4VCIConfig,
                     httpClient = httpClient,
                     credentialOfferUri = uri,
                 ).getOrThrow()
-                claimDisplayNames = getClaimDisplayNames(issuerFetched.credentialOffer)
-                _issuerMetadata.value = issuerFetched.credentialOffer.credentialIssuerMetadata
-                issuer = issuerFetched
-                _uiState.value =
-                    IssuanceState.IssuerFetched(credentialOffer = issuerFetched.credentialOffer)
+                claimDisplayNames = getClaimDisplayNames(issuer.credentialOffer)
+                _issuerMetadata.value = issuer.credentialOffer.credentialIssuerMetadata
+                _uiState.value = IssuanceState.IssuerFetched(issuer)
             } catch (e: Exception) {
-                _uiState.value = IssuanceState.Error
                 Timber.d("IssuanceViewModel: Fetch issuer error: ${e.message}")
+                _uiState.value = IssuanceState.Error(
+                    onRetry = {
+                        fetchIssuer(uri)
+                    },
+                )
             }
         }
     }
 
     fun authorize(launchAuthTab: LaunchAuthTab) {
+        val issuer = (_uiState.value as? IssuanceState.IssuerFetched)?.issuer ?: return
         viewModelScope.launch {
             try {
-                val issuer = issuer ?: throw IllegalStateException("Issuer = null")
                 val preparedAuthorizationRequest = with(issuer) {
                     prepareAuthorizationRequest().getOrThrow()
                 }
@@ -152,7 +172,13 @@ class IssuanceViewModel @Inject constructor(
                                 ).getOrThrow()
                             }
                         }
-                        fetchCredential(authRequest)
+                        _uiState.value = IssuanceState.ReadyToSign(
+                            AuthorizedSession(
+                                issuer = issuer,
+                                authorizedRequest = authRequest,
+                                credentialConfig = resolveCredentialConfig(issuer),
+                            ),
+                        )
                     }
 
                     else -> {
@@ -160,47 +186,71 @@ class IssuanceViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.value = IssuanceState.Error
                 Timber.d("IssuanceViewModel: Authorize error: ${e.message}")
+                _uiState.value = IssuanceState.Error(
+                    onRetry = {
+                        _uiState.value = IssuanceState.IssuerFetched(issuer)
+                    },
+                )
             }
         }
     }
 
-    fun fetchCredential(authorizedRequest: AuthorizedRequest) {
+    fun createProof(pin: String) {
+        val session = (_uiState.value as? IssuanceState.ReadyToSign)?.session ?: return
         viewModelScope.launch {
-            try {
-                val credentialOffer = checkNotNull(issuer?.credentialOffer)
-                val credentialConfigurationId =
-                    checkNotNull(credentialOffer.credentialConfigurationIdentifiers.first())
-                val credentialConfig =
-                    checkNotNull(
-                        credentialOffer.credentialIssuerMetadata
-                            .credentialConfigurationsSupported[credentialConfigurationId]
-                            as? SdJwtVcCredential,
-                    )
-                val accessToken = authorizedRequest.accessToken.accessToken
-                val proofs = createProof(credentialConfig)
-                val response = fetchCredentialResponse(
-                    proofs = proofs,
-                    credentialConfigurationId = credentialConfigurationId.toString(),
-                    accessToken = accessToken,
-                )
-                val credentialSdJwt = response.credentials.firstOrNull()?.credential
-                check(credentialSdJwt != null) {
-                    "No credential found"
-                }
-
-                val (credential, claims) = parseCredential(
-                    credentialSdJwt,
-                    credentialConfig,
-                )
-                saveCredential(credential)
-                _uiState.value = IssuanceState.CredentialFetched(claims)
+            _uiState.value = IssuanceState.Loading
+            val proof = try {
+                createSignedProofJwt(pin, session.credentialConfig)
             } catch (e: Exception) {
-                _uiState.value = IssuanceState.Error
-                Timber.d("IssuanceViewModel: Fetch credential error: ${e.message}")
+                Timber.d(e, "IssuanceViewModel: Create proof error")
+                authenticatedOpaqueClient = null
+                _uiState.value = IssuanceState.Error(
+                    onRetry = {
+                        _uiState.value = IssuanceState.ReadyToSign(session)
+                    },
+                )
+                return@launch
+            }
+            _uiState.value = IssuanceState.ReadyToFetch(session, proof)
+        }
+    }
+
+    fun fetchCredential() {
+        val state = _uiState.value as? IssuanceState.ReadyToFetch ?: return
+        viewModelScope.launch {
+            _uiState.value = IssuanceState.Loading
+            try {
+                doFetchCredential(state.session, state.proof)
+            } catch (e: Exception) {
+                Timber.d(e, "IssuanceViewModel: Fetch credential error")
+                _uiState.value = IssuanceState.Error(
+                    onRetry = {
+                        _uiState.value = IssuanceState.ReadyToFetch(state.session, state.proof)
+                    },
+                )
             }
         }
+    }
+
+    fun retry() {
+        _uiState.value.onRetry?.invoke()
+    }
+
+    private suspend fun doFetchCredential(session: AuthorizedSession, proof: Proof) {
+        val credentialConfigurationId =
+            session.issuer.credentialOffer.credentialConfigurationIdentifiers.first()
+        val response = fetchCredentialResponse(
+            proofs = proof,
+            credentialConfigurationId = credentialConfigurationId.toString(),
+            accessToken = session.authorizedRequest.accessToken.accessToken,
+        )
+        val credentialSdJwt = checkNotNull(response.credentials.firstOrNull()?.credential) {
+            "No credential found"
+        }
+        val (credential, claims) = parseCredential(credentialSdJwt, session.credentialConfig)
+        saveCredential(credential)
+        _uiState.value = IssuanceState.CredentialFetched(claims)
     }
 
     private suspend fun saveCredential(credential: SavedCredential) {
@@ -211,42 +261,59 @@ class IssuanceViewModel @Inject constructor(
         }
     }
 
-    private suspend fun createProof(credentialConfiguration: SdJwtVcCredential): Proof {
-        val proofTypeJwt =
-            checkNotNull(
-                credentialConfiguration.proofTypesSupported[ProofType.JWT] as? ProofTypeMeta.Jwt,
-            ) {
-                "Unsupported Prooftype"
-            }
-        val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-        val nonceEndpointUrl = issuerMetadata.value?.nonceEndpoint?.value.toString()
-        val aud = issuerMetadata.value?.credentialIssuerIdentifier?.value.toString()
-        val headers = mutableMapOf(
-            "typ" to "openid4vci-proof+jwt",
-        )
-
-        val nonceUrl = issuerMetadata.value?.nonceEndpoint?.value
-        val nonce = if (nonceUrl != null) {
-            openIdNetworkService.fetchNonce(url = nonceEndpointUrl).nonce
-        } else {
-            null
+    private fun resolveCredentialConfig(issuer: Issuer): SdJwtVcCredential {
+        val offer = issuer.credentialOffer
+        val configId = offer.credentialConfigurationIdentifiers.first()
+        val config = offer.credentialIssuerMetadata.credentialConfigurationsSupported[configId]
+        return checkNotNull(config as? SdJwtVcCredential) {
+            "Unsupported credential configuration"
         }
+    }
 
-        val payload = IssuanceProofPayload(
-            nonce = nonce,
-            aud = aud,
-            iss = "wallet-app",
-        )
+    private suspend fun createSignedProofJwt(
+        pin: String,
+        credentialConfiguration: SdJwtVcCredential,
+    ): Proof {
+        val proofTypeJwt = checkNotNull(
+            credentialConfiguration.proofTypesSupported[ProofType.JWT] as? ProofTypeMeta.Jwt,
+        ) { "Unsupported proof type" }
         val isKeyAttestationRequired =
             proofTypeJwt.keyAttestationRequirement is KeyAttestationRequirement.Required
 
-        if (isKeyAttestationRequired) {
-            val wua = userRepository.fetchWua(nonce = nonce)
-            headers["key_attestation"] = wua
+        val aud = checkNotNull(_issuerMetadata.value?.credentialIssuerIdentifier?.value) {
+            "Missing credential issuer identifier"
+        }.toString()
+        val nonce = _issuerMetadata.value?.nonceEndpoint?.value?.let { url ->
+            openIdNetworkService.fetchNonce(url = url.toString()).nonce
         }
 
-        val jwtProof =
-            JwtUtils.signJWT(keyPair, payload, headers, !isKeyAttestationRequired).serialize()
+        val opaqueClient = authenticatedOpaqueClient ?: OpaqueClient.resume(
+            transport = opaqueTransport,
+            serverParameters = checkNotNull(userRepository.getServerParameters()),
+            clientKeyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY),
+            pinStretchPrivateKey = KeystoreManager.getPinStretchPrivateKey(),
+        ).also {
+            it.authenticate(pin = pin)
+            authenticatedOpaqueClient = it
+        }
+        val hsmKey = checkNotNull(opaqueClient.listHsmKeys().firstOrNull()) {
+            "No HSM keys found"
+        }
+        val kid = hsmKey.publicKey.keyID
+
+        val headers = mutableMapOf<String, Any>("typ" to "openid4vci-proof+jwt")
+        if (isKeyAttestationRequired) {
+            headers["key_attestation"] = userRepository.fetchWua(nonce = nonce)
+        }
+
+        val payload = IssuanceProofPayload(nonce = nonce, aud = aud, iss = "wallet-app")
+        val jwtProof = JwtUtils.signJwtWith(
+            payload = payload,
+            headers = headers,
+            jwk = if (isKeyAttestationRequired) null else hsmKey.publicKey,
+        ) { data ->
+            opaqueClient.sign(kid, data).signature
+        }
         return Proof(listOf(jwtProof))
     }
 
@@ -255,7 +322,7 @@ class IssuanceViewModel @Inject constructor(
         credentialConfigurationId: String,
         accessToken: String,
     ): CredentialResponseModel {
-        val encryption = getCryptoSpec(issuerMetadata.value?.credentialRequestEncryption)
+        val encryption = getCryptoSpec(_issuerMetadata.value?.credentialRequestEncryption)
 
         return if (encryption != null) {
             fetchEncryptedCredential(
@@ -302,9 +369,7 @@ class IssuanceViewModel @Inject constructor(
             jweBody = encrypted,
         )
 
-        val credentialResponseModel: CredentialResponseModel =
-            JwtUtils.decryptJwe(response, softwareKeyPair)
-        return credentialResponseModel
+        return JwtUtils.decryptJwe(response, softwareKeyPair)
     }
 
     private suspend fun fetchUnencryptedCredential(
@@ -317,28 +382,23 @@ class IssuanceViewModel @Inject constructor(
             proofs = proof,
         )
 
-        val response = openIdNetworkService.fetchCredential(
+        return openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
             accessToken = accessToken,
             request = credentialRequest,
         )
-        return response
     }
 
     private fun getCryptoSpec(
         credentialRequestEncryption: CredentialRequestEncryption?,
-    ): CryptoSpec? = when (credentialRequestEncryption) {
-        is CredentialRequestEncryption.Required -> {
-            letAll(
-                credentialRequestEncryption.encryptionParameters.encryptionKeys.keys.firstOrNull(),
-                credentialRequestEncryption.encryptionParameters.encryptionMethods.firstOrNull(),
-            ) { key, method ->
-                CryptoSpec(key, method)
-            }
-        }
-
-        else -> {
-            null
+    ): CryptoSpec? {
+        val required =
+            credentialRequestEncryption as? CredentialRequestEncryption.Required ?: return null
+        return letAll(
+            required.encryptionParameters.encryptionKeys.keys.firstOrNull(),
+            required.encryptionParameters.encryptionMethods.firstOrNull(),
+        ) { key, method ->
+            CryptoSpec(key, method)
         }
     }
 
@@ -354,7 +414,7 @@ class IssuanceViewModel @Inject constructor(
         return SavedCredential(
             compactSerialized = credentialSdJwt,
             claimDisplayNames = claimDisplayNames,
-            issuer = displayToDisplayLocal(issuerMetadata.value?.display?.firstOrNull()),
+            issuer = displayToDisplayLocal(_issuerMetadata.value?.display?.firstOrNull()),
             type = credentialConfiguration.type,
             displayData = CredentialDisplayData(
                 name = credentialConfiguration.credentialMetadata?.display?.firstOrNull()?.name,
