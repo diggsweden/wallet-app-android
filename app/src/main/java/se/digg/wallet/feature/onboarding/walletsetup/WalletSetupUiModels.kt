@@ -9,7 +9,6 @@ enum class SetupStep {
     INIT_HSM,
     REGISTER_PIN,
     AUTHENTICATE,
-    CREATE_HSM_KEY,
     POST_HSM_KEY,
 }
 

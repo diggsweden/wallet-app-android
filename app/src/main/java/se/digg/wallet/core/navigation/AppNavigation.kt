@@ -15,9 +15,6 @@ data object DashboardKey : NavKey
 data object SettingsKey : NavKey
 
 @Serializable
-data object RegisterPinKey : NavKey
-
-@Serializable
 data class CredentialDetailsKey(val id: String) : NavKey
 
 @Serializable

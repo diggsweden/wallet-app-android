@@ -39,7 +39,7 @@ import timber.log.Timber
 class PidSetupViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val oAuthCoordinator: OAuthCoordinator,
-    @BaseHttpClient private val httpClient: HttpClient,
+    @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<PidSetupUiState>(PidSetupUiState.Idle)

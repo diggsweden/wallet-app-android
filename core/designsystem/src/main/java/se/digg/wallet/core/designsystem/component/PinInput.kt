@@ -53,40 +53,38 @@ import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
+private const val PIN_LENGTH = 6
+
 @Composable
-fun PinInput(
-    onPinChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    keyboardHeight: Dp = 360.dp,
-) {
+fun PinInput(buttonLabel: String, onSubmit: (String) -> Unit, modifier: Modifier = Modifier) {
     var pin by rememberSaveable { mutableStateOf("") }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == ORIENTATION_LANDSCAPE
 
+    val onPinChange: (String) -> Unit = { value ->
+        if (value.length <= PIN_LENGTH) {
+            pin = value
+        }
+    }
+    val onSubmitClick = {
+        onSubmit(pin)
+        pin = ""
+    }
+
     if (isLandscape) {
         Landscape(
             pin = pin,
-            minLengthToSubmit = 6,
-            onPinChange = {
-                if (it.length <= 6) {
-                    pin = it
-                    onPinChange.invoke(it)
-                }
-            },
-            onPinReset = { pin = "" },
+            buttonLabel = buttonLabel,
+            onPinChange = onPinChange,
+            onSubmitClick = onSubmitClick,
             modifier = modifier,
         )
     } else {
         Portrait(
             pin = pin,
-            minLengthToSubmit = 6,
-            onPinReset = { pin = "" },
-            onPinChange = {
-                if (it.length <= 6) {
-                    pin = it
-                    onPinChange.invoke(it)
-                }
-            },
+            buttonLabel = buttonLabel,
+            onPinChange = onPinChange,
+            onSubmitClick = onSubmitClick,
             modifier = modifier,
         )
     }
@@ -95,9 +93,9 @@ fun PinInput(
 @Composable
 private fun Portrait(
     pin: String,
-    minLengthToSubmit: Int,
-    onPinReset: () -> Unit,
+    buttonLabel: String,
     onPinChange: (String) -> Unit,
+    onSubmitClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -105,13 +103,19 @@ private fun Portrait(
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        PinBalls(requiredLength = minLengthToSubmit, pinLength = pin.length)
+        PinBalls(requiredLength = PIN_LENGTH, pinLength = pin.length)
         Spacer(Modifier.height(32.dp))
         PinPad(
             value = pin,
             onValueChange = onPinChange,
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(24.dp))
+        PrimaryButton(
+            text = buttonLabel,
+            enabled = pin.length == PIN_LENGTH,
+            onClick = onSubmitClick,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -119,9 +123,9 @@ private fun Portrait(
 @Composable
 private fun Landscape(
     pin: String,
-    minLengthToSubmit: Int,
+    buttonLabel: String,
     onPinChange: (String) -> Unit,
-    onPinReset: () -> Unit,
+    onSubmitClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -130,13 +134,19 @@ private fun Landscape(
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        PinBalls(requiredLength = minLengthToSubmit, pinLength = pin.length)
+        PinBalls(requiredLength = PIN_LENGTH, pinLength = pin.length)
         Spacer(Modifier.height(16.dp))
         PinPad(
             value = pin,
             onValueChange = onPinChange,
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(16.dp))
+        PrimaryButton(
+            text = buttonLabel,
+            enabled = pin.length == PIN_LENGTH,
+            onClick = onSubmitClick,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -390,6 +400,6 @@ data class Numerics(val number: String, val letters: String)
 @PreviewsWallet
 private fun Preview() {
     WalletPreview {
-        PinInput(onPinChange = {})
+        PinInput(buttonLabel = "Submit", onSubmit = {})
     }
 }

@@ -97,7 +97,6 @@ private fun SetupStep.displayName(): String = when (this) {
     SetupStep.INIT_HSM -> "Init HSM"
     SetupStep.REGISTER_PIN -> "Register PIN"
     SetupStep.AUTHENTICATE -> "Authenticate"
-    SetupStep.CREATE_HSM_KEY -> "Create HSM key"
     SetupStep.POST_HSM_KEY -> "Post HSM key"
 }
 

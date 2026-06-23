@@ -235,7 +235,7 @@ class PresentationViewModel @Inject constructor(
         }
     }
 
-    private fun createKeyBinding(sdJwt: String, nonce: String, clientId: String): JWT {
+    private suspend fun createKeyBinding(sdJwt: String, nonce: String, clientId: String): JWT {
         val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
         val nonce = nonce
         val aud = "x509_san_dns:$clientId"
@@ -248,7 +248,7 @@ class PresentationViewModel @Inject constructor(
             sdHash = base64Hash,
         )
         val headers = mapOf("typ" to "kb+jwt")
-        return JwtUtils.signJWT(keyPair = keyPair, payload = payload, headers = headers)
+        return JwtUtils.signJwt(keyPair = keyPair, payload = payload, headers = headers)
     }
 
     private fun List<PresentationItem>.updateSelection(

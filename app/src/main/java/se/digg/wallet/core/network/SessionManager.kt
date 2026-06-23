@@ -30,7 +30,7 @@ class SessionManager(
 
     suspend fun initSession(): String {
         val accountId = userDao.get()?.accountId ?: throw Exception("No account")
-        val key = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
+        val key = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
         val keyId = key.toECKey(withThumbprint = true).keyID
         val nonce = getChallenge(accountId, keyId)
         val sessionToken = validateChallenge(keyId = keyId, key = key, nonce = nonce)
@@ -52,7 +52,7 @@ class SessionManager(
 
     suspend fun validateChallenge(keyId: String, key: KeyPair, nonce: String): String {
         val jwt =
-            JwtUtils.signJWT(
+            JwtUtils.signJwt(
                 keyPair = key,
                 payload = mapOf("nonce" to nonce),
                 headers = mapOf("kid" to keyId),

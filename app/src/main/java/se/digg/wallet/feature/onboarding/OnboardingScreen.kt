@@ -48,7 +48,6 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.issuance.OnboardingIssuanceRoute
 import se.digg.wallet.feature.onboarding.pidsetup.PidSetupRoute
 import se.digg.wallet.feature.onboarding.pin.PinSetupRoute
-import se.digg.wallet.feature.onboarding.pin.PinSetupViewModel
 import se.digg.wallet.feature.onboarding.walletsetup.WalletSetupRoute
 
 @Composable
@@ -70,30 +69,22 @@ fun OnboardingRoute(
 
     BackHandler {
         if (uiState.enableBack.contains(uiState.currentStep)) {
-            viewModel.goBack()
+            viewModel.onAction(OnboardingAction.Back)
         }
     }
 
     OnboardingScreen(
         uiState = uiState,
-        onNext = { viewModel.goNext() },
-        onBack = { viewModel.goBack() },
-        onSkip = { viewModel.onSkip() },
-        onCloseOnboarding = { viewModel.closeOnboarding() },
-        onFinishOnboarding = { onFinish.invoke() },
-        onCredentialOfferFetch = { viewModel.setFetchedCredentialOffer(it) },
+        onAction = { action ->
+            if (action is OnboardingAction.Finish) onFinish() else viewModel.onAction(action)
+        },
     )
 }
 
 @Composable
 private fun OnboardingScreen(
     uiState: OnboardingUiState,
-    onNext: () -> Unit,
-    onBack: () -> Unit,
-    onSkip: () -> Unit,
-    onCloseOnboarding: () -> Unit,
-    onFinishOnboarding: () -> Unit,
-    onCredentialOfferFetch: (String) -> Unit,
+    onAction: (OnboardingAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val currentStep = uiState.currentStep.ordinal + 1
@@ -101,38 +92,36 @@ private fun OnboardingScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar =
-            {
-                TopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        titleContentColor = MaterialTheme.colorScheme.onBackground,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                        actionIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    title = {
-                    },
-                    navigationIcon = {
-                        Row(Modifier.fillMaxWidth()) {
-                            if (uiState.enableBack.contains(uiState.currentStep)) {
-                                IconButton(onClick = { onBack.invoke() }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.arrow_left),
-                                        contentDescription = null,
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = { onCloseOnboarding.invoke() }) {
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+                ),
+                title = {},
+                navigationIcon = {
+                    Row(Modifier.fillMaxWidth()) {
+                        if (uiState.enableBack.contains(uiState.currentStep)) {
+                            IconButton(onClick = { onAction(OnboardingAction.Back) }) {
                                 Icon(
-                                    painter = painterResource(R.drawable.close_x),
+                                    painter = painterResource(R.drawable.arrow_left),
                                     contentDescription = null,
                                 )
                             }
                         }
-                    },
-                )
-            },
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(onClick = { onAction(OnboardingAction.Close) }) {
+                            Icon(
+                                painter = painterResource(R.drawable.close_x),
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                },
+            )
+        },
         content = { innerPadding ->
             Column(
                 Modifier
@@ -176,11 +165,8 @@ private fun OnboardingScreen(
                     OnboardingStepContent(
                         pageNumber = currentStep,
                         step = animatedStep,
-                        onNext = { onNext.invoke() },
-                        onBack = { onBack.invoke() },
-                        onSkip = { onSkip.invoke() },
-                        onFinish = { onFinishOnboarding.invoke() },
-                        onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
+                        capturedPin = uiState.capturedPin,
+                        onAction = onAction,
                     )
                 }
             }
@@ -192,46 +178,38 @@ private fun OnboardingScreen(
 fun OnboardingStepContent(
     pageNumber: Int,
     step: OnboardingStep,
-    onNext: () -> Unit,
-    onBack: () -> Unit,
-    onSkip: () -> Unit,
-    onFinish: () -> Unit,
-    onCredentialOfferFetch: (String) -> Unit,
-    pinSetupViewModel: PinSetupViewModel = hiltViewModel(),
+    capturedPin: String,
+    onAction: (OnboardingAction) -> Unit,
 ) {
-    val pinUiState by pinSetupViewModel.uiState.collectAsStateWithLifecycle()
-
     when (step) {
         OnboardingStep.SETUP_PIN -> PinSetupRoute(
-            onNext = { onNext.invoke() },
-            onBack = {},
             pageNumber = pageNumber,
-            viewModel = pinSetupViewModel,
+            onPinEntered = { onAction(OnboardingAction.PinEntered(it)) },
         )
 
         OnboardingStep.VERIFY_PIN -> PinSetupRoute(
-            onNext = { onNext.invoke() },
-            verifyPin = true,
-            onBack = { onBack.invoke() },
             pageNumber = pageNumber,
-            viewModel = pinSetupViewModel,
+            verifyPin = true,
+            onPinEntered = {},
+            onPinVerified = { onAction(OnboardingAction.PinVerified(it)) },
+            onBack = { onAction(OnboardingAction.Back) },
         )
 
         OnboardingStep.SETUP_WALLET -> WalletSetupRoute(
             pageNumber = pageNumber,
-            pin = pinUiState.capturedPin,
-            onNext = { onNext.invoke() },
+            pin = capturedPin,
+            onNext = { onAction(OnboardingAction.Next) },
         )
 
         OnboardingStep.SETUP_PID -> PidSetupRoute(
-            onNext = { onFinish.invoke() },
-            onCredentialOfferFetch = { onCredentialOfferFetch.invoke(it) },
+            onNext = { onAction(OnboardingAction.Finish) },
+            onCredentialOfferFetch = { onAction(OnboardingAction.CredentialOfferFetched(it)) },
             pageNumber = pageNumber,
         )
 
         OnboardingStep.CREDENTIAL_OFFER -> OnboardingIssuanceRoute(
             onBack = {},
-            onFinish = { onFinish.invoke() },
+            onFinish = { onAction(OnboardingAction.Finish) },
             pageNumber = pageNumber,
         )
     }
@@ -243,12 +221,7 @@ private fun EnrollmentPreview() {
     WalletPreview {
         OnboardingScreen(
             uiState = OnboardingUiState(currentStep = OnboardingStep.SETUP_PIN),
-            onNext = {},
-            onBack = {},
-            onSkip = {},
-            onCloseOnboarding = {},
-            onFinishOnboarding = {},
-            onCredentialOfferFetch = {},
+            onAction = {},
         )
     }
 }
