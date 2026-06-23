@@ -56,7 +56,7 @@ android {
 
     defaultConfig {
         applicationId = "se.digg.wallet"
-        minSdk = 29
+        minSdk = 31
         targetSdk = 36
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: getVersionCode()
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
@@ -162,6 +162,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.browser)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -209,6 +210,7 @@ fabrikt {
         validationLibrary = NoValidation
         typeOverrides {
             uuid = String
+            date = String
         }
         client {
             generate = enabled
@@ -226,8 +228,4 @@ tasks.withType<KspAATask>().configureEach {
 
 tasks.named("preBuild") {
     dependsOn(fabriktGenerateTask)
-}
-
-hilt {
-    enableAggregatingTask = false
 }
