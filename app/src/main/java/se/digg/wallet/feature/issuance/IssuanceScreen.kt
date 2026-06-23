@@ -94,7 +94,7 @@ fun IssuanceScreen(
             is IssuanceState.ReadyToSign -> {
                 Spacer(modifier = Modifier.weight(1f))
                 PinInput(
-                    buttonLabel = stringResource(R.string.issuance_confirm_pin_button),
+                    buttonLabel = stringResource(R.string.generic_confirm),
                     onSubmit = { pin -> viewModel.createProof(pin) },
                 )
             }
