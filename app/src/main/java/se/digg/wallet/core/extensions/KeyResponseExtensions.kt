@@ -7,12 +7,12 @@ package se.digg.wallet.core.extensions
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.util.Base64URL
-import se.wallet.client.gateway.models.EcPublicJwkDto
+import se.wallet.client.gateway.models.EcJwkResponse
 
-fun EcPublicJwkDto.toECKey(): ECKey = ECKey.Builder(
+fun EcJwkResponse.toECKey(): ECKey = ECKey.Builder(
     Curve.parse(crv),
     Base64URL(x),
     Base64URL(y),
 ).apply {
-    kid?.let { keyID(it) }
+    keyID(kid)
 }.build()

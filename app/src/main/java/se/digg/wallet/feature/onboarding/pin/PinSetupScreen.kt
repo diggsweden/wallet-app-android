@@ -14,21 +14,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PinInput
-import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -37,41 +29,24 @@ import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 @Composable
 fun PinSetupRoute(
     pageNumber: Int,
-    onNext: () -> Unit,
-    onBack: () -> Unit,
+    onPinEntered: (String) -> Unit,
+    onPinVerified: (String) -> Unit = {},
+    onBack: () -> Unit = {},
     verifyPin: Boolean = false,
-    viewModel: PinSetupViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                PinSetupUiEffect.OnNext -> onNext.invoke()
-                PinSetupUiEffect.OnGoBack -> onBack.invoke()
-            }
-        }
-    }
-
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     PinSetupScreen(
-        uiState = uiState,
         pageNumber = pageNumber,
         verifyPin = verifyPin,
-        onNext = { pin -> viewModel.setPin(pin) },
-        onVerify = { viewModel.checkIfValid(code = it) },
+        onSubmit = { pin -> if (verifyPin) onPinVerified(pin) else onPinEntered(pin) },
     )
 }
 
 @Composable
 private fun PinSetupScreen(
-    uiState: PinSetupUiState,
     pageNumber: Int,
     verifyPin: Boolean,
-    onNext: (String) -> Unit,
-    onVerify: (String) -> Unit,
+    onSubmit: (String) -> Unit,
 ) {
-    var pinCode by rememberSaveable { mutableStateOf("") }
-
     Column(
         Modifier
             .fillMaxSize()
@@ -87,12 +62,9 @@ private fun PinSetupScreen(
         } else {
             OnboardingHeader(
                 pageNumber = pageNumber,
-                pageTitle = stringResource(
-                    R.string.onboarding_pin_title,
-                ),
+                pageTitle = stringResource(R.string.onboarding_pin_title),
             )
         }
-        Spacer(Modifier.weight(1f))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
@@ -101,22 +73,8 @@ private fun PinSetupScreen(
         )
         Spacer(Modifier.height(16.dp))
         PinInput(
-            onPinChange = {
-                pinCode = it
-            },
-        )
-
-        Spacer(Modifier.weight(2f))
-        PrimaryButton(
-            text = stringResource(R.string.generic_next),
-            onClick = {
-                if (verifyPin) {
-                    onVerify.invoke(pinCode)
-                } else {
-                    onNext.invoke(pinCode)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
+            buttonLabel = stringResource(R.string.generic_next),
+            onSubmit = onSubmit,
         )
     }
 }
@@ -126,11 +84,9 @@ private fun PinSetupScreen(
 private fun PinSetupScreenPreview() {
     WalletPreview {
         PinSetupScreen(
-            uiState = PinSetupUiState(),
             pageNumber = 6,
             verifyPin = true,
-            onNext = {},
-            onVerify = {},
+            onSubmit = {},
         )
     }
 }

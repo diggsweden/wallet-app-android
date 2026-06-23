@@ -11,14 +11,22 @@ data class OnboardingUiState(
         listOf(
             OnboardingStep.VERIFY_PIN,
         ),
+    val capturedPin: String = "",
 )
 
 sealed interface OnboardingUiEvent {
     data object LocalStorageCleared : OnboardingUiEvent
 }
 
-sealed interface OnboardingUiEffect {
-    object OnNext : OnboardingUiEffect
+sealed interface OnboardingAction {
+    data object Next : OnboardingAction
+    data object Back : OnboardingAction
+    data object Skip : OnboardingAction
+    data object Finish : OnboardingAction
+    data object Close : OnboardingAction
+    data class CredentialOfferFetched(val url: String) : OnboardingAction
+    data class PinEntered(val pin: String) : OnboardingAction
+    data class PinVerified(val pin: String) : OnboardingAction
 }
 
 enum class OnboardingStep {

@@ -16,6 +16,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
+import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import java.security.SecureRandom
@@ -47,6 +48,12 @@ annotation class GatewayHttpClient
 @Retention(AnnotationRetention.BINARY)
 annotation class UnsafeHttpClient
 
+private val networkJson = Json {
+    ignoreUnknownKeys = true
+}
+
+private val problemJsonContentType = ContentType("application", "problem+json")
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -55,11 +62,8 @@ object NetworkModule {
     @BaseHttpClient
     fun provideHttpClient(): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                },
-            )
+            json(networkJson)
+            json(networkJson, contentType = problemJsonContentType)
         }
 
         install(HttpTimeout) {
@@ -114,11 +118,8 @@ object NetworkModule {
                 preconfigured = unsafeOkHttp
             }
             install(ContentNegotiation) {
-                json(
-                    Json {
-                        ignoreUnknownKeys = true
-                    },
-                )
+                json(networkJson)
+                json(networkJson, contentType = problemJsonContentType)
             }
         }
     }

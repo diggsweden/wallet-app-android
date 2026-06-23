@@ -15,6 +15,7 @@ import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.security.KeyPair
@@ -24,6 +25,72 @@ import kotlinx.serialization.serializer
 import se.digg.wallet.core.extensions.toECKey
 
 object JwtUtils {
+    @PublishedApi
+    internal inline fun <reified T> encodeClaims(payload: T): String {
+        val now = Instant.now().epochSecond.toInt()
+        return Json.encodeToString(
+            JwtClaimsSerializer(serializer<T>()),
+            JwtClaims(
+                defaults = DefaultJwtClaims(iat = now, nbf = now, exp = now + 600),
+                payload = payload,
+            ),
+        )
+    }
+
+    /**
+     * Signs an ES256 JWT with a locally held [keyPair] (e.g. an Android Keystore key).
+     * Set [includeJwk] to embed the public key in the protected header.
+     */
+    inline fun <reified T> signJwt(
+        keyPair: KeyPair,
+        payload: T,
+        headers: Map<String, Any>,
+        includeJwk: Boolean = false,
+    ): SignedJWT {
+        val encoded = encodeClaims(payload)
+
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+            .customParams(headers)
+            .apply {
+                if (includeJwk) {
+                    jwk(keyPair.toECKey())
+                }
+            }
+            .build()
+
+        val signedJwt = SignedJWT(header, JWTClaimsSet.parse(encoded))
+        signedJwt.sign(WalletSigner(keyPair))
+        return signedJwt
+    }
+
+    /**
+     * Signs an ES256 JWT with an external signer (e.g. an HSM key): builds the
+     * `header.payload` signing input and delegates the signature to [sign], which
+     * must return the base64url-encoded signature. [jwk], when given, is embedded
+     * in the protected header.
+     */
+    suspend inline fun <reified T> signJwtWith(
+        payload: T,
+        headers: Map<String, Any>,
+        jwk: JWK? = null,
+        sign: suspend (ByteArray) -> String,
+    ): String {
+        val payloadBytes = encodeClaims(payload).toByteArray(Charsets.UTF_8)
+
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+            .customParams(headers)
+            .apply {
+                if (jwk != null) {
+                    jwk(jwk)
+                }
+            }
+            .build()
+
+        val signingInput = "${header.toBase64URL()}.${Base64URL.encode(payloadBytes)}"
+        val signature = sign(signingInput.toByteArray(Charsets.US_ASCII))
+        return "$signingInput.$signature"
+    }
+
     inline fun <reified T> encryptJwe(
         payload: T,
         recipientKey: JWK,
@@ -40,48 +107,10 @@ object JwtUtils {
 
     inline fun <reified T> decryptJwe(compactString: String, decryptionKeyPair: KeyPair): T {
         val jwe = JWEObject.parse(compactString)
-        val decrypter =
-            ECDHDecrypter(decryptionKeyPair.private, null, Curve.P_256)
+        val decrypter = ECDHDecrypter(decryptionKeyPair.private, null, Curve.P_256)
         jwe.decrypt(decrypter)
         val serializer = Json { ignoreUnknownKeys = true }
         val jsonString = jwe.payload.toBytes().decodeToString()
         return serializer.decodeFromString<T>(jsonString)
-    }
-
-    inline fun <reified T> signJWT(
-        keyPair: KeyPair,
-        payload: T,
-        headers: Map<String, Any>,
-        includeJwk: Boolean = false,
-    ): SignedJWT {
-        val now = Instant.now().epochSecond.toInt()
-
-        val defaultJwtClaims = DefaultJwtClaims(
-            iat = now,
-            nbf = now,
-            exp = now + 600,
-        )
-
-        val claimsSerializer = jwtClaimsSerializer(serializer<T>())
-        val encoded = Json.encodeToString(
-            claimsSerializer,
-            JwtClaims(defaults = defaultJwtClaims, payload = payload),
-        )
-        val algorithm = JWSAlgorithm.ES256
-
-        val header = JWSHeader.Builder(algorithm)
-            .customParams(headers)
-            .apply {
-                if (includeJwk) {
-                    jwk(keyPair.toECKey())
-                }
-            }
-            .build()
-
-        val claimsSet = JWTClaimsSet.parse(encoded)
-        val signedJwt = SignedJWT(header, claimsSet)
-        signedJwt.sign(WalletSigner(keyPair))
-
-        return signedJwt
     }
 }

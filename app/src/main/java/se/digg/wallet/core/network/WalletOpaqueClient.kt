@@ -7,36 +7,37 @@ package se.digg.wallet.core.network
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import io.ktor.client.HttpClient
+import java.io.IOException
 import java.security.interfaces.ECPublicKey
 import javax.inject.Inject
+import kotlinx.coroutines.delay
+import se.digg.wallet.access_mechanism.api.HSMOperationType
 import se.digg.wallet.access_mechanism.api.OpaqueTransport
-import se.digg.wallet.access_mechanism.model.BFFRequest
+import se.digg.wallet.access_mechanism.model.HSMRequest
 import se.digg.wallet.access_mechanism.model.StateResponse
 import se.digg.wallet.core.di.GatewayHttpClient
 import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.extensions.toECKey
-import se.wallet.client.gateway.client.V0DevicePinClient
-import se.wallet.client.gateway.client.V0DeviceStateClient
-import se.wallet.client.gateway.client.V0KeysClient
-import se.wallet.client.gateway.client.V0KeysDeleteClient
-import se.wallet.client.gateway.client.V0KeysListClient
-import se.wallet.client.gateway.client.V0KeysSignClient
-import se.wallet.client.gateway.client.V0SecureSessionClient
-import se.wallet.client.gateway.models.HsmRequestDto
-import se.wallet.client.gateway.models.KeyRequest
-import se.wallet.client.gateway.models.RegisterStateRequestDto
+import se.wallet.client.gateway.client.HsmV0DeviceStatesClient
+import se.wallet.client.gateway.client.HsmV0RequestsClient
+import se.wallet.client.gateway.client.V0AccountsSecurityEnvelopesClient
+import se.wallet.client.gateway.models.EcJwkRequest
+import se.wallet.client.gateway.models.HsmAsyncStatus
+import se.wallet.client.gateway.models.HsmRequest
+import se.wallet.client.gateway.models.HsmRequestType
+import se.wallet.client.gateway.models.HsmResponse
+import se.wallet.client.gateway.models.RegisterStateRequest
+import se.wallet.client.gateway.models.SecurityEnvelopeRequest
+import se.wallet.client.gateway.models.SecurityEnvelopeType
+import timber.log.Timber
 
 class WalletOpaqueClient @Inject constructor(
     @param:GatewayHttpClient private val httpClient: HttpClient,
 ) : OpaqueTransport {
 
-    val deviceStateClient = V0DeviceStateClient(httpClient)
-    val pinClient = V0DevicePinClient(httpClient)
-    val secureClient = V0SecureSessionClient(httpClient)
-    val createKeyClient = V0KeysClient(httpClient)
-    val listKeysClient = V0KeysListClient(httpClient)
-    val deleteKeyClient = V0KeysDeleteClient(httpClient)
-    val signClient = V0KeysSignClient(httpClient)
+    private val deviceStatesClient = HsmV0DeviceStatesClient(httpClient)
+    private val hsmRequestsClient = HsmV0RequestsClient(httpClient)
+    private val securityEnvelopesClient = V0AccountsSecurityEnvelopesClient(httpClient)
 
     override suspend fun registerState(
         publicKey: ECPublicKey,
@@ -47,7 +48,7 @@ class WalletOpaqueClient @Inject constructor(
             keyIDFromThumbprint()
         }.build()
 
-        val publicKey = KeyRequest(
+        val keyRequest = EcJwkRequest(
             kty = ecKey.keyType.value,
             crv = ecKey.curve.name,
             x = ecKey.x.toString(),
@@ -55,69 +56,85 @@ class WalletOpaqueClient @Inject constructor(
             kid = ecKey.keyID,
         )
 
-        val registerStateResponse = deviceStateClient.registerState(
-            registerStateRequestDto = RegisterStateRequestDto(
-                publicKey = publicKey,
-                overwrite = false,
+        val response = deviceStatesClient.saveState(
+            RegisterStateRequest(
+                deviceKey = keyRequest,
                 ttl = ttl,
             ),
         ).getOrThrow()
 
+        response.stateJws?.let {
+            persistStateEnvelope(it)
+        }
+
         return StateResponse(
-            status = registerStateResponse.status,
-            clientId = registerStateResponse.clientId,
-            devAuthorizationCode = registerStateResponse.devAuthorizationCode ?: "",
-            serverJwsPublicKey = registerStateResponse.serverJwsPublicKey?.toECKey(),
-            opaqueServerId = registerStateResponse.opaqueServerId ?: "",
+            status = response.status,
+            clientId = response.clientId,
+            devAuthorizationCode = response.devAuthorizationCode ?: "",
+            serverJwsPublicKey = response.serverJwsPublicKey?.toECKey(),
+            opaqueServerId = response.opaqueServerId ?: "",
         )
     }
 
-    override suspend fun registerPin(request: BFFRequest): String = pinClient.registerPin(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow().jwt
+    override suspend fun perform(request: HSMRequest, operation: HSMOperationType): String =
+        dispatchAsync(
+            hsmRequestsClient.createRequest(
+                hsmRequest = hsmBody(request),
+                type = operation.toRequestType(),
+            ).getOrThrow(),
+        )
 
-    override suspend fun createSession(request: BFFRequest): String = secureClient.createHsmSession(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow().jwt
+    private fun hsmBody(request: HSMRequest) = HsmRequest(
+        outerRequestJws = request.outerRequestJws,
+        clientId = request.clientId,
+        stateJws = request.stateJws,
+    )
 
-    override suspend fun changePin(request: BFFRequest): String = pinClient.changePin(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow().jwt
+    private fun HSMOperationType.toRequestType() = when (this) {
+        HSMOperationType.REGISTER_PIN -> HsmRequestType.REGISTER_PIN
+        HSMOperationType.CREATE_SESSION -> HsmRequestType.CREATE_SESSION
+        HSMOperationType.CHANGE_PIN -> HsmRequestType.CHANGE_PIN
+        HSMOperationType.CREATE_KEY -> HsmRequestType.CREATE_KEY
+        HSMOperationType.LIST_KEYS -> HsmRequestType.LIST_KEYS
+        HSMOperationType.SIGN -> HsmRequestType.SIGN
+        HSMOperationType.DELETE_KEY -> HsmRequestType.DELETE_KEY
+    }
 
-    override suspend fun createKey(request: BFFRequest): String = createKeyClient.createKey(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow().jwt
+    private suspend fun dispatchAsync(dto: HsmResponse): String =
+        if (dto.status != HsmAsyncStatus.PENDING) {
+            extractResult(dto)
+        } else {
+            pollUntilComplete(checkNotNull(dto.id) { "Missing id in pending HSM response" })
+        }
 
-    override suspend fun listKeys(request: BFFRequest): String = listKeysClient.listKeys(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow().jwt
+    private suspend fun extractResult(dto: HsmResponse): String {
+        if (dto.status == HsmAsyncStatus.ERROR) {
+            throw IOException("HSM operation failed")
+        }
 
-    override suspend fun sign(request: BFFRequest): String = signClient.sign(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow().jwt
+        dto.stateJws?.let { persistStateEnvelope(it) }
 
-    override suspend fun deleteKey(request: BFFRequest) = deleteKeyClient.deleteKey(
-        hsmRequestDto = HsmRequestDto(
-            jwt = request.outerRequestJws,
-            clientId = request.clientId,
-        ),
-    ).getOrThrow()
+        return checkNotNull(dto.result) { "HSM response missing result" }
+    }
+
+    private suspend fun pollUntilComplete(id: String): String {
+        repeat(30) {
+            delay(1_000L)
+            val dto = hsmRequestsClient.getResult(id).getOrThrow()
+            if (dto.status != HsmAsyncStatus.PENDING) {
+                return extractResult(dto)
+            }
+        }
+        throw IOException("HSM operation timed out after 30 attempts")
+    }
+
+    private suspend fun persistStateEnvelope(stateJws: String) {
+        try {
+            securityEnvelopesClient.addAccountSecurityEnvelope(
+                SecurityEnvelopeRequest(type = SecurityEnvelopeType.SIGN, content = stateJws),
+            ).getOrThrow()
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to post security envelope")
+        }
+    }
 }

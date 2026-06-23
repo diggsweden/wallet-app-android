@@ -36,6 +36,7 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
+import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
@@ -77,8 +78,8 @@ fun IssuanceScreen(
                 GenericLoading()
             }
 
-            IssuanceState.Error -> {
-                GenericErrorScreen()
+            is IssuanceState.Error -> {
+                GenericErrorScreen(onClick = { viewModel.retry() })
             }
 
             is IssuanceState.IssuerFetched -> {
@@ -88,6 +89,19 @@ fun IssuanceScreen(
                     onClick = { viewModel.authorize(launchAuthTab) },
                     modifier = Modifier.fillMaxWidth(),
                 )
+            }
+
+            is IssuanceState.ReadyToSign -> {
+                Spacer(modifier = Modifier.weight(1f))
+                PinInput(
+                    buttonLabel = stringResource(R.string.issuance_confirm_pin_button),
+                    onSubmit = { pin -> viewModel.createProof(pin) },
+                )
+            }
+
+            is IssuanceState.ReadyToFetch -> {
+                LaunchedEffect(Unit) { viewModel.fetchCredential() }
+                GenericLoading()
             }
 
             is IssuanceState.CredentialFetched -> {
