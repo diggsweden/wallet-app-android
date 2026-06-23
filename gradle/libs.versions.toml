@@ -5,6 +5,7 @@ ktlint = "1.8.0"
 coreKtx = "1.19.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
+coroutinesTest = "1.10.2"
 espressoCore = "3.7.0"
 ktlintCompose = "0.5.7"
 lifecycleRuntimeKtx = "2.10.0"
@@ -19,7 +20,6 @@ eudi-openid4vp = "0.13.0"
 ktor = "3.4.2"
 nimbus = "10.9"
 coil = "3.4.0"
-datastore = "1.2.1"
 serializationJson = "1.11.0"
 room = "2.8.4"
 ksp = "2.3.6"
@@ -33,6 +33,7 @@ eudiSDJWT = "0.20.0"
 [libraries]
 #Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
@@ -56,7 +57,6 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 ktlint-compose = { group = "io.nlopez.compose.rules", name = "ktlint", version.ref = "ktlintCompose" }
 
 #Storage
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
@@ -93,13 +93,13 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt"
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
-accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.2" }
+accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.3" }
 
 [bundles]
 images = ["coil-compose", "coil-network"]
 eudi = ["eudi-openid4vci", "eudi-openid4vp", "eudi-sdjwt"]
 ktor = ["ktor-core", "ktor-okhttp", "ktor-logging", "ktor-content-negotiation", "ktor-serialization"]
-storage = ["datastore", "kotlinx-serialization-json", "room-runtime", "room-ktx"]
+storage = ["kotlinx-serialization-json", "room-runtime", "room-ktx"]
 di = ["hilt-android", "hilt-navigation-compose"]
 
 [plugins]
