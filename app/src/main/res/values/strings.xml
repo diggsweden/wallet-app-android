@@ -6,7 +6,7 @@
     <string name="generic_close">Close</string>
     <string name="generic_next">Next</string>
     <string name="issuance_approve_button">Approve personal data</string>
-    <string name="issuance_confirm_pin_button">Confirm</string>
+    <string name="generic_confirm">Confirm</string>
     <string name="generic_share">Share</string>
     <string name="presentation_share_successful_info">You can now go back to the app or website you came from.</string>
     <string name="presentation_share_successful_title">Done</string>
