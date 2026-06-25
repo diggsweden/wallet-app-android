@@ -34,4 +34,5 @@
     <string name="onboarding_fetch_id_button">Hämta personuppgifter</string>
     <string name="onboarding_intro_button">Kom igång med plånboken</string>
     <string name="generic_cancel">Avbryt</string>
+    <string name="error_screen_failed_description">%1$s misslyckades</string>
 </resources>

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="credential_offer_issuer">Utfärdare:</string>
-    <string name="error_generic_screen_message">Något gick tyvärr fel, vänligen försök igen och om problemet kvarstår så kontakta oss med en felrapport.</string>
-    <string name="error_something_went_wrong">Något gick fel</string>
+    <string name="error_contact_support">Kontakta kundtjänst</string>
+    <string name="error_generic_screen_message">Vi kunde inte visa innehållet just nu. Försök gärna igen senare.</string>
+    <string name="error_something_went_wrong">Vi kan inte visa innehållet just nu</string>
     <string name="generic_error">Fel</string>
+    <string name="generic_home">Till startsidan</string>
     <string name="generic_no">Nej</string>
     <string name="generic_retry">Försök igen</string>
     <string name="generic_yes">Ja</string>
