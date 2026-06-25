@@ -69,7 +69,7 @@ fun OnboardingRoute(
 
     BackHandler {
         if (uiState.enableBack.contains(uiState.currentStep)) {
-            viewModel.onAction(OnboardingAction.Back)
+            viewModel.onAction(OnboardingAction.Back(uiState.currentStep))
         }
     }
 
@@ -104,7 +104,9 @@ private fun OnboardingScreen(
                 navigationIcon = {
                     Row(Modifier.fillMaxWidth()) {
                         if (uiState.enableBack.contains(uiState.currentStep)) {
-                            IconButton(onClick = { onAction(OnboardingAction.Back) }) {
+                            IconButton(
+                                onClick = { onAction(OnboardingAction.Back(uiState.currentStep)) },
+                            ) {
                                 Icon(
                                     painter = painterResource(R.drawable.arrow_left),
                                     contentDescription = null,
@@ -161,10 +163,10 @@ private fun OnboardingScreen(
                         slideIn togetherWith slideOut using SizeTransform(clip = false)
                     },
                     label = "OnboardingStepTransition",
-                ) { animatedStep ->
+                ) { contentStep ->
                     OnboardingStepContent(
                         pageNumber = currentStep,
-                        step = animatedStep,
+                        step = contentStep,
                         capturedPin = uiState.capturedPin,
                         onAction = onAction,
                     )
@@ -184,26 +186,28 @@ fun OnboardingStepContent(
     when (step) {
         OnboardingStep.SETUP_PIN -> PinSetupRoute(
             pageNumber = pageNumber,
-            onPinEntered = { onAction(OnboardingAction.PinEntered(it)) },
+            onPinEntered = { onAction(OnboardingAction.PinEntered(it, step)) },
         )
 
         OnboardingStep.VERIFY_PIN -> PinSetupRoute(
             pageNumber = pageNumber,
             verifyPin = true,
             onPinEntered = {},
-            onPinVerified = { onAction(OnboardingAction.PinVerified(it)) },
-            onBack = { onAction(OnboardingAction.Back) },
+            onPinVerified = { onAction(OnboardingAction.PinVerified(it, step)) },
+            onBack = { onAction(OnboardingAction.Back(step)) },
         )
 
         OnboardingStep.SETUP_WALLET -> WalletSetupRoute(
             pageNumber = pageNumber,
             pin = capturedPin,
-            onNext = { onAction(OnboardingAction.Next) },
+            onNext = { onAction(OnboardingAction.Next(step)) },
         )
 
         OnboardingStep.SETUP_PID -> PidSetupRoute(
             onNext = { onAction(OnboardingAction.Finish) },
-            onCredentialOfferFetch = { onAction(OnboardingAction.CredentialOfferFetched(it)) },
+            onCredentialOfferFetch = {
+                onAction(OnboardingAction.CredentialOfferFetched(it, step))
+            },
             pageNumber = pageNumber,
         )
 
