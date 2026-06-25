@@ -15,7 +15,6 @@ import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
-import se.wallet.client.gateway.client.ApiConfiguration
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.V0AccountsClient
 import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
