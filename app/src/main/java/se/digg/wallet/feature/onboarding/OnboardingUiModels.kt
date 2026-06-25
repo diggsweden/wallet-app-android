@@ -19,14 +19,16 @@ sealed interface OnboardingUiEvent {
 }
 
 sealed interface OnboardingAction {
-    data object Next : OnboardingAction
-    data object Back : OnboardingAction
+    data class Next(val fromStep: OnboardingStep) : OnboardingAction
+    data class Back(val fromStep: OnboardingStep) : OnboardingAction
     data object Skip : OnboardingAction
     data object Finish : OnboardingAction
     data object Close : OnboardingAction
-    data class CredentialOfferFetched(val url: String) : OnboardingAction
-    data class PinEntered(val pin: String) : OnboardingAction
-    data class PinVerified(val pin: String) : OnboardingAction
+    data class CredentialOfferFetched(val url: String, val fromStep: OnboardingStep) :
+        OnboardingAction
+
+    data class PinEntered(val pin: String, val fromStep: OnboardingStep) : OnboardingAction
+    data class PinVerified(val pin: String, val fromStep: OnboardingStep) : OnboardingAction
 }
 
 enum class OnboardingStep {
