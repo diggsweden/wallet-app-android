@@ -43,10 +43,7 @@ fun PinSetupRoute(
 
 @Composable
 private fun PinSetupScreen(
-    pageNumber: Int,
-    verifyPin: Boolean,
-    onSubmit: (String) -> Unit,
-) {
+    pageNumber: Int, verifyPin: Boolean, onSubmit: (String) -> Unit,) {
     Column(
         Modifier
             .fillMaxSize()

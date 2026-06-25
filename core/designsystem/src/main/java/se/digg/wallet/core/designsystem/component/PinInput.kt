@@ -67,8 +67,10 @@ fun PinInput(buttonLabel: String, onSubmit: (String) -> Unit, modifier: Modifier
         }
     }
     val onSubmitClick = {
-        onSubmit(pin)
-        pin = ""
+        if (pin.length == PIN_LENGTH) {
+            onSubmit(pin)
+            pin = ""
+        }
     }
 
     if (isLandscape) {
@@ -113,7 +115,6 @@ private fun Portrait(
         Spacer(Modifier.height(24.dp))
         PrimaryButton(
             text = buttonLabel,
-            enabled = pin.length == PIN_LENGTH,
             onClick = onSubmitClick,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -144,7 +145,6 @@ private fun Landscape(
         Spacer(Modifier.height(16.dp))
         PrimaryButton(
             text = buttonLabel,
-            enabled = pin.length == PIN_LENGTH,
             onClick = onSubmitClick,
             modifier = Modifier.fillMaxWidth(),
         )
