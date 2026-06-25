@@ -31,45 +31,74 @@ class OnboardingViewModel @Inject constructor(private val userRepository: UserRe
 
     fun onAction(action: OnboardingAction) {
         when (action) {
-            OnboardingAction.Next -> goNext()
-            OnboardingAction.Back -> goBack()
-            OnboardingAction.Skip -> goSkip()
-            OnboardingAction.Finish -> { /* handled by UI layer via event */ }
-            OnboardingAction.Close -> closeOnboarding()
+            is OnboardingAction.Next -> {
+                goNext(action.fromStep)
+            }
+
+            is OnboardingAction.Back -> {
+                goBack(action.fromStep)
+            }
+
+            OnboardingAction.Skip -> {
+                goSkip()
+            }
+
+            OnboardingAction.Finish -> {
+                /* handled by UI layer via event */
+            }
+
+            OnboardingAction.Close -> {
+                closeOnboarding()
+            }
+
             is OnboardingAction.CredentialOfferFetched -> {
-                credentialOffer = action.url
-                goNext()
+                ifCurrent(action.fromStep) {
+                    credentialOffer = action.url
+                    goNext(action.fromStep)
+                }
             }
+
             is OnboardingAction.PinEntered -> {
-                _uiState.update { it.copy(capturedPin = action.pin) }
-                goNext()
+                ifCurrent(action.fromStep) {
+                    _uiState.update { it.copy(capturedPin = action.pin) }
+                    goNext(action.fromStep)
+                }
             }
+
             is OnboardingAction.PinVerified -> {
-                if (_uiState.value.capturedPin == action.pin) goNext() else goBack()
+                ifCurrent(action.fromStep) {
+                    if (_uiState.value.capturedPin == action.pin) {
+                        goNext(action.fromStep)
+                    } else {
+                        goBack(action.fromStep)
+                    }
+                }
             }
         }
     }
 
     fun getCredentialOfferUrl(): String = credentialOffer
 
-    private fun goNext() {
-        val currentIndex = _uiState.value.currentStep.ordinal
-        if (currentIndex < _uiState.value.totalSteps - 1) {
-            _uiState.update {
-                it.copy(
-                    currentStep = OnboardingStep.entries.toTypedArray()[currentIndex + 1],
-                )
+    private inline fun ifCurrent(fromStep: OnboardingStep, block: () -> Unit) {
+        if (_uiState.value.currentStep == fromStep) block()
+    }
+
+    private fun goNext(fromStep: OnboardingStep) {
+        _uiState.update { state ->
+            if (state.currentStep == fromStep && fromStep.ordinal < state.totalSteps - 1) {
+                state.copy(currentStep = OnboardingStep.entries[fromStep.ordinal + 1])
+            } else {
+                state
             }
         }
     }
 
-    private fun goBack() {
-        val currentIndex = _uiState.value.currentStep.ordinal
-        if (currentIndex > 0) {
-            _uiState.update {
-                it.copy(
-                    currentStep = OnboardingStep.entries.toTypedArray()[currentIndex - 1],
-                )
+    private fun goBack(fromStep: OnboardingStep) {
+        _uiState.update { state ->
+            if (state.currentStep == fromStep && fromStep.ordinal > 0) {
+                state.copy(currentStep = OnboardingStep.entries[fromStep.ordinal - 1])
+            } else {
+                state
             }
         }
     }
