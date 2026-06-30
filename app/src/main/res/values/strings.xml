@@ -34,4 +34,5 @@
     <string name="onboarding_intro_button">Get started with the wallet</string>
     <string name="onboarding_fetch_id_description_2">In order to use the wallet, we need to collect information about you. The information collected is used as an ID card.</string>
     <string name="generic_cancel">Cancel</string>
+    <string name="error_screen_failed_description">%1$s failed</string>
 </resources>

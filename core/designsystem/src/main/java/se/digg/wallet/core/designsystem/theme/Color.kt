@@ -32,6 +32,7 @@ val Orange10 = Color(0xFFFBF3EB)
 val Brown100 = Color(0xFF6D6059)
 val Brown70 = Color(0xFF8A807A)
 val Brown50 = Color(0xFF968F8B)
+val Brown30 = Color(0xFFB6B0AC)
 val Brown25 = Color(0xFFB4AFAC)
 val Brown10 = Color(0xFFF0EFEE)
 
@@ -65,6 +66,8 @@ val ButtonContainerPrimary = Color(0xFF556951)
 val ButtonContentPrimary = Color(0xFFFFFFFF)
 val ButtonContainerPrimaryDark = Color(0xFFD5DAD4)
 val ButtonContentPrimaryDark = Color(0xFF2B2A29)
+val ButtonBorderSecondary = Color(0xFF546850)
+val ButtonBorderSecondaryDark = Color(0xFFD4D9D3)
 
 // DIGG
 val DefaultBackground = Color(0xFFFFFFFF)

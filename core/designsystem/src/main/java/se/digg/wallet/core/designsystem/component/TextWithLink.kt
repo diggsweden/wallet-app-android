@@ -9,44 +9,33 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.core.designsystem.R
+import se.digg.wallet.core.designsystem.theme.Brown100
+import se.digg.wallet.core.designsystem.theme.Brown30
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun TextWithLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val linkColor = if (!isSystemInDarkTheme()) {
-        Color(0xFF556951)
-    } else {
-        Color(0xFFFFFFFF)
-    }
+    val linkColor = if (isSystemInDarkTheme()) Brown30 else Brown100
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable { onClick.invoke() },
+        modifier = modifier.clickable { onClick.invoke() },
     ) {
         Text(
+            modifier = Modifier.weight(1f),
             text = text,
-            style = WalletTextStyle.BodyMD,
+            style = WalletTextStyle.BodySM,
+            textAlign = TextAlign.Start,
             textDecoration = TextDecoration.Underline,
             color = linkColor,
-
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Icon(
-            painter = painterResource(R.drawable.open_in_new),
-            contentDescription = null,
-            tint = linkColor,
-        )
     }
 }
 
