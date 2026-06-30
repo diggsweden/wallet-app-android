@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -58,7 +59,16 @@ private fun WalletSetupScreen(
 ) {
     when (uiState) {
         is WalletSetupUiState.InProgress -> StepInProgressScreen(uiState.step)
-        is WalletSetupUiState.Failed -> StepFailedScreen(uiState.step, onRetry, onCancel)
+
+        is WalletSetupUiState.Failed -> GenericErrorScreen(
+            errorTitle = stringResource(
+                R.string.error_screen_failed_description,
+                uiState.step.displayName(),
+            ),
+            onPrimaryAction = onRetry,
+            secondaryActionLabel = stringResource(R.string.generic_cancel),
+            onSecondaryAction = onCancel,
+        )
     }
 }
 

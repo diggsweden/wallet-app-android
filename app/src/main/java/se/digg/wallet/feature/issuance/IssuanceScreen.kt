@@ -79,7 +79,7 @@ fun IssuanceScreen(
             }
 
             is IssuanceState.Error -> {
-                GenericErrorScreen(onClick = { viewModel.retry() })
+                GenericErrorScreen(onPrimaryAction = { viewModel.retry() })
             }
 
             is IssuanceState.IssuerFetched -> {
