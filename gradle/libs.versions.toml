@@ -93,7 +93,7 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt"
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
-accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.3" }
+accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.1-SNAPSHOT" }
 
 [bundles]
 images = ["coil-compose", "coil-network"]
