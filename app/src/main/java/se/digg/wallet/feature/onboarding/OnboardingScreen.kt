@@ -201,6 +201,7 @@ fun OnboardingStepContent(
             pageNumber = pageNumber,
             pin = capturedPin,
             onNext = { onAction(OnboardingAction.Next(step)) },
+            onCancel = { onAction(OnboardingAction.Close) },
         )
 
         OnboardingStep.SETUP_PID -> PidSetupRoute(
