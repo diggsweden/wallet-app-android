@@ -20,16 +20,12 @@ import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.extensions.toECKey
 import se.wallet.client.gateway.client.HsmV0DeviceStatesClient
 import se.wallet.client.gateway.client.HsmV0RequestsClient
-import se.wallet.client.gateway.client.V0AccountsSecurityEnvelopesClient
 import se.wallet.client.gateway.models.EcJwkRequest
 import se.wallet.client.gateway.models.HsmAsyncStatus
 import se.wallet.client.gateway.models.HsmRequest
 import se.wallet.client.gateway.models.HsmRequestType
 import se.wallet.client.gateway.models.HsmResponse
 import se.wallet.client.gateway.models.RegisterStateRequest
-import se.wallet.client.gateway.models.SecurityEnvelopeRequest
-import se.wallet.client.gateway.models.SecurityEnvelopeType
-import timber.log.Timber
 
 class WalletOpaqueClient @Inject constructor(
     @param:GatewayHttpClient private val httpClient: HttpClient,
@@ -37,7 +33,6 @@ class WalletOpaqueClient @Inject constructor(
 
     private val deviceStatesClient = HsmV0DeviceStatesClient(httpClient)
     private val hsmRequestsClient = HsmV0RequestsClient(httpClient)
-    private val securityEnvelopesClient = V0AccountsSecurityEnvelopesClient(httpClient)
 
     override suspend fun registerState(
         publicKey: ECPublicKey,
@@ -63,13 +58,8 @@ class WalletOpaqueClient @Inject constructor(
             ),
         ).getOrThrow()
 
-        response.stateJws?.let {
-            persistStateEnvelope(it)
-        }
-
         return StateResponse(
             status = response.status,
-            clientId = response.clientId,
             devAuthorizationCode = response.devAuthorizationCode ?: "",
             serverJwsPublicKey = response.serverJwsPublicKey?.toECKey(),
             opaqueServerId = response.opaqueServerId ?: "",
@@ -86,8 +76,6 @@ class WalletOpaqueClient @Inject constructor(
 
     private fun hsmBody(request: HSMRequest) = HsmRequest(
         outerRequestJws = request.outerRequestJws,
-        clientId = request.clientId,
-        stateJws = request.stateJws,
     )
 
     private fun HSMOperationType.toRequestType() = when (this) {
@@ -107,12 +95,10 @@ class WalletOpaqueClient @Inject constructor(
             pollUntilComplete(checkNotNull(dto.id) { "Missing id in pending HSM response" })
         }
 
-    private suspend fun extractResult(dto: HsmResponse): String {
+    private fun extractResult(dto: HsmResponse): String {
         if (dto.status == HsmAsyncStatus.ERROR) {
             throw IOException("HSM operation failed")
         }
-
-        dto.stateJws?.let { persistStateEnvelope(it) }
 
         return checkNotNull(dto.result) { "HSM response missing result" }
     }
@@ -126,15 +112,5 @@ class WalletOpaqueClient @Inject constructor(
             }
         }
         throw IOException("HSM operation timed out after 30 attempts")
-    }
-
-    private suspend fun persistStateEnvelope(stateJws: String) {
-        try {
-            securityEnvelopesClient.addAccountSecurityEnvelope(
-                SecurityEnvelopeRequest(type = SecurityEnvelopeType.SIGN, content = stateJws),
-            ).getOrThrow()
-        } catch (e: Exception) {
-            Timber.w(e, "Failed to post security envelope")
-        }
     }
 }
