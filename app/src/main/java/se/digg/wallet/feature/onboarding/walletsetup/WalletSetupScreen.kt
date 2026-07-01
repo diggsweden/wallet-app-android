@@ -30,6 +30,7 @@ fun WalletSetupRoute(
     pageNumber: Int,
     pin: String,
     onNext: () -> Unit,
+    onCancel: () -> Unit,
     viewModel: WalletSetupViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -47,7 +48,7 @@ fun WalletSetupRoute(
     WalletSetupScreen(
         uiState = uiState,
         onRetry = viewModel::retry,
-        onCancel = {},
+        onCancel = onCancel,
     )
 }
 
