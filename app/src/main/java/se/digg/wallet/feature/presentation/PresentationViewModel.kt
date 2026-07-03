@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jwt.JWT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig
@@ -42,9 +41,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.toClaimUiModels
+import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
@@ -60,6 +61,7 @@ import timber.log.Timber
 class PresentationViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
+    private val opaqueTransport: WalletOpaqueClient,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
     private var walletConfig: OpenId4VPConfig? = null
@@ -182,8 +184,13 @@ class PresentationViewModel @Inject constructor(
         }
     }
 
-    fun sendData() {
+    fun onAccept() {
+        _uiState.value = PresentationUiState.EnterPin
+    }
+
+    fun sendData(pin: String) {
         viewModelScope.launch {
+            _uiState.value = PresentationUiState.Loading
             try {
                 val auth = checkNotNull(authorization) { "Authorization was null" }
 
@@ -203,9 +210,10 @@ class PresentationViewModel @Inject constructor(
                         sdJwt = it.disclosedSdJwt.serialize(),
                         nonce = auth.nonce,
                         clientId = clientId,
+                        pin = pin,
                     )
                     val vpToken = it.disclosedSdJwt.serializeWithKeyBinding(
-                        kbJwt = keyBinding.serialize(),
+                        kbJwt = keyBinding,
                     )
                     it.id to listOf(vpToken)
                 }
@@ -235,9 +243,23 @@ class PresentationViewModel @Inject constructor(
         }
     }
 
-    private suspend fun createKeyBinding(sdJwt: String, nonce: String, clientId: String): JWT {
-        val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.WALLET_KEY)
-        val nonce = nonce
+    private suspend fun createKeyBinding(
+        sdJwt: String,
+        nonce: String,
+        clientId: String,
+        pin: String,
+    ): String {
+        val opaqueClient = OpaqueClient.resume(
+            transport = opaqueTransport,
+            serverParameters = checkNotNull(userRepository.getServerParameters()),
+            clientKeyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY),
+            pinStretchPrivateKey = KeystoreManager.getPinStretchPrivateKey(),
+        ).also {
+            it.authenticate(pin = pin)
+        }
+        val hsmKey = checkNotNull(opaqueClient.listHsmKeys().firstOrNull()) {
+            "No HSM keys found"
+        }
         val aud = "x509_san_dns:$clientId"
         val sdJwtData: ByteArray = sdJwt.toByteArray(Charsets.US_ASCII)
         val hash = MessageDigest.getInstance("SHA-256").digest(sdJwtData)
@@ -248,7 +270,9 @@ class PresentationViewModel @Inject constructor(
             sdHash = base64Hash,
         )
         val headers = mapOf("typ" to "kb+jwt")
-        return JwtUtils.signJwt(keyPair = keyPair, payload = payload, headers = headers)
+        return JwtUtils.signJwtWith(payload, headers) { data ->
+            opaqueClient.sign(kid = hsmKey.publicKey.keyID, data).signature
+        }
     }
 
     private fun List<PresentationItem>.updateSelection(

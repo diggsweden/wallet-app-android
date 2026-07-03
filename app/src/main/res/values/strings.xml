@@ -12,6 +12,8 @@
     <string name="presentation_share_successful_title">Done</string>
     <string name="presentation_share_title">Would you like to share the following data?</string>
     <string name="presentation_app_bar_title">Share attributes</string>
+    <string name="presentation_pin_title">Approve and identify</string>
+    <string name="presentation_pin_description">By entering your PIN code and identifying yourself, you approve the sharing of your data.</string>
     <string name="dashboard_credentials_header">Documents</string>
     <string name="generic_skip">Skip</string>
     <string name="settings_title">Settings</string>

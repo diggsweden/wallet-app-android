@@ -5,6 +5,7 @@
 package se.digg.wallet.feature.presentation
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
+import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
@@ -72,8 +74,9 @@ fun PresentationRoute(
     }
     PresentationScreen(
         onBackCLick = onBack,
-        onShareClick = { viewModel.sendData() },
+        onShareClick = { viewModel.onAccept() },
         onFinishClick = onFinish,
+        onSubmitPin = { viewModel.sendData(it) },
         onOptionalClaimClick = { id, checked ->
             viewModel.onOptionalClaimCheckedChanged(
                 id,
@@ -91,6 +94,7 @@ private fun PresentationScreen(
     onBackCLick: () -> Unit,
     onShareClick: () -> Unit,
     onFinishClick: () -> Unit,
+    onSubmitPin: (String) -> Unit,
     onOptionalClaimClick: (String, Boolean) -> Unit,
     uiState: PresentationUiState,
     modifier: Modifier = Modifier,
@@ -132,6 +136,37 @@ private fun PresentationScreen(
 
                 PresentationUiState.Loading -> {
                     GenericLoading()
+                }
+
+                is PresentationUiState.EnterPin -> {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Spacer(Modifier.height(64.dp))
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.presentation_pin_title),
+                            style = WalletTextStyle.H1,
+                        )
+                        Spacer(Modifier.height(32.dp))
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.presentation_pin_description),
+                            style = WalletTextStyle.BodyLG,
+                        )
+                        Spacer(Modifier.height(64.dp))
+                        PinInput(
+                            "Dela",
+                            {
+                                onSubmitPin.invoke(it)
+                            },
+                            Modifier
+                                .fillMaxWidth(),
+                        )
+                    }
                 }
 
                 is PresentationUiState.PresentClaims -> {
@@ -231,7 +266,8 @@ private fun PresentationPreview() {
             onShareClick = { },
             onFinishClick = { },
             onOptionalClaimClick = { _, _ -> },
-            uiState = PresentationUiState.ShareSuccess,
+            onSubmitPin = {},
+            uiState = PresentationUiState.EnterPin,
         )
     }
 }

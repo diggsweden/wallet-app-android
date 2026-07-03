@@ -13,6 +13,7 @@ sealed interface PresentationUiState {
         val optionalClaims: List<PresentationItem>,
     ) : PresentationUiState
 
+    object EnterPin : PresentationUiState
     object ShareSuccess : PresentationUiState
     data class Error(val message: String?) : PresentationUiState
 }

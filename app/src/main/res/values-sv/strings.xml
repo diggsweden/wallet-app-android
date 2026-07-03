@@ -12,6 +12,8 @@
     <string name="presentation_share_successful_title">Nu är det klart</string>
     <string name="presentation_share_title">Vill du dela följande data?</string>
     <string name="presentation_app_bar_title">Dela attribut</string>
+    <string name="presentation_pin_title">Godkänn och identifiera</string>
+    <string name="presentation_pin_description">Genom att fylla i din pinkod och identifiera dig, godkänner du delning av dina uppgifter.</string>
     <string name="dashboard_credentials_header">Handlingar</string>
     <string name="generic_skip">Hoppa över</string>
     <string name="settings_title">Inställningar</string>
