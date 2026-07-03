@@ -27,61 +27,97 @@ class OnboardingViewModel @Inject constructor(private val userRepository: UserRe
     private val _events = MutableSharedFlow<OnboardingUiEvent>()
     val events: SharedFlow<OnboardingUiEvent> = _events
 
-    var credentialOffer: String = ""
+    private var credentialOffer: String = ""
 
-    fun goNext() {
+    fun onAction(action: OnboardingAction) {
+        when (action) {
+            is OnboardingAction.Next -> {
+                goNext(action.fromStep)
+            }
+
+            is OnboardingAction.Back -> {
+                goBack(action.fromStep)
+            }
+
+            OnboardingAction.Skip -> {
+                goSkip()
+            }
+
+            OnboardingAction.Finish -> {
+                /* handled by UI layer via event */
+            }
+
+            OnboardingAction.Close -> {
+                closeOnboarding()
+            }
+
+            is OnboardingAction.CredentialOfferFetched -> {
+                ifCurrent(action.fromStep) {
+                    credentialOffer = action.url
+                    goNext(action.fromStep)
+                }
+            }
+
+            is OnboardingAction.PinEntered -> {
+                ifCurrent(action.fromStep) {
+                    _uiState.update { it.copy(capturedPin = action.pin) }
+                    goNext(action.fromStep)
+                }
+            }
+
+            is OnboardingAction.PinVerified -> {
+                ifCurrent(action.fromStep) {
+                    if (_uiState.value.capturedPin == action.pin) {
+                        goNext(action.fromStep)
+                    } else {
+                        goBack(action.fromStep)
+                    }
+                }
+            }
+        }
+    }
+
+    fun getCredentialOfferUrl(): String = credentialOffer
+
+    private inline fun ifCurrent(fromStep: OnboardingStep, block: () -> Unit) {
+        if (_uiState.value.currentStep == fromStep) block()
+    }
+
+    private fun goNext(fromStep: OnboardingStep) {
+        _uiState.update { state ->
+            if (state.currentStep == fromStep && fromStep.ordinal < state.totalSteps - 1) {
+                state.copy(currentStep = OnboardingStep.entries[fromStep.ordinal + 1])
+            } else {
+                state
+            }
+        }
+    }
+
+    private fun goBack(fromStep: OnboardingStep) {
+        _uiState.update { state ->
+            if (state.currentStep == fromStep && fromStep.ordinal > 0) {
+                state.copy(currentStep = OnboardingStep.entries[fromStep.ordinal - 1])
+            } else {
+                state
+            }
+        }
+    }
+
+    private fun goSkip() {
         val currentIndex = _uiState.value.currentStep.ordinal
         if (currentIndex < _uiState.value.totalSteps - 1) {
             _uiState.update {
                 it.copy(
-                    currentStep = OnboardingStep.entries.toTypedArray()[
-                        currentIndex +
-                            1,
-                    ],
+                    currentStep = OnboardingStep.entries.toTypedArray()[currentIndex + 2],
                 )
             }
         }
     }
 
-    fun goBack() {
-        val currentIndex = _uiState.value.currentStep.ordinal
-        if (currentIndex < _uiState.value.totalSteps - 1) {
-            _uiState.update {
-                it.copy(
-                    currentStep = OnboardingStep.entries.toTypedArray()[
-                        currentIndex -
-                            1,
-                    ],
-                )
-            }
-        }
-    }
-
-    fun onSkip() {
-        val currentIndex = _uiState.value.currentStep.ordinal
-        if (currentIndex < _uiState.value.totalSteps - 1) {
-            _uiState.update {
-                it.copy(
-                    currentStep = OnboardingStep.entries.toTypedArray()[
-                        currentIndex +
-                            2,
-                    ],
-                )
-            }
-        }
-    }
-
-    fun closeOnboarding() {
+    private fun closeOnboarding() {
         viewModelScope.launch {
             userRepository.wipeAll()
             _events.emit(OnboardingUiEvent.LocalStorageCleared)
         }
     }
-
-    fun setFetchedCredentialOffer(offer: String) {
-        credentialOffer = offer
-        goNext()
-    }
-
-    fun getCredentialOfferUrl(): String = credentialOffer
 }

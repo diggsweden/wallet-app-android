@@ -76,17 +76,32 @@ private fun JsonElement?.toClaimValue(path: String, displayNames: Map<String, St
             val long = longOrNull
             val double = doubleOrNull
             when {
-                boolean != null -> ClaimValue.BooleanValue(boolean)
+                boolean != null -> {
+                    ClaimValue.BooleanValue(boolean)
+                }
 
-                long != null -> ClaimValue.IntValue(long)
+                long != null -> {
+                    ClaimValue.IntValue(long)
+                }
 
-                double != null -> ClaimValue.DoubleValue(double)
+                double != null -> {
+                    ClaimValue.DoubleValue(double)
+                }
 
-                isString -> tryParseLocalDate(content)
-                    ?.let { ClaimValue.DateValue(it) }
-                    ?: ClaimValue.TextValue(content)
+                isString -> {
+                    tryParseLocalDate(content)
+                        ?.let { return ClaimValue.DateValue(it) }
 
-                else -> ClaimValue.NullValue
+                    if (content.startsWith("data:image")) {
+                        return ClaimValue.TextValue("Todo")
+                    }
+
+                    return ClaimValue.TextValue(content)
+                }
+
+                else -> {
+                    ClaimValue.NullValue
+                }
             }
         }
 

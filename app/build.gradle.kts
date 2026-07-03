@@ -47,7 +47,7 @@ kotlin {
 
 android {
     namespace = "se.digg.wallet"
-    compileSdk = 36
+    compileSdk = 37
 
     // TODO this can be removed when eudi-libraries are removed.
     packaging {
@@ -56,7 +56,7 @@ android {
 
     defaultConfig {
         applicationId = "se.digg.wallet"
-        minSdk = 28
+        minSdk = 31
         targetSdk = 36
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: getVersionCode()
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
@@ -152,18 +152,20 @@ room {
 }
 
 dependencies {
+    implementation(project(":core:designsystem"))
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.browser)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -179,6 +181,8 @@ dependencies {
     implementation(libs.bundles.storage)
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
+    implementation(libs.accessMechanism)
+
     ksp(libs.hilt.compiler)
 
     ksp(libs.room.compiler)
@@ -202,13 +206,14 @@ tasks.withType<FormatTask> {
 
 fabrikt {
     generate("client-gateway") {
-        apiFile = file("src/main/openapi/client-gateway.json")
+        apiFile = file("src/main/openapi/client-gateway.yaml")
         outputDirectory = fabriktOutputDirectory
         basePackage = "se.wallet.client.gateway"
         addFileDisclaimer = enabled
         validationLibrary = NoValidation
         typeOverrides {
             uuid = String
+            date = String
         }
         client {
             generate = enabled
@@ -226,8 +231,4 @@ tasks.withType<KspAATask>().configureEach {
 
 tasks.named("preBuild") {
     dependsOn(fabriktGenerateTask)
-}
-
-hilt {
-    enableAggregatingTask = false
 }

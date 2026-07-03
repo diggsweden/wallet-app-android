@@ -15,6 +15,7 @@ captures/
 *.apk
 *.aab
 output.json
+.DS_Store
 
 # IntelliJ
 *.iml
@@ -35,3 +36,4 @@ google-services.json
 
 # Secrets
 secrets.properties
+.claude

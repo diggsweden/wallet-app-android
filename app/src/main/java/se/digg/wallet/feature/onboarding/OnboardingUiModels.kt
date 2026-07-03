@@ -5,35 +5,38 @@
 package se.digg.wallet.feature.onboarding
 
 data class OnboardingUiState(
-    val currentStep: OnboardingStep = OnboardingStep.NOTIFICATION,
+    val currentStep: OnboardingStep = OnboardingStep.SETUP_PIN,
     val totalSteps: Int = OnboardingStep.totalSteps,
     val enableBack: List<OnboardingStep> =
         listOf(
-            OnboardingStep.VERIFY_EMAIL,
-            OnboardingStep.VERIFY_PHONE,
             OnboardingStep.VERIFY_PIN,
-            OnboardingStep.CREDENTIAL_OFFER,
         ),
+    val capturedPin: String = "",
 )
 
 sealed interface OnboardingUiEvent {
     data object LocalStorageCleared : OnboardingUiEvent
 }
 
-sealed interface OnboardingUiEffect {
-    object OnNext : OnboardingUiEffect
+sealed interface OnboardingAction {
+    data class Next(val fromStep: OnboardingStep) : OnboardingAction
+    data class Back(val fromStep: OnboardingStep) : OnboardingAction
+    data object Skip : OnboardingAction
+    data object Finish : OnboardingAction
+    data object Close : OnboardingAction
+    data class CredentialOfferFetched(val url: String, val fromStep: OnboardingStep) :
+        OnboardingAction
+
+    data class PinEntered(val pin: String, val fromStep: OnboardingStep) : OnboardingAction
+    data class PinVerified(val pin: String, val fromStep: OnboardingStep) : OnboardingAction
 }
 
-enum class OnboardingStep(val stepTitle: String) {
-    NOTIFICATION("Notification"),
-    PHONE_NUMBER("Phone number"),
-    VERIFY_PHONE("Verify phone"),
-    EMAIL("Email"),
-    VERIFY_EMAIL("Verify email"),
-    PIN("PIN"),
-    VERIFY_PIN("Verify PIN"),
-    FETCH_PID("PID"),
-    CREDENTIAL_OFFER("Credential offer"),
+enum class OnboardingStep {
+    SETUP_PIN,
+    VERIFY_PIN,
+    SETUP_WALLET,
+    SETUP_PID,
+    CREDENTIAL_OFFER,
     ;
 
     companion object {

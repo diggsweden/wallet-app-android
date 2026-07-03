@@ -29,7 +29,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
@@ -39,7 +38,7 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun SettingsRoute(
-    navController: NavController,
+    onBack: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -54,7 +53,7 @@ fun SettingsRoute(
     }
 
     SettingsScreen(
-        onBackClick = { navController.navigateUp() },
+        onBackClick = onBack,
         onLogoutClick = { viewModel.onLogout() },
     )
 }

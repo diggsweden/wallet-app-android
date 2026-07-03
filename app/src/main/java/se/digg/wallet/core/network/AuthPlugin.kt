@@ -16,7 +16,7 @@ class AuthPluginConfig {
 val authPlugin =
     createClientPlugin("AuthPlugin", ::AuthPluginConfig) {
         on(Send) { request ->
-            if (request.url.encodedPath.startsWith("/accounts")) {
+            if (request.url.encodedPath == "/v0/accounts") {
                 return@on proceed(request)
             }
 
