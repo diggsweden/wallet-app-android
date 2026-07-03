@@ -58,7 +58,6 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 ktlint-compose = { group = "io.nlopez.compose.rules", name = "ktlint", version.ref = "ktlintCompose" }
 
 # Storage
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
@@ -100,24 +99,10 @@ accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version
 [bundles]
 images = ["coil-compose", "coil-network"]
 eudi = ["eudi-openid4vci", "eudi-openid4vp", "eudi-sdjwt"]
-<<<<<<< HEAD
-ktor = [
-  "ktor-core",
-  "ktor-okhttp",
-  "ktor-logging",
-  "ktor-content-negotiation",
-  "ktor-serialization"
-]
-storage = [
-  "datastore",
-  "kotlinx-serialization-json",
-  "room-runtime",
-  "room-ktx"
-]
-=======
+
 ktor = ["ktor-core", "ktor-okhttp", "ktor-logging", "ktor-content-negotiation", "ktor-serialization"]
 storage = ["kotlinx-serialization-json", "room-runtime", "room-ktx"]
->>>>>>> ac49f83 (chore: bump dependencies and update client-gateway spec)
+
 di = ["hilt-android", "hilt-navigation-compose"]
 
 [plugins]
