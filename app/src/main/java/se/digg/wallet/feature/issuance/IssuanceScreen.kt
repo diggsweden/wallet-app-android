@@ -56,63 +56,67 @@ fun IssuanceScreen(
     val launchAuthTab = LocalAuthTabLauncher.current
     LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri) }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp)
-            .verticalScroll(rememberScrollState()),
-    ) {
-        if (headerContent != null) {
-            headerContent()
-        } else {
-            Spacer(Modifier.height(26.dp))
+    when (val currentState = uiState) {
+        is IssuanceState.Error -> {
+            GenericErrorScreen(onPrimaryAction = { viewModel.retry() })
         }
-        CredentialOfferHeader(
-            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
-            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
-        )
 
-        when (val currentState = uiState) {
-            IssuanceState.Loading -> {
-                GenericLoading()
-            }
-
-            is IssuanceState.Error -> {
-                GenericErrorScreen(onPrimaryAction = { viewModel.retry() })
-            }
-
-            is IssuanceState.IssuerFetched -> {
-                Spacer(modifier = Modifier.weight(1f))
-                PrimaryButton(
-                    text = stringResource(R.string.generic_login),
-                    onClick = { viewModel.authorize(launchAuthTab) },
-                    modifier = Modifier.fillMaxWidth(),
+        else -> {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                if (headerContent != null) {
+                    headerContent()
+                } else {
+                    Spacer(Modifier.height(26.dp))
+                }
+                CredentialOfferHeader(
+                    logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
+                    issuerName = issuerMetadata?.display?.firstOrNull()?.name,
                 )
-            }
 
-            is IssuanceState.ReadyToSign -> {
-                Spacer(modifier = Modifier.weight(1f))
-                PinInput(
-                    buttonLabel = stringResource(R.string.generic_confirm),
-                    onSubmit = { pin -> viewModel.createProof(pin) },
-                )
-            }
+                when (currentState) {
+                    IssuanceState.Loading -> {
+                        GenericLoading()
+                    }
 
-            is IssuanceState.ReadyToFetch -> {
-                LaunchedEffect(Unit) { viewModel.fetchCredential() }
-                GenericLoading()
-            }
+                    is IssuanceState.IssuerFetched -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        PrimaryButton(
+                            text = stringResource(R.string.generic_login),
+                            onClick = { viewModel.authorize(launchAuthTab) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
 
-            is IssuanceState.CredentialFetched -> {
-                Spacer(modifier = Modifier.height(30.dp))
-                ClaimList(claims = currentState.claims)
-                Spacer(modifier = Modifier.height(24.dp))
-                PrimaryButton(
-                    text = stringResource(R.string.issuance_approve_button),
-                    onClick = { onFinishClick.invoke() },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                    is IssuanceState.ReadyToSign -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        PinInput(
+                            buttonLabel = stringResource(R.string.generic_confirm),
+                            onSubmit = { pin -> viewModel.createProof(pin) },
+                        )
+                    }
+
+                    is IssuanceState.ReadyToFetch -> {
+                        LaunchedEffect(Unit) { viewModel.fetchCredential() }
+                        GenericLoading()
+                    }
+
+                    is IssuanceState.CredentialFetched -> {
+                        Spacer(modifier = Modifier.height(30.dp))
+                        ClaimList(claims = currentState.claims)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        PrimaryButton(
+                            text = stringResource(R.string.issuance_approve_button),
+                            onClick = { onFinishClick.invoke() },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             }
         }
     }

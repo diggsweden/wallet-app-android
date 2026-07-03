@@ -33,6 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
@@ -81,7 +82,11 @@ fun PidSetupRoute(
 @Composable
 private fun PidSetupScreen(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> Unit) {
     when (uiState) {
-        PidSetupUiState.Error -> Error()
+        PidSetupUiState.Error -> GenericErrorScreen(
+            errorTitle = stringResource(R.string.generic_error),
+            errorMessage = stringResource(R.string.generic_error_retry),
+            onPrimaryAction = onFetchId,
+        )
 
         PidSetupUiState.Idle -> Content(
             uiState = uiState,
@@ -90,18 +95,6 @@ private fun PidSetupScreen(uiState: PidSetupUiState, pageNumber: Int, onFetchId:
         )
 
         PidSetupUiState.Loading -> Loading()
-    }
-}
-
-@Composable
-private fun Error() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(stringResource(R.string.generic_error), style = WalletTextStyle.H2)
-        Text(stringResource(R.string.generic_error_retry), style = WalletTextStyle.BodyMD)
     }
 }
 
