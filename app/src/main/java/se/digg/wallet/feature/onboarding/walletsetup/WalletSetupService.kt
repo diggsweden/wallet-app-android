@@ -5,7 +5,6 @@
 package se.digg.wallet.feature.onboarding.walletsetup
 
 import com.nimbusds.jose.jwk.JWK
-import javax.inject.Inject
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.network.WalletOpaqueClient
@@ -14,6 +13,7 @@ import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
+import javax.inject.Inject
 
 interface WalletSetupService {
     suspend fun createAccount()
@@ -31,7 +31,7 @@ internal class DefaultWalletSetupService @Inject constructor(
     private var opaqueClient: OpaqueClient? = null
 
     override suspend fun createAccount() {
-        val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+        val keyPair = KeystoreManager.generateEs256Key(KeyAlias.DEVICE_KEY)
         val ecKey = keyPair.toECKey(withThumbprint = true)
         val accountId = userRepository.createAccount(
             CreateAccountRequest(
