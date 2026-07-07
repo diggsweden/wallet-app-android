@@ -15,11 +15,6 @@ import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
 
-// TODO: Replace with real user data once onboarding collects it.
-private const val PLACEHOLDER_PERSONAL_IDENTITY_NUMBER = "123456789"
-private const val PLACEHOLDER_EMAIL = "test@test.test"
-private const val PLACEHOLDER_TELEPHONE_NUMBER = "123456789"
-
 interface WalletSetupService {
     suspend fun createAccount()
     suspend fun initHsm()
@@ -40,9 +35,6 @@ internal class DefaultWalletSetupService @Inject constructor(
         val ecKey = keyPair.toECKey(withThumbprint = true)
         val accountId = userRepository.createAccount(
             CreateAccountRequest(
-                personalIdentityNumber = PLACEHOLDER_PERSONAL_IDENTITY_NUMBER,
-                emailAdress = PLACEHOLDER_EMAIL,
-                telephoneNumber = PLACEHOLDER_TELEPHONE_NUMBER,
                 deviceKey = EcJwkRequest(
                     kty = ecKey.keyType.value,
                     crv = ecKey.curve.name,
