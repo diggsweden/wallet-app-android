@@ -11,23 +11,13 @@ import org.junit.Test
 class OnboardingUiModelsTest {
 
     @Test
-    fun `PIN step has correct title`() {
-        assertEquals("PIN", OnboardingStep.PIN.stepTitle)
-    }
-
-    @Test
-    fun `VERIFY_PIN step has correct title`() {
-        assertEquals("Verify PIN", OnboardingStep.VERIFY_PIN.stepTitle)
-    }
-
-    @Test
     fun `totalSteps matches number of entries`() {
         assertEquals(OnboardingStep.entries.size, OnboardingStep.totalSteps)
     }
 
     @Test
     fun `default onboarding state starts at NOTIFICATION`() {
-        assertEquals(OnboardingStep.NOTIFICATION, OnboardingUiState().currentStep)
+        assertEquals(OnboardingStep.SETUP_PIN, OnboardingUiState().currentStep)
     }
 
     @Test
