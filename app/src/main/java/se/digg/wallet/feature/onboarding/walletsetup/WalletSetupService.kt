@@ -5,7 +5,6 @@
 package se.digg.wallet.feature.onboarding.walletsetup
 
 import com.nimbusds.jose.jwk.JWK
-import javax.inject.Inject
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.network.WalletOpaqueClient
@@ -14,11 +13,7 @@ import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
-
-// TODO: Replace with real user data once onboarding collects it.
-private const val PLACEHOLDER_PERSONAL_IDENTITY_NUMBER = "123456789"
-private const val PLACEHOLDER_EMAIL = "test@test.test"
-private const val PLACEHOLDER_TELEPHONE_NUMBER = "123456789"
+import javax.inject.Inject
 
 interface WalletSetupService {
     suspend fun createAccount()
@@ -36,13 +31,10 @@ internal class DefaultWalletSetupService @Inject constructor(
     private var opaqueClient: OpaqueClient? = null
 
     override suspend fun createAccount() {
-        val keyPair = KeystoreManager.getOrCreateEs256Key(KeyAlias.DEVICE_KEY)
+        val keyPair = KeystoreManager.generateEs256Key(KeyAlias.DEVICE_KEY)
         val ecKey = keyPair.toECKey(withThumbprint = true)
         val accountId = userRepository.createAccount(
             CreateAccountRequest(
-                personalIdentityNumber = PLACEHOLDER_PERSONAL_IDENTITY_NUMBER,
-                emailAdress = PLACEHOLDER_EMAIL,
-                telephoneNumber = PLACEHOLDER_TELEPHONE_NUMBER,
                 deviceKey = EcJwkRequest(
                     kty = ecKey.keyType.value,
                     crv = ecKey.curve.name,

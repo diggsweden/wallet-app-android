@@ -7,6 +7,9 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -14,9 +17,6 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 enum class KeyAlias(val value: String) {
     DEVICE_KEY("device_key_alias"),
@@ -50,7 +50,7 @@ object KeystoreManager {
             }
         }
 
-    private fun generateEs256Key(alias: KeyAlias, tryStrongBox: Boolean): KeyPair {
+    fun generateEs256Key(alias: KeyAlias, tryStrongBox: Boolean = true): KeyPair {
         try {
             val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, ANDROID_KEYSTORE)
             kpg.initialize(
@@ -73,6 +73,16 @@ object KeystoreManager {
         } catch (e: Exception) {
             Timber.d("Error: ${e.message}")
             throw Exception("Kunde inte spara nyckel")
+        }
+    }
+
+    fun removeKey() {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
+            load(null)
+        }
+
+        if (keyStore.containsAlias(KeyAlias.DEVICE_KEY.value)) {
+            keyStore.deleteEntry(KeyAlias.DEVICE_KEY.value)
         }
     }
 
