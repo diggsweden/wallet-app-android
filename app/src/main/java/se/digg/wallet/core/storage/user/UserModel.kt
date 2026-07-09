@@ -10,6 +10,7 @@ import androidx.room.TypeConverter
 import java.util.UUID
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import se.digg.wallet.core.passkey.StoredPasskey
 import se.digg.wallet.data.SavedCredential
 
 @Entity(tableName = "user")
@@ -20,6 +21,8 @@ data class User(
     val credentials: List<SavedCredential>,
     val pid: SavedCredential?,
     val opaqueSession: OpaqueSession? = null,
+    val passkey: StoredPasskey? = null,
+    val encryptedPin: String? = null,
 )
 
 @Serializable
@@ -67,4 +70,12 @@ class DbConverters {
     @TypeConverter
     fun stringToOpaqueSession(value: String?): OpaqueSession? =
         value?.let { runCatching { Json.decodeFromString<OpaqueSession>(it) }.getOrNull() }
+
+    @TypeConverter
+    fun storedPasskeyToString(passkey: StoredPasskey?): String? =
+        passkey?.let { Json.encodeToString(it) }
+
+    @TypeConverter
+    fun stringToStoredPasskey(value: String?): StoredPasskey? =
+        value?.let { runCatching { Json.decodeFromString<StoredPasskey>(it) }.getOrNull() }
 }

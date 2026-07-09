@@ -1,0 +1,67 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "585c71336e9cc9bb12ffe30511d15500",
+    "entities": [
+      {
+        "tableName": "user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `uuid` TEXT, `accountId` TEXT, `credentials` TEXT NOT NULL, `pid` TEXT, `opaqueSession` TEXT, `passkey` TEXT, `encryptedPin` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "accountId",
+            "columnName": "accountId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "credentials",
+            "columnName": "credentials",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pid",
+            "columnName": "pid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "opaqueSession",
+            "columnName": "opaqueSession",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "passkey",
+            "columnName": "passkey",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "encryptedPin",
+            "columnName": "encryptedPin",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '585c71336e9cc9bb12ffe30511d15500')"
+    ]
+  }
+}

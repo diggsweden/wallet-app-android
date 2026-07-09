@@ -13,11 +13,12 @@ import androidx.room.migration.AutoMigrationSpec
 
 @Database(
     entities = [User::class],
-    version = 4,
+    version = 5,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3, spec = AppDatabase.Migration2To3::class),
         AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 4, to = 5),
     ],
 )
 @TypeConverters(DbConverters::class)

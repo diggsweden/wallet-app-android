@@ -27,23 +27,15 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
-fun PinSetupRoute(
-    pageNumber: Int,
-    onPinEntered: (String) -> Unit,
-    onPinVerified: (String) -> Unit = {},
-    onBack: () -> Unit = {},
-    verifyPin: Boolean = false,
-) {
+fun PinSetupRoute(pageNumber: Int, onPinEntered: (String) -> Unit) {
     PinSetupScreen(
         pageNumber = pageNumber,
-        verifyPin = verifyPin,
-        onSubmit = { pin -> if (verifyPin) onPinVerified(pin) else onPinEntered(pin) },
+        onSubmit = onPinEntered,
     )
 }
 
 @Composable
-private fun PinSetupScreen(
-    pageNumber: Int, verifyPin: Boolean, onSubmit: (String) -> Unit,) {
+private fun PinSetupScreen(pageNumber: Int, onSubmit: (String) -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -51,17 +43,10 @@ private fun PinSetupScreen(
             .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
-        if (verifyPin) {
-            OnboardingHeader(
-                pageNumber = pageNumber,
-                pageTitle = stringResource(R.string.onboarding_pin_verify_title),
-            )
-        } else {
-            OnboardingHeader(
-                pageNumber = pageNumber,
-                pageTitle = stringResource(R.string.onboarding_pin_title),
-            )
-        }
+        OnboardingHeader(
+            pageNumber = pageNumber,
+            pageTitle = stringResource(R.string.onboarding_pin_title),
+        )
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
@@ -82,7 +67,6 @@ private fun PinSetupScreenPreview() {
     WalletPreview {
         PinSetupScreen(
             pageNumber = 6,
-            verifyPin = true,
             onSubmit = {},
         )
     }

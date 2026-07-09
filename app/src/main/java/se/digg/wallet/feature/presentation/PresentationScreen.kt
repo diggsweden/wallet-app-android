@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,6 +47,8 @@ import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.passkey.PasskeyConfirmUiState
+import se.digg.wallet.core.passkey.ui.PasskeyConfirm
 
 @Composable
 fun PresentationRoute(
@@ -57,6 +60,8 @@ fun PresentationRoute(
     viewModel: PresentationViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val passkeyConfirm by viewModel.passkeyConfirm.collectAsState()
+    val activityContext = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val currentOnPopBack by rememberUpdatedState(onPopBack)
 
@@ -77,6 +82,8 @@ fun PresentationRoute(
         onShareClick = { viewModel.onAccept() },
         onFinishClick = onFinish,
         onSubmitPin = { viewModel.sendData(it) },
+        onConfirmPasskey = { viewModel.sendDataWithPasskey(activityContext) },
+        passkeyConfirm = passkeyConfirm,
         onOptionalClaimClick = { id, checked ->
             viewModel.onOptionalClaimCheckedChanged(
                 id,
@@ -98,6 +105,8 @@ private fun PresentationScreen(
     onOptionalClaimClick: (String, Boolean) -> Unit,
     uiState: PresentationUiState,
     modifier: Modifier = Modifier,
+    onConfirmPasskey: () -> Unit = {},
+    passkeyConfirm: PasskeyConfirmUiState = PasskeyConfirmUiState(),
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -158,14 +167,22 @@ private fun PresentationScreen(
                             style = WalletTextStyle.BodyLG,
                         )
                         Spacer(Modifier.height(64.dp))
-                        PinInput(
-                            "Dela",
-                            {
-                                onSubmitPin.invoke(it)
-                            },
-                            Modifier
-                                .fillMaxWidth(),
-                        )
+                        if (passkeyConfirm.passkey != null) {
+                            PasskeyConfirm(
+                                onConfirmClick = onConfirmPasskey,
+                                inProgress = passkeyConfirm.inProgress,
+                                errorMessage = passkeyConfirm.error,
+                            )
+                        } else {
+                            PinInput(
+                                "Dela",
+                                {
+                                    onSubmitPin.invoke(it)
+                                },
+                                Modifier
+                                    .fillMaxWidth(),
+                            )
+                        }
                     }
                 }
 

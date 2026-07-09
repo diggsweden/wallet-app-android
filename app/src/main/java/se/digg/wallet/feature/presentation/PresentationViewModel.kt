@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.presentation
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
@@ -46,6 +47,9 @@ import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.network.WalletOpaqueClient
+import se.digg.wallet.core.passkey.PasskeyAssertResult
+import se.digg.wallet.core.passkey.PasskeyConfirmUiState
+import se.digg.wallet.core.passkey.PasskeyManager
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
@@ -62,6 +66,7 @@ class PresentationViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
     private val opaqueTransport: WalletOpaqueClient,
+    private val passkeyManager: PasskeyManager,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
     private var walletConfig: OpenId4VPConfig? = null
@@ -75,6 +80,51 @@ class PresentationViewModel @Inject constructor(
 
     private val _effects = MutableSharedFlow<PresentationUiEffect>()
     val effects: SharedFlow<PresentationUiEffect> = _effects.asSharedFlow()
+
+    private val _passkeyConfirm = MutableStateFlow(PasskeyConfirmUiState())
+    val passkeyConfirm: StateFlow<PasskeyConfirmUiState> = _passkeyConfirm
+
+    init {
+        viewModelScope.launch {
+            _passkeyConfirm.update { it.copy(passkey = userRepository.getPasskey()) }
+        }
+    }
+
+    /**
+     * Passkey PoC: replaces the PIN entry when approving a share. A successful
+     * assertion releases the locally wrapped PIN, which still drives the
+     * OPAQUE authentication in [sendData].
+     */
+    fun sendDataWithPasskey(activityContext: Context) {
+        val passkey = _passkeyConfirm.value.passkey ?: return
+        if (_passkeyConfirm.value.inProgress) return
+        viewModelScope.launch {
+            _passkeyConfirm.update { it.copy(inProgress = true, error = null) }
+            when (val result = passkeyManager.assertPasskey(activityContext, passkey)) {
+                PasskeyAssertResult.Success -> {
+                    val encryptedPin = userRepository.getEncryptedPin()
+                    if (encryptedPin == null) {
+                        _passkeyConfirm.update {
+                            it.copy(inProgress = false, error = "No stored PIN")
+                        }
+                    } else {
+                        _passkeyConfirm.update { it.copy(inProgress = false) }
+                        sendData(KeystoreManager.decryptPin(encryptedPin))
+                    }
+                }
+
+                PasskeyAssertResult.Cancelled -> {
+                    _passkeyConfirm.update { it.copy(inProgress = false) }
+                }
+
+                is PasskeyAssertResult.Failed -> {
+                    _passkeyConfirm.update {
+                        it.copy(inProgress = false, error = result.message)
+                    }
+                }
+            }
+        }
+    }
 
     fun init(fullUri: String) {
         presentationUri = fullUri

@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.issuance
 
+import android.content.Context
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,6 +38,7 @@ import java.net.URI
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.crypto.CryptoSpec
@@ -49,6 +51,9 @@ import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
+import se.digg.wallet.core.passkey.PasskeyAssertResult
+import se.digg.wallet.core.passkey.PasskeyConfirmUiState
+import se.digg.wallet.core.passkey.PasskeyManager
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
@@ -92,6 +97,7 @@ class IssuanceViewModel @Inject constructor(
     private val oAuthCoordinator: OAuthCoordinator,
     private val openIdNetworkService: OpenIdNetworkService,
     private val opaqueTransport: WalletOpaqueClient,
+    private val passkeyManager: PasskeyManager,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
@@ -114,6 +120,51 @@ class IssuanceViewModel @Inject constructor(
 
     private val _issuerMetadata = MutableStateFlow<CredentialIssuerMetadata?>(null)
     val issuerMetadata: StateFlow<CredentialIssuerMetadata?> = _issuerMetadata
+
+    private val _passkeyConfirm = MutableStateFlow(PasskeyConfirmUiState())
+    val passkeyConfirm: StateFlow<PasskeyConfirmUiState> = _passkeyConfirm
+
+    init {
+        viewModelScope.launch {
+            _passkeyConfirm.update { it.copy(passkey = userRepository.getPasskey()) }
+        }
+    }
+
+    /**
+     * Passkey PoC: replaces the PIN entry at the signing step. A successful
+     * assertion releases the locally wrapped PIN, which still drives the
+     * OPAQUE authentication in [createProof].
+     */
+    fun createProofWithPasskey(activityContext: Context) {
+        val passkey = _passkeyConfirm.value.passkey ?: return
+        if (_passkeyConfirm.value.inProgress) return
+        viewModelScope.launch {
+            _passkeyConfirm.update { it.copy(inProgress = true, error = null) }
+            when (val result = passkeyManager.assertPasskey(activityContext, passkey)) {
+                PasskeyAssertResult.Success -> {
+                    val encryptedPin = userRepository.getEncryptedPin()
+                    if (encryptedPin == null) {
+                        _passkeyConfirm.update {
+                            it.copy(inProgress = false, error = "No stored PIN")
+                        }
+                    } else {
+                        _passkeyConfirm.update { it.copy(inProgress = false) }
+                        createProof(KeystoreManager.decryptPin(encryptedPin))
+                    }
+                }
+
+                PasskeyAssertResult.Cancelled -> {
+                    _passkeyConfirm.update { it.copy(inProgress = false) }
+                }
+
+                is PasskeyAssertResult.Failed -> {
+                    _passkeyConfirm.update {
+                        it.copy(inProgress = false, error = result.message)
+                    }
+                }
+            }
+        }
+    }
 
     fun fetchIssuer(uri: String) {
         _uiState.value = IssuanceState.Loading

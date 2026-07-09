@@ -7,12 +7,12 @@ package se.digg.wallet.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
-import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val userRepository: UserRepository) :

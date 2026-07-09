@@ -36,5 +36,14 @@
     <string name="onboarding_intro_button">Get started with the wallet</string>
     <string name="onboarding_fetch_id_description_2">In order to use the wallet, we need to collect information about you. The information collected is used as an ID card.</string>
     <string name="generic_cancel">Cancel</string>
+    <string name="onboarding_passkey_title">Create a passkey</string>
+    <string name="onboarding_passkey_description">With a passkey you approve actions in the wallet using your fingerprint or face, instead of typing your PIN.</string>
+    <string name="onboarding_passkey_create_button">Create passkey</string>
+    <string name="onboarding_passkey_error">Could not create passkey: %1$s</string>
+    <string name="passkey_confirm_title">Approve with passkey</string>
+    <string name="passkey_confirm_button">Confirm with passkey</string>
+    <string name="passkey_confirm_error">Passkey confirmation failed: %1$s</string>
+    <string name="passkey_local_prompt_title">Wallet passkey</string>
+    <string name="passkey_local_prompt_subtitle">Use your fingerprint or face to continue</string>
     <string name="error_screen_failed_description">%1$s failed</string>
 </resources>

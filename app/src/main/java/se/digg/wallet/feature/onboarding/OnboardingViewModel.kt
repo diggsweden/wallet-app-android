@@ -65,13 +65,9 @@ class OnboardingViewModel @Inject constructor(private val userRepository: UserRe
                 }
             }
 
-            is OnboardingAction.PinVerified -> {
+            is OnboardingAction.PasskeyCreated -> {
                 ifCurrent(action.fromStep) {
-                    if (_uiState.value.capturedPin == action.pin) {
-                        goNext(action.fromStep)
-                    } else {
-                        goBack(action.fromStep)
-                    }
+                    goNext(action.fromStep)
                 }
             }
         }

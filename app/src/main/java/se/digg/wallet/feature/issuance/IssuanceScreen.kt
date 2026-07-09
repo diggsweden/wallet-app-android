@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
+import se.digg.wallet.core.passkey.ui.PasskeyConfirm
 
 @Composable
 fun IssuanceScreen(
@@ -52,6 +54,8 @@ fun IssuanceScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val issuerMetadata by viewModel.issuerMetadata.collectAsState()
+    val passkeyConfirm by viewModel.passkeyConfirm.collectAsState()
+    val activityContext = LocalContext.current
 
     val launchAuthTab = LocalAuthTabLauncher.current
     LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri) }
@@ -95,10 +99,20 @@ fun IssuanceScreen(
 
                     is IssuanceState.ReadyToSign -> {
                         Spacer(modifier = Modifier.weight(1f))
-                        PinInput(
-                            buttonLabel = stringResource(R.string.generic_confirm),
-                            onSubmit = { pin -> viewModel.createProof(pin) },
-                        )
+                        if (passkeyConfirm.passkey != null) {
+                            PasskeyConfirm(
+                                onConfirmClick = {
+                                    viewModel.createProofWithPasskey(activityContext)
+                                },
+                                inProgress = passkeyConfirm.inProgress,
+                                errorMessage = passkeyConfirm.error,
+                            )
+                        } else {
+                            PinInput(
+                                buttonLabel = stringResource(R.string.generic_confirm),
+                                onSubmit = { pin -> viewModel.createProof(pin) },
+                            )
+                        }
                     }
 
                     is IssuanceState.ReadyToFetch -> {

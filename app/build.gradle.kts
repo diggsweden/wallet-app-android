@@ -182,6 +182,8 @@ dependencies {
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
     implementation(libs.accessMechanism)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
 
     ksp(libs.hilt.compiler)
 
