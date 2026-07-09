@@ -21,8 +21,8 @@ class OnboardingUiModelsTest {
     }
 
     @Test
-    fun `VERIFY_PIN is in the back-navigation enabled list`() {
-        assertTrue(OnboardingStep.VERIFY_PIN in OnboardingUiState().enableBack)
+    fun `SETUP_PASSKEY is in the back-navigation enabled list`() {
+        assertTrue(OnboardingStep.SETUP_PASSKEY in OnboardingUiState().enableBack)
     }
 
     @Test

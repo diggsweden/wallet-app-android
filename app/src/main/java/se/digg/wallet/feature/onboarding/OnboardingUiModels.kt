@@ -9,7 +9,7 @@ data class OnboardingUiState(
     val totalSteps: Int = OnboardingStep.totalSteps,
     val enableBack: List<OnboardingStep> =
         listOf(
-            OnboardingStep.VERIFY_PIN,
+            OnboardingStep.SETUP_PASSKEY,
         ),
     val capturedPin: String = "",
 )
@@ -28,12 +28,15 @@ sealed interface OnboardingAction {
         OnboardingAction
 
     data class PinEntered(val pin: String, val fromStep: OnboardingStep) : OnboardingAction
-    data class PinVerified(val pin: String, val fromStep: OnboardingStep) : OnboardingAction
+    data class PasskeyCreated(val fromStep: OnboardingStep) : OnboardingAction
 }
 
 enum class OnboardingStep {
     SETUP_PIN,
-    VERIFY_PIN,
+
+    // Passkey PoC: replaces the previous VERIFY_PIN step to show where
+    // passkey creation would sit in a real implementation.
+    SETUP_PASSKEY,
     SETUP_WALLET,
     SETUP_PID,
     CREDENTIAL_OFFER,

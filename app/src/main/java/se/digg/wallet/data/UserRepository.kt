@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
 import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.passkey.StoredPasskey
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
@@ -27,6 +28,7 @@ class UserRepository @Inject constructor(
     private val gatewayClient: HttpClient,
     private val sessionManager: SessionManager,
 ) : CredentialStore,
+    PasskeyStore,
     WuaProvider {
     val user: Flow<User?> = userDao.observe()
     private val accountsClient = V0AccountsClient(gatewayClient)
@@ -61,6 +63,16 @@ class UserRepository @Inject constructor(
 
     override suspend fun addCredentials(credentials: List<SavedCredential>) =
         updateUser { it.copy(credentials = it.credentials + credentials) }
+
+    override suspend fun getPasskey(): StoredPasskey? = userDao.get()?.passkey
+
+    override suspend fun setPasskey(passkey: StoredPasskey) =
+        updateUser { it.copy(passkey = passkey) }
+
+    override suspend fun getEncryptedPin(): String? = userDao.get()?.encryptedPin
+
+    override suspend fun setEncryptedPin(encryptedPin: String) =
+        updateUser { it.copy(encryptedPin = encryptedPin) }
 
     suspend fun saveServerParameters(params: ServerParameters) {
         val jwk = ECKey.Builder(Curve.P_256, params.serverPublicKey).build().toJSONString()

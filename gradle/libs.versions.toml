@@ -29,6 +29,7 @@ fabrikt = "1.41.0"
 androidBrowser = "1.10.0"
 aboutLibraries = "15.2.0"
 kotlinter = "5.7.0"
+credentials = "1.5.0"
 eudiSDJWT = "0.20.1"
 
 [libraries]
@@ -90,6 +91,10 @@ nimbus = { group = "com.nimbusds", name = "nimbus-jose-jwt", version.ref = "nimb
 # Image
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+
+# Passkeys / Credential Manager
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 
 # Dependency Injection
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }

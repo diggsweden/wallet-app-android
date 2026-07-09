@@ -15,12 +15,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [User::class],
-    version = 6,
+    version = 7,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3, spec = AppDatabase.Migration2To3::class),
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 5, to = 6, spec = AppDatabase.Migration5To6::class),
+        AutoMigration(from = 6, to = 7),
     ],
 )
 @TypeConverters(DbConverters::class)

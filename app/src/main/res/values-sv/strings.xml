@@ -59,6 +59,15 @@
     <string name="onboarding_step_title">Steg %1$d av %2$d</string>
     <string name="onboarding_intro_button">Kom igång med plånboken</string>
     <string name="generic_cancel">Avbryt</string>
+    <string name="onboarding_passkey_title">Skapa en nyckel (passkey)</string>
+    <string name="onboarding_passkey_description">Med en nyckel godkänner du åtgärder i plånboken med fingeravtryck eller ansikte, i stället för att skriva in din pinkod.</string>
+    <string name="onboarding_passkey_create_button">Skapa nyckel</string>
+    <string name="onboarding_passkey_error">Kunde inte skapa nyckel: %1$s</string>
+    <string name="passkey_confirm_title">Godkänn med nyckel</string>
+    <string name="passkey_confirm_button">Bekräfta med nyckel</string>
+    <string name="passkey_confirm_error">Godkännande med nyckel misslyckades: %1$s</string>
+    <string name="passkey_local_prompt_title">Plånbokens nyckel</string>
+    <string name="passkey_local_prompt_subtitle">Använd fingeravtryck eller ansikte för att fortsätta</string>
     <string name="error_screen_failed_description">%1$s misslyckades</string>
     <string name="error_connectivity_title">Ingen anslutning</string>
     <string name="error_connectivity_message">Kontrollera din internetanslutning och försök igen.</string>

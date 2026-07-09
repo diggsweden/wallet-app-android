@@ -13,6 +13,7 @@ import javax.inject.Singleton
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.storage.user.UserDao
 import se.digg.wallet.data.CredentialStore
+import se.digg.wallet.data.PasskeyStore
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.WuaProvider
 
@@ -34,6 +35,9 @@ object RepositoryModule {
 
     @Provides
     fun provideCredentialStore(userRepository: UserRepository): CredentialStore = userRepository
+
+    @Provides
+    fun providePasskeyStore(userRepository: UserRepository): PasskeyStore = userRepository
 
     @Provides
     fun provideWuaProvider(userRepository: UserRepository): WuaProvider = userRepository

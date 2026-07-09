@@ -13,6 +13,8 @@ path = [
     "app/.gitignore",
     "app/proguard-rules.pro",
     "docs/DEVELOPMENT.md",
+    "docs/passkey-poc.md",
+    "docs/passkey-poc-overview.md",
     "feature/home/.gitignore",
     "feature/home/consumer-rules.pro",
     "feature/home/proguard-rules.pro",

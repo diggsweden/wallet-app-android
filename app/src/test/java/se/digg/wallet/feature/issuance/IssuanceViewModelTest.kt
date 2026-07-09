@@ -26,7 +26,10 @@ import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthResult
 import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.ClaimValue
+import se.digg.wallet.core.passkey.PasskeyManager
+import se.digg.wallet.core.passkey.StoredPasskey
 import se.digg.wallet.data.CredentialStore
+import se.digg.wallet.data.PasskeyStore
 import se.digg.wallet.data.IssuerDisplay
 import se.digg.wallet.data.SavedCredential
 
@@ -123,6 +126,14 @@ private class FakeCredentialStore : CredentialStore {
     }
 }
 
+
+private class FakePasskeyStore : PasskeyStore {
+    override suspend fun getPasskey(): StoredPasskey? = null
+    override suspend fun setPasskey(passkey: StoredPasskey) = Unit
+    override suspend fun getEncryptedPin(): String? = null
+    override suspend fun setEncryptedPin(encryptedPin: String) = Unit
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class IssuanceViewModelTest {
 
@@ -130,6 +141,8 @@ class IssuanceViewModelTest {
     private val service = FakeIssuanceService()
     private val launcher = FakeAuthorizationLauncher()
     private val store = FakeCredentialStore()
+    private val passkeyStore = FakePasskeyStore()
+    private val passkeyManager = PasskeyManager()
     private val launchAuthTab: LaunchAuthTab = { _, _ -> }
 
     @Before
@@ -151,7 +164,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `fetchIssuer exposes the issuer display`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
 
         viewModel.fetchIssuer("openid-credential-offer://offer")
         assertEquals(IssuanceState.Loading, viewModel.uiState.value)
@@ -163,7 +176,7 @@ class IssuanceViewModelTest {
     @Test
     fun `fetchIssuer failure can be retried`() = runTest(dispatcher) {
         service.fetchOfferError = IllegalStateException("offline")
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
 
         viewModel.fetchIssuer("openid-credential-offer://offer")
         advanceUntilIdle()
@@ -180,7 +193,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `authorize before the offer resolves does nothing`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
 
         viewModel.authorize(launchAuthTab)
         advanceUntilIdle()
@@ -191,7 +204,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `authorize asks for the pin`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
 
         reachAwaitingPin(viewModel)
 
@@ -201,7 +214,7 @@ class IssuanceViewModelTest {
     @Test
     fun `authorize failure retries back to the offer`() = runTest(dispatcher) {
         service.authorizeError = IllegalStateException("cancelled")
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
 
         reachAwaitingPin(viewModel)
 
@@ -214,7 +227,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `createProof signs with the pin and fetches the credential`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         reachAwaitingPin(viewModel)
 
         viewModel.createProof("123456")
@@ -232,7 +245,7 @@ class IssuanceViewModelTest {
     @Test
     fun `proof failure retries back to the pin and does not fetch`() = runTest(dispatcher) {
         service.createProofError = IllegalStateException("wrong pin")
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         reachAwaitingPin(viewModel)
 
         viewModel.createProof("000000")
@@ -249,7 +262,7 @@ class IssuanceViewModelTest {
     @Test
     fun `fetch failure retries the fetch without signing again`() = runTest(dispatcher) {
         service.fetchCredentialError = IllegalStateException("issuer down")
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         reachAwaitingPin(viewModel)
 
         viewModel.createProof("123456")
@@ -271,7 +284,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `createProof twice only issues one credential`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         reachAwaitingPin(viewModel)
 
         viewModel.createProof("123456")
@@ -284,7 +297,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `createProof before authorization does nothing`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         viewModel.fetchIssuer("openid-credential-offer://offer")
         advanceUntilIdle()
 
@@ -300,7 +313,7 @@ class IssuanceViewModelTest {
     fun `browser cancellation returns to the offer without exchanging code`() =
         runTest(dispatcher) {
             launcher.result = OAuthResult.Cancelled
-            val viewModel = IssuanceViewModel(service, launcher, store)
+            val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
             reachAwaitingPin(viewModel)
             assertEquals(IssuanceState.OfferReady(issuerDisplay), viewModel.uiState.value)
             assertEquals(0, service.exchangeCount)
@@ -309,7 +322,7 @@ class IssuanceViewModelTest {
     @Test
     fun `authorization blocks repeated taps while browser is open`() = runTest(dispatcher) {
         launcher.gate = CompletableDeferred()
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         viewModel.fetchIssuer("offer")
         advanceUntilIdle()
         viewModel.authorize(launchAuthTab)
@@ -325,7 +338,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `browser failure and exchange failure can return to authorization`() = runTest(dispatcher) {
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         launcher.result = OAuthResult.Failure("Timeout")
         reachAwaitingPin(viewModel)
         assertEquals(IssuanceState.Error(IssuanceRetryStep.Authorize), viewModel.uiState.value)
@@ -347,7 +360,7 @@ class IssuanceViewModelTest {
     fun `save retry does not fetch or sign again and ignores repeated taps`() =
         runTest(dispatcher) {
             store.error = IllegalStateException("storage unavailable")
-            val viewModel = IssuanceViewModel(service, launcher, store)
+            val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
             reachAwaitingPin(viewModel)
             viewModel.createProof("123456")
             advanceUntilIdle()
@@ -370,7 +383,7 @@ class IssuanceViewModelTest {
     fun `proof cancellation does not become a retryable error or fetch a credential`() =
         runTest(dispatcher) {
             service.createProofError = CancellationException("cancelled")
-            val viewModel = IssuanceViewModel(service, launcher, store)
+            val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
             reachAwaitingPin(viewModel)
             viewModel.createProof("123456")
             advanceUntilIdle()
@@ -382,7 +395,7 @@ class IssuanceViewModelTest {
     @Test
     fun `repeated proof submission while signing does not sign again`() = runTest(dispatcher) {
         service.proofGate = CompletableDeferred()
-        val viewModel = IssuanceViewModel(service, launcher, store)
+        val viewModel = IssuanceViewModel(service, launcher, store, passkeyStore, passkeyManager)
         reachAwaitingPin(viewModel)
         viewModel.createProof("123456")
         runCurrent()

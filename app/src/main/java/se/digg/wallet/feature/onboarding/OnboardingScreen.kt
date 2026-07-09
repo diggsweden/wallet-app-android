@@ -44,6 +44,7 @@ import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.onboarding.issuance.OnboardingIssuanceRoute
+import se.digg.wallet.feature.onboarding.passkey.PasskeySetupRoute
 import se.digg.wallet.feature.onboarding.pidsetup.PidSetupRoute
 import se.digg.wallet.feature.onboarding.pin.PinSetupRoute
 import se.digg.wallet.feature.onboarding.walletsetup.WalletSetupRoute
@@ -179,11 +180,10 @@ fun OnboardingStepContent(
             onPinEntered = { onAction(OnboardingAction.PinEntered(it, step)) },
         )
 
-        OnboardingStep.VERIFY_PIN -> PinSetupRoute(
-            verifyPin = true,
-            onPinEntered = {},
-            onPinVerified = { onAction(OnboardingAction.PinVerified(it, step)) },
-            onBack = { onAction(OnboardingAction.Back(step)) },
+        OnboardingStep.SETUP_PASSKEY -> PasskeySetupRoute(
+            pageNumber = pageNumber,
+            pin = capturedPin,
+            onPasskeyCreated = { onAction(OnboardingAction.PasskeyCreated(step)) },
         )
 
         OnboardingStep.SETUP_WALLET -> WalletSetupRoute(

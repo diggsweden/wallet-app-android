@@ -22,7 +22,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import se.digg.wallet.core.passkey.PasskeyManager
+import se.digg.wallet.core.passkey.StoredPasskey
 import se.digg.wallet.core.services.PresentationResult
+import se.digg.wallet.data.PasskeyStore
 import se.digg.wallet.data.PresentationItem
 
 private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): PresentationItem =
@@ -76,11 +79,21 @@ private class FakePresentationService : PresentationService {
     }
 }
 
+
+private class FakePasskeyStore : PasskeyStore {
+    override suspend fun getPasskey(): StoredPasskey? = null
+    override suspend fun setPasskey(passkey: StoredPasskey) = Unit
+    override suspend fun getEncryptedPin(): String? = null
+    override suspend fun setEncryptedPin(encryptedPin: String) = Unit
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class PresentationViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val service = FakePresentationService()
+    private val passkeyStore = FakePasskeyStore()
+    private val passkeyManager = PasskeyManager()
 
     @Before
     fun setUp() {
@@ -104,7 +117,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `init resolves request and presents claims`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
 
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -120,7 +133,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `init resolves only once`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
 
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -133,7 +146,7 @@ class PresentationViewModelTest {
     @Test
     fun `resolve failure sets error state`() = runTest(dispatcher) {
         service.resolveError = IllegalStateException("No credential")
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
 
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -143,7 +156,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `toggling an optional claim updates only that claim`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
 
@@ -159,7 +172,7 @@ class PresentationViewModelTest {
     @Test
     fun `sendData presents required and checked optional items with the pin`() =
         runTest(dispatcher) {
-            val viewModel = PresentationViewModel(service)
+            val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
             viewModel.init("openid4vp://request")
             advanceUntilIdle()
 
@@ -178,7 +191,7 @@ class PresentationViewModelTest {
     @Test
     fun `redirect result emits OpenUrl effect`() = runTest(dispatcher) {
         service.result = PresentationResult.Redirect("https://verifier.example/done")
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
         val effects = collectEffects(viewModel)
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -195,7 +208,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `sendData before resolve sets error state`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, passkeyStore, passkeyManager)
 
         viewModel.sendData("123456")
         advanceUntilIdle()

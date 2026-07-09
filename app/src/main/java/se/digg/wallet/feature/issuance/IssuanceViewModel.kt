@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.issuance
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,13 +14,19 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.oauth.AuthorizationLauncher
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthResult
+import se.digg.wallet.core.passkey.PasskeyAssertResult
+import se.digg.wallet.core.passkey.PasskeyConfirmUiState
+import se.digg.wallet.core.passkey.PasskeyManager
+import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.IssuerDisplay
+import se.digg.wallet.data.PasskeyStore
 import timber.log.Timber
 
 enum class IssuanceRetryStep { FetchOffer, Authorize, CreateProof, FetchCredential, SaveCredential }
@@ -38,6 +45,8 @@ class IssuanceViewModel @Inject constructor(
     private val issuanceService: IssuanceService,
     private val authorizationLauncher: AuthorizationLauncher,
     private val credentialStore: CredentialStore,
+    private val passkeyStore: PasskeyStore,
+    private val passkeyManager: PasskeyManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Loading)
     val uiState: StateFlow<IssuanceState> = _uiState.asStateFlow()
@@ -46,6 +55,51 @@ class IssuanceViewModel @Inject constructor(
     private var issuerDisplay: IssuerDisplay? = null
     private var issuedCredential: IssuedCredential? = null
     private var operation: Job? = null
+
+    private val _passkeyConfirm = MutableStateFlow(PasskeyConfirmUiState())
+    val passkeyConfirm: StateFlow<PasskeyConfirmUiState> = _passkeyConfirm.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _passkeyConfirm.update { it.copy(passkey = passkeyStore.getPasskey()) }
+        }
+    }
+
+    /**
+     * Passkey PoC: replaces the PIN entry at the signing step. A successful
+     * assertion releases the locally wrapped PIN, which still drives the
+     * OPAQUE authentication in [createProof].
+     */
+    fun createProofWithPasskey(activityContext: Context) {
+        val passkey = _passkeyConfirm.value.passkey ?: return
+        if (_passkeyConfirm.value.inProgress) return
+        viewModelScope.launch {
+            _passkeyConfirm.update { it.copy(inProgress = true, error = null) }
+            when (val result = passkeyManager.assertPasskey(activityContext, passkey)) {
+                PasskeyAssertResult.Success -> {
+                    val encryptedPin = passkeyStore.getEncryptedPin()
+                    if (encryptedPin == null) {
+                        _passkeyConfirm.update {
+                            it.copy(inProgress = false, error = "No stored PIN")
+                        }
+                    } else {
+                        _passkeyConfirm.update { it.copy(inProgress = false) }
+                        createProof(KeystoreManager.decryptPin(encryptedPin))
+                    }
+                }
+
+                PasskeyAssertResult.Cancelled -> {
+                    _passkeyConfirm.update { it.copy(inProgress = false) }
+                }
+
+                is PasskeyAssertResult.Failed -> {
+                    _passkeyConfirm.update {
+                        it.copy(inProgress = false, error = result.message)
+                    }
+                }
+            }
+        }
+    }
 
     fun fetchIssuer(uri: String) {
         if (operation?.isActive == true) return
