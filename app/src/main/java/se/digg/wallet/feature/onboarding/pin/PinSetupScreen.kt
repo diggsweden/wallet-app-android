@@ -64,7 +64,7 @@ private fun PinSetupScreen(
         }
         Text(
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Start,
             text = stringResource(R.string.onboarding_pin_description_1),
             style = WalletTextStyle.BodyLG,
         )
