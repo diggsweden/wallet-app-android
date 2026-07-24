@@ -22,10 +22,12 @@
     <string name="onboarding_fetch_id_title">Download personal data</string>
     <string name="onboarding_fetch_id_description_1">Why?</string>
     <string name="onboarding_fetch_id_link_description">Read more about the data we collect</string>
+    <string name="onboarding_fetch_id_enter_pin_description_1">Enter PIN code to request your personal ID</string>
     <string name="onboarding_fetch_id_button">Download personal data</string>
     <string name="generic_loading">Loading</string>
     <string name="onboarding_issuance_title">Download personal data</string>
     <string name="onboarding_pin_verify_title">Confirm PIN for identification</string>
+    <string name="onboarding_pin_verify_description_1">PIN code is used when you identify yourself</string>
     <string name="onboarding_pin_title">Enter PIN for identification</string>
     <string name="onboarding_pin_description_1">PIN code is used when you identify yourself</string>
     <string name="generic_login">Sign in</string>

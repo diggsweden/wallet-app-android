@@ -9,7 +9,7 @@
     <string name="generic_no">Nej</string>
     <string name="generic_retry">Försök igen</string>
     <string name="generic_yes">Ja</string>
-    <string name="onboarding_intro_subtitle">Din data, ditt val</string>
+    <string name="onboarding_intro_subtitle">Hela Sveriges digitala identitetsplånbok</string>
     <string name="onboarding_intro_title">Plånboken</string>
     <string name="settings_app_version">App version: %1$s (%2$d)</string>
 </resources>
