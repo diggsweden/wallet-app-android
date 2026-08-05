@@ -187,6 +187,13 @@ dependencies {
 
     ksp(libs.room.compiler)
     androidTestImplementation(libs.room.testing)
+
+    constraints {
+        implementation("org.bouncycastle:bcprov-jdk18on") {
+            version { require("1.85") }
+            because("CVE-2026-59650: DH agreement exponentiates unvalidated peer value, fixed in 1.85")
+        }
+    }
 }
 
 kotlinter {
