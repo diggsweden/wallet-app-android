@@ -52,6 +52,9 @@ android {
     // TODO this can be removed when eudi-libraries are removed.
     packaging {
         resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        // bcprov/bcutil/bcpkix-jdk18on all bundle their own copy of these META-INF files.
+        resources.excludes.add("META-INF/LICENSE.md")
+        resources.excludes.add("META-INF/NOTICE.md")
     }
 
     defaultConfig {
@@ -192,6 +195,14 @@ dependencies {
         implementation("org.bouncycastle:bcprov-jdk18on") {
             version { require("1.85") }
             because("CVE-2026-59650: DH agreement exponentiates unvalidated peer value, fixed in 1.85")
+        }
+        implementation("org.bouncycastle:bcutil-jdk18on") {
+            version { require("1.85") }
+            because("must match bcprov-jdk18on 1.85 - bcutil 1.83 duplicates classes bcprov 1.85 now provides")
+        }
+        implementation("org.bouncycastle:bcpkix-jdk18on") {
+            version { require("1.85") }
+            because("must match bcprov-jdk18on 1.85 - keep the whole BC trio on one version")
         }
     }
 }
