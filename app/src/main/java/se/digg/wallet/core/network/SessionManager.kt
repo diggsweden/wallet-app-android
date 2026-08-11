@@ -13,7 +13,7 @@ import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
-import se.wallet.client.gateway.models.ValidateAuthChallengeRequestDto
+import se.wallet.client.gateway.models.AuthChallengeRequest
 
 class SessionManager(
     val challengeClient: PublicAuthSessionChallengeClient,
@@ -58,7 +58,7 @@ class SessionManager(
                 headers = mapOf("kid" to keyId),
             ).serialize()
         val result = validateClient.validateChallenge(
-            ValidateAuthChallengeRequestDto(signedJwt = jwt),
+            AuthChallengeRequest(signedJwt = jwt),
         )
         return when (result) {
             is NetworkResult.Failure -> {
