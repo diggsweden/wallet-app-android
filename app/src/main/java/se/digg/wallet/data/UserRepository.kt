@@ -12,6 +12,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
 import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
@@ -123,6 +124,7 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun wipeAll() {
+        KeystoreManager.removeKey()
         sessionManager.reset()
         userDao.clear()
     }

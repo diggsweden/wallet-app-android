@@ -29,11 +29,12 @@ class MainActivityViewModel @Inject constructor(private val userRepository: User
 
     init {
         viewModelScope.launch {
-            val credential = userRepository.getPid()
-            if (credential == null) {
-                goToOnboarding()
-            } else {
+            val onboarded = userRepository.isOnboarded()
+            if (onboarded) {
                 goToDashboard()
+            } else {
+                userRepository.wipeAll()
+                goToOnboarding()
             }
         }
     }
