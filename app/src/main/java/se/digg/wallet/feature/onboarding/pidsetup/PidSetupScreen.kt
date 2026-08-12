@@ -5,6 +5,7 @@
 package se.digg.wallet.feature.onboarding.pidsetup
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -138,7 +140,11 @@ private fun Content(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> 
             style = WalletTextStyle.BodyMD,
         )
         Spacer(modifier = Modifier.height(24.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        val uriHandler = LocalUriHandler.current
+        Row(
+            modifier = Modifier.clickable { uriHandler.openUri("https://wallet.sandbox.digg.se/") },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = stringResource(R.string.onboarding_fetch_id_link_description),
                 style = WalletTextStyle.BodyMD,
