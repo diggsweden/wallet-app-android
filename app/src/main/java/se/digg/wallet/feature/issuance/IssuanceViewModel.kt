@@ -40,11 +40,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.crypto.CryptoSpec
+import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
+import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
@@ -95,6 +97,14 @@ class IssuanceViewModel @Inject constructor(
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
+    /**
+     * One ephemeral ES256 key for the whole issuance session: the library proves the
+     * PAR and token requests with it, and the credential request below is proven
+     * with the same instance. A different key would fail the server's `cnf.jkt`
+     * check on the token it just issued.
+     */
+    private val dpopProofBuilder = DpopProofBuilder()
+
     val openId4VCIConfig = OpenId4VCIConfig(
         clientAuthentication = ClientAuthentication.None(id = "wallet-dev"),
         authFlowRedirectionURI = URI.create("wallet-app://authorize"),
@@ -103,7 +113,9 @@ class IssuanceViewModel @Inject constructor(
             rcaKeySize = 256,
             credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
         ),
-        dPoPUsage = DPoPUsage.Never,
+        // IfSupported falls back to Bearer unless the authorization server
+        // advertises ES256 in dpop_signing_alg_values_supported.
+        dPoPUsage = DPoPUsage.IfSupported(dpopProofBuilder),
     )
 
     private var claimDisplayNames: Map<String, String> = mutableMapOf()
@@ -243,7 +255,8 @@ class IssuanceViewModel @Inject constructor(
         val response = fetchCredentialResponse(
             proofs = proof,
             credentialConfigurationId = credentialConfigurationId.toString(),
-            accessToken = session.authorizedRequest.accessToken.accessToken,
+            authorization = session.authorizedRequest.accessToken
+                .toRequestAuthorization(dpopProofBuilder),
         )
         val credentialSdJwt = checkNotNull(response.credentials.firstOrNull()?.credential) {
             "No credential found"
@@ -320,7 +333,7 @@ class IssuanceViewModel @Inject constructor(
     private suspend fun fetchCredentialResponse(
         proofs: Proof,
         credentialConfigurationId: String,
-        accessToken: String,
+        authorization: RequestAuthorization,
     ): CredentialResponseModel {
         val encryption = getCryptoSpec(_issuerMetadata.value?.credentialRequestEncryption)
 
@@ -329,13 +342,13 @@ class IssuanceViewModel @Inject constructor(
                 proof = proofs,
                 credentialConfigurationId = credentialConfigurationId,
                 requestEncryption = encryption,
-                accessToken = accessToken,
+                authorization = authorization,
             )
         } else {
             fetchUnencryptedCredential(
                 proof = proofs,
                 credentialConfigurationId = credentialConfigurationId,
-                accessToken = accessToken,
+                authorization = authorization,
             )
         }
     }
@@ -344,7 +357,7 @@ class IssuanceViewModel @Inject constructor(
         proof: Proof,
         credentialConfigurationId: String,
         requestEncryption: CryptoSpec,
-        accessToken: String,
+        authorization: RequestAuthorization,
     ): CredentialResponseModel {
         val softwareKeyPair = KeystoreManager.createSoftwareEcdhKey()
         val algorithm = JWEAlgorithm.ECDH_ES
@@ -365,7 +378,7 @@ class IssuanceViewModel @Inject constructor(
         )
         val response = openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
-            accessToken = accessToken,
+            authorization = authorization,
             jweBody = encrypted,
         )
 
@@ -375,7 +388,7 @@ class IssuanceViewModel @Inject constructor(
     private suspend fun fetchUnencryptedCredential(
         proof: Proof,
         credentialConfigurationId: String,
-        accessToken: String,
+        authorization: RequestAuthorization,
     ): CredentialResponseModel {
         val credentialRequest = CredentialRequestModel(
             credentialConfigurationId = credentialConfigurationId,
@@ -384,7 +397,7 @@ class IssuanceViewModel @Inject constructor(
 
         return openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
-            accessToken = accessToken,
+            authorization = authorization,
             request = credentialRequest,
         )
     }

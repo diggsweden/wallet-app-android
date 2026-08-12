@@ -31,6 +31,7 @@ import okhttp3.OkHttpClient
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
+import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
@@ -72,6 +73,10 @@ object NetworkModule {
         }
 
         install(Logging)
+
+        // Harmless on requests without a RequestAuthorization — including the
+        // OpenID4VCI library's, which carry their own DPoP handling.
+        install(dpopPlugin)
     }
 
     @Provides
