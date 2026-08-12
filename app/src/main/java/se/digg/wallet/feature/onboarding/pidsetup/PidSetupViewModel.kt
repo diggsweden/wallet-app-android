@@ -9,12 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.client.HttpClient
-import io.ktor.client.request.header
+import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,8 +30,12 @@ import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
+import se.digg.wallet.data.CredentialsOfferRequestModel
+import se.digg.wallet.data.CredentialsOfferResponseModel
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
+
+private const val PID_CREDENTIAL_ID = "eu.europa.ec.eudi.pid_vc_sd_jwt"
 
 @HiltViewModel
 class PidSetupViewModel @Inject constructor(
@@ -70,18 +72,15 @@ class PidSetupViewModel @Inject constructor(
     }
 
     private suspend fun generateCredentialOffer(): String? = try {
-        val url = "https://${BuildConfig.PID_ISSUER_URL}/issuer/credentialsOffer/generate"
-        val body =
-            "credentialIds=eu.europa.ec.eudi.pid_vc_sd_jwt&credentialsOfferUri=openid-credential-offer%3A%2F%2F"
+        val url = "https://${BuildConfig.PID_ISSUER_URL}/issuer/credentialsOffer/create"
 
-        val response =
+        val response: CredentialsOfferResponseModel =
             httpClient.post(url) {
-                contentType(ContentType.parse("application/x-www-form-urlencoded"))
-                header(HttpHeaders.Accept, "text/html")
-                setBody(body)
-            }
+                contentType(ContentType.Application.Json)
+                setBody(CredentialsOfferRequestModel(credentialIds = listOf(PID_CREDENTIAL_ID)))
+            }.body()
 
-        extractCredentialOfferUrl(response.bodyAsText())
+        response.credentialsOffer
     } catch (e: Exception) {
         Timber.d("generateCredentialOffer failed: ${e.message}")
         null
@@ -114,10 +113,5 @@ class PidSetupViewModel @Inject constructor(
             }
             oAuthCallback.uri.toString()
         }
-    }
-
-    private fun extractCredentialOfferUrl(html: String): String? {
-        val regex = Regex("""openid-credential-offer://[^\s"'<>]+""")
-        return regex.find(html)?.value
     }
 }

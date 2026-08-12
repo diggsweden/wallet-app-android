@@ -97,12 +97,6 @@ class IssuanceViewModel @Inject constructor(
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
-    /**
-     * One ephemeral ES256 key for the whole issuance session: the library proves the
-     * PAR and token requests with it, and the credential request below is proven
-     * with the same instance. A different key would fail the server's `cnf.jkt`
-     * check on the token it just issued.
-     */
     private val dpopProofBuilder = DpopProofBuilder()
 
     val openId4VCIConfig = OpenId4VCIConfig(
@@ -113,8 +107,6 @@ class IssuanceViewModel @Inject constructor(
             rcaKeySize = 256,
             credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
         ),
-        // IfSupported falls back to Bearer unless the authorization server
-        // advertises ES256 in dpop_signing_alg_values_supported.
         dPoPUsage = DPoPUsage.IfSupported(dpopProofBuilder),
     )
 
@@ -311,21 +303,25 @@ class IssuanceViewModel @Inject constructor(
         }
         val hsmKey = checkNotNull(opaqueClient.listHsmKeys().firstOrNull()) {
             "No HSM keys found"
-        }
-        val kid = hsmKey.publicKey.keyID
+        }.publicKey
 
         val headers = mutableMapOf<String, Any>("typ" to "openid4vci-proof+jwt")
         if (isKeyAttestationRequired) {
             headers["key_attestation"] = userRepository.fetchWua(nonce = nonce)
+            // The proof must be signed by the key in the *first* element of the WUA's
+            // `attested_keys` claim, which the header names by its index — hence "0".
+            // ETSI TS 119 472-3, CRED-REQ-4.6.1.2-07:
+            // https://www.etsi.org/deliver/etsi_ts/119400_119499/11947203/01.01.01_60/ts_11947203v010101p.pdf
+            headers["kid"] = "0"
         }
 
         val payload = IssuanceProofPayload(nonce = nonce, aud = aud, iss = "wallet-app")
         val jwtProof = JwtUtils.signJwtWith(
             payload = payload,
             headers = headers,
-            jwk = if (isKeyAttestationRequired) null else hsmKey.publicKey,
+            jwk = if (isKeyAttestationRequired) null else hsmKey,
         ) { data ->
-            opaqueClient.sign(kid, data).signature
+            opaqueClient.sign(hsmKey.keyID, data).signature
         }
         return Proof(listOf(jwtProof))
     }

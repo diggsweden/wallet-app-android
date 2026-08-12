@@ -27,22 +27,8 @@ import java.util.UUID
 import se.digg.wallet.core.network.DpopProofProvider
 
 private const val DPOP_JWT_TYPE = "dpop+jwt"
-
-/** The JCA name for ES256, which the OpenID4VCI library maps back to the JOSE alg. */
 private const val ES256_JAVA_ALGORITHM = "SHA256withECDSA"
 
-/**
- * Signs DPoP proofs (RFC 9449) with a single ES256 key.
- *
- * The same instance serves both the OpenID4VCI library — as its [Signer], for the
- * PAR and token proofs — and the wallet's own credential request, as a
- * [DpopProofProvider]. That is what keeps one key behind the `cnf.jkt` the
- * authorization server binds the token to and the `ath` the resource server checks.
- *
- * The key is ephemeral and held in memory: it is a transport-level binding for one
- * issuance session, not an identity, so it is deliberately neither the wallet key
- * nor the device key.
- */
 class DpopProofBuilder(
     private val key: ECKey = ECKeyGenerator(Curve.P_256).generate(),
     private val clock: Clock = Clock.systemUTC(),
@@ -60,8 +46,6 @@ class DpopProofBuilder(
             .jwk(key.toPublicJWK())
             .build()
 
-        // A fresh jti every time, retries included: servers track it for replay
-        // detection, and rebuilding the whole proof gets that for free.
         val claims = JWTClaimsSet.Builder()
             .jwtID(UUID.randomUUID().toString())
             .claim("htm", method.value.uppercase())
@@ -115,7 +99,6 @@ class DpopProofBuilder(
         append(endpoint.encodedPath)
     }
 
-    /** `base64url(SHA-256(ascii(access_token)))` — the token as transmitted. */
     private fun ath(accessToken: String): String {
         val digest = MessageDigest
             .getInstance("SHA-256")

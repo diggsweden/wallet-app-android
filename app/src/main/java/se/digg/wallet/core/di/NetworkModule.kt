@@ -14,6 +14,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.ANDROID
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
@@ -72,10 +75,13 @@ object NetworkModule {
             connectTimeoutMillis = 20_000
         }
 
-        install(Logging)
+        if (BuildConfig.DEBUG) {
+            install(Logging) {
+                logger = Logger.ANDROID
+                level = LogLevel.HEADERS
+            }
+        }
 
-        // Harmless on requests without a RequestAuthorization — including the
-        // OpenID4VCI library's, which carry their own DPoP handling.
         install(dpopPlugin)
     }
 

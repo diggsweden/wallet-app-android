@@ -46,12 +46,22 @@ class OpenIdNetworkService @Inject constructor(
         authorization: RequestAuthorization,
         jweBody: String,
         contentType: ContentType = ContentType(contentType = "application", contentSubtype = "jwt"),
-    ): String = httpClient.post(url) {
-        authorizeWith(authorization)
-        contentType(contentType)
-        setBody(jweBody)
-        accept(ContentType(contentType = "application", contentSubtype = "jwt"))
-    }.bodyAsText()
+    ): String {
+        val response = httpClient.post(url) {
+            authorizeWith(authorization)
+            contentType(contentType)
+            setBody(jweBody)
+            accept(ContentType(contentType = "application", contentSubtype = "jwt"))
+        }
+
+        val body = response.bodyAsText()
+
+        check(response.status.isSuccess()) {
+            "Failed fetching credential: ${response.status} $body"
+        }
+
+        return body
+    }
 
     suspend fun fetchNonce(url: String): NonceResponseModel = httpClient.post(url).body()
 
