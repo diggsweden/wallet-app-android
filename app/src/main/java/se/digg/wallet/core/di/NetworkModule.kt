@@ -14,6 +14,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.ANDROID
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
@@ -31,6 +34,7 @@ import okhttp3.OkHttpClient
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
+import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
@@ -71,7 +75,14 @@ object NetworkModule {
             connectTimeoutMillis = 20_000
         }
 
-        install(Logging)
+        if (BuildConfig.DEBUG) {
+            install(Logging) {
+                logger = Logger.ANDROID
+                level = LogLevel.HEADERS
+            }
+        }
+
+        install(dpopPlugin)
     }
 
     @Provides

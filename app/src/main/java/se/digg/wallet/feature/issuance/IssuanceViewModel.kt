@@ -40,11 +40,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.crypto.CryptoSpec
+import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
+import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.oauth.LaunchAuthTab
 import se.digg.wallet.core.oauth.OAuthCoordinator
@@ -95,6 +97,8 @@ class IssuanceViewModel @Inject constructor(
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
+    private val dpopProofBuilder = DpopProofBuilder()
+
     val openId4VCIConfig = OpenId4VCIConfig(
         clientAuthentication = ClientAuthentication.None(id = "wallet-dev"),
         authFlowRedirectionURI = URI.create("wallet-app://authorize"),
@@ -103,7 +107,7 @@ class IssuanceViewModel @Inject constructor(
             rcaKeySize = 256,
             credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
         ),
-        dPoPUsage = DPoPUsage.Never,
+        dPoPUsage = DPoPUsage.IfSupported(dpopProofBuilder),
     )
 
     private var claimDisplayNames: Map<String, String> = mutableMapOf()
@@ -243,7 +247,8 @@ class IssuanceViewModel @Inject constructor(
         val response = fetchCredentialResponse(
             proofs = proof,
             credentialConfigurationId = credentialConfigurationId.toString(),
-            accessToken = session.authorizedRequest.accessToken.accessToken,
+            authorization = session.authorizedRequest.accessToken
+                .toRequestAuthorization(dpopProofBuilder),
         )
         val credentialSdJwt = checkNotNull(response.credentials.firstOrNull()?.credential) {
             "No credential found"
@@ -298,21 +303,25 @@ class IssuanceViewModel @Inject constructor(
         }
         val hsmKey = checkNotNull(opaqueClient.listHsmKeys().firstOrNull()) {
             "No HSM keys found"
-        }
-        val kid = hsmKey.publicKey.keyID
+        }.publicKey
 
         val headers = mutableMapOf<String, Any>("typ" to "openid4vci-proof+jwt")
         if (isKeyAttestationRequired) {
             headers["key_attestation"] = userRepository.fetchWua(nonce = nonce)
+            // The proof must be signed by the key in the *first* element of the WUA's
+            // `attested_keys` claim, which the header names by its index — hence "0".
+            // ETSI TS 119 472-3, CRED-REQ-4.6.1.2-07:
+            // https://www.etsi.org/deliver/etsi_ts/119400_119499/11947203/01.01.01_60/ts_11947203v010101p.pdf
+            headers["kid"] = "0"
         }
 
         val payload = IssuanceProofPayload(nonce = nonce, aud = aud, iss = "wallet-app")
         val jwtProof = JwtUtils.signJwtWith(
             payload = payload,
             headers = headers,
-            jwk = if (isKeyAttestationRequired) null else hsmKey.publicKey,
+            jwk = if (isKeyAttestationRequired) null else hsmKey,
         ) { data ->
-            opaqueClient.sign(kid, data).signature
+            opaqueClient.sign(hsmKey.keyID, data).signature
         }
         return Proof(listOf(jwtProof))
     }
@@ -320,7 +329,7 @@ class IssuanceViewModel @Inject constructor(
     private suspend fun fetchCredentialResponse(
         proofs: Proof,
         credentialConfigurationId: String,
-        accessToken: String,
+        authorization: RequestAuthorization,
     ): CredentialResponseModel {
         val encryption = getCryptoSpec(_issuerMetadata.value?.credentialRequestEncryption)
 
@@ -329,13 +338,13 @@ class IssuanceViewModel @Inject constructor(
                 proof = proofs,
                 credentialConfigurationId = credentialConfigurationId,
                 requestEncryption = encryption,
-                accessToken = accessToken,
+                authorization = authorization,
             )
         } else {
             fetchUnencryptedCredential(
                 proof = proofs,
                 credentialConfigurationId = credentialConfigurationId,
-                accessToken = accessToken,
+                authorization = authorization,
             )
         }
     }
@@ -344,7 +353,7 @@ class IssuanceViewModel @Inject constructor(
         proof: Proof,
         credentialConfigurationId: String,
         requestEncryption: CryptoSpec,
-        accessToken: String,
+        authorization: RequestAuthorization,
     ): CredentialResponseModel {
         val softwareKeyPair = KeystoreManager.createSoftwareEcdhKey()
         val algorithm = JWEAlgorithm.ECDH_ES
@@ -365,7 +374,7 @@ class IssuanceViewModel @Inject constructor(
         )
         val response = openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
-            accessToken = accessToken,
+            authorization = authorization,
             jweBody = encrypted,
         )
 
@@ -375,7 +384,7 @@ class IssuanceViewModel @Inject constructor(
     private suspend fun fetchUnencryptedCredential(
         proof: Proof,
         credentialConfigurationId: String,
-        accessToken: String,
+        authorization: RequestAuthorization,
     ): CredentialResponseModel {
         val credentialRequest = CredentialRequestModel(
             credentialConfigurationId = credentialConfigurationId,
@@ -384,7 +393,7 @@ class IssuanceViewModel @Inject constructor(
 
         return openIdNetworkService.fetchCredential(
             url = _issuerMetadata.value?.credentialEndpoint?.value.toString(),
-            accessToken = accessToken,
+            authorization = authorization,
             request = credentialRequest,
         )
     }
