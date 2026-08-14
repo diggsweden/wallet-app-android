@@ -44,6 +44,8 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
+private const val EXTERNAL_URL = "https://wallet.sandbox.digg.se/"
+
 @Composable
 fun PidSetupRoute(
     pageNumber: Int,
@@ -142,7 +144,7 @@ private fun Content(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> 
         Spacer(modifier = Modifier.height(24.dp))
         val uriHandler = LocalUriHandler.current
         Row(
-            modifier = Modifier.clickable { uriHandler.openUri("https://wallet.sandbox.digg.se/") },
+            modifier = Modifier.clickable { uriHandler.openUri(EXTERNAL_URL) },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
