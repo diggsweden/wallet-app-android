@@ -199,7 +199,7 @@ class PresentationViewModel @Inject constructor(
                     is ResponseMode.DirectPostJwt -> responseMode.responseURI
                     else -> throw IllegalStateException("Unsupported response mode")
                 }
-                val clientId = auth.client.id.originalClientId
+                val clientId = auth.client.id.clientId
 
                 val disclosedItems = requiredItemsList + optionalItemsList.filter {
                     it.isChecked
@@ -260,12 +260,11 @@ class PresentationViewModel @Inject constructor(
         val hsmKey = checkNotNull(opaqueClient.listHsmKeys().firstOrNull()) {
             "No HSM keys found"
         }
-        val aud = "x509_san_dns:$clientId"
         val sdJwtData: ByteArray = sdJwt.toByteArray(Charsets.US_ASCII)
         val hash = MessageDigest.getInstance("SHA-256").digest(sdJwtData)
         val base64Hash = Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
         val payload = KeybindingPayload(
-            aud = aud,
+            aud = clientId,
             nonce = nonce,
             sdHash = base64Hash,
         )
