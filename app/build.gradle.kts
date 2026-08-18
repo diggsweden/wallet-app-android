@@ -60,7 +60,7 @@ android {
     defaultConfig {
         applicationId = "se.digg.wallet"
         minSdk = 31
-        targetSdk = 36
+        targetSdk = 37
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: getVersionCode()
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -195,11 +195,15 @@ dependencies {
     constraints {
         implementation("org.bouncycastle:bcprov-jdk18on") {
             version { require("1.85") }
-            because("CVE-2026-59650: DH agreement exponentiates unvalidated peer value, fixed in 1.85")
+            because(
+                "CVE-2026-59650: DH agreement exponentiates unvalidated peer value, fixed in 1.85",
+            )
         }
         implementation("org.bouncycastle:bcutil-jdk18on") {
             version { require("1.85") }
-            because("must match bcprov-jdk18on 1.85 - bcutil 1.83 duplicates classes bcprov 1.85 now provides")
+            because(
+                "must match bcprov-jdk18on 1.85 - bcutil 1.83 duplicates classes bcprov 1.85 now provides",
+            )
         }
         implementation("org.bouncycastle:bcpkix-jdk18on") {
             version { require("1.85") }
