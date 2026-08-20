@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
@@ -116,7 +117,7 @@ private fun SettingsHeader() {
                 .width(160.dp)
                 .height(160.dp),
         )
-        AppVersionText()
+        AppVersionText(variant = BuildConfig.FLAVOR.takeIf { BuildConfig.DEBUG })
     }
 }
 

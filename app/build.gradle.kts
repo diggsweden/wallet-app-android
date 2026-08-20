@@ -150,6 +150,16 @@ android {
         assets.directories.add("$projectDir/schemas")
     }
 }
+androidComponents {
+    onVariants { variant ->
+        if (variant.debuggable) {
+            listOf("shared", variant.flavorName).forEach {
+                variant.sources.res?.addStaticSourceDirectory("src/banner/$it/res")
+            }
+        }
+    }
+}
+
 room {
     schemaDirectory("$projectDir/schemas")
 }

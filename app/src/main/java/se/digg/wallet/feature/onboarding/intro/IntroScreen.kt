@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
@@ -75,7 +76,7 @@ private fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier,
         )
         Spacer(modifier = Modifier.height(24.dp))
-        AppVersionText()
+        AppVersionText(variant = BuildConfig.FLAVOR.takeIf { BuildConfig.DEBUG })
         Spacer(modifier = Modifier.height(24.dp))
     }
 }

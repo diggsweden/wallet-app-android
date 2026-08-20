@@ -33,7 +33,7 @@ import se.digg.wallet.core.designsystem.utils.getAppVersion
 private const val CLIPBOARD_LABEL = "version"
 
 @Composable
-fun AppVersionText(modifier: Modifier = Modifier) {
+fun AppVersionText(modifier: Modifier = Modifier, variant: String? = null) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -42,8 +42,16 @@ fun AppVersionText(modifier: Modifier = Modifier) {
         getAppVersion(context)
     }
 
-    val string =
+    val string = if (variant.isNullOrBlank()) {
         stringResource(R.string.settings_app_version, version.versionName, version.versionCode)
+    } else {
+        stringResource(
+            R.string.settings_app_version_variant,
+            version.versionName,
+            version.versionCode,
+            variant,
+        )
+    }
 
     Row(
         modifier = modifier.clickable {
@@ -70,6 +78,6 @@ fun AppVersionText(modifier: Modifier = Modifier) {
 @PreviewsWallet
 private fun AppVersionInfoPreview() {
     WalletPreview {
-        AppVersionText()
+        AppVersionText(variant = "demo")
     }
 }
