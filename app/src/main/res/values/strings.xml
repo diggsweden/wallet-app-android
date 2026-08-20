@@ -21,7 +21,6 @@
     <string name="generic_error_retry">Something went wrong, try again.</string>
     <string name="onboarding_fetch_id_title">Download personal data</string>
     <string name="onboarding_fetch_id_description_1">Why?</string>
-    <string name="onboarding_fetch_id_link_description">Read more about the data we collect</string>
     <string name="onboarding_fetch_id_button">Download personal data</string>
     <string name="generic_loading">Loading</string>
     <string name="onboarding_issuance_title">Download personal data</string>

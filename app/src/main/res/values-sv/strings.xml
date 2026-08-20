@@ -22,7 +22,6 @@
     <string name="onboarding_fetch_id_title">Hämta personuppgifter</string>
     <string name="onboarding_fetch_id_description_1">Varför?</string>
     <string name="onboarding_fetch_id_description_2">För att kunna använda plånboken behöver vi hämta uppgifter om dig. Uppgifterna som hämtas används som ett id-kort.</string>
-    <string name="onboarding_fetch_id_link_description">Läs mer om de uppgifter vi hämtar</string>
     <string name="generic_loading">Laddar</string>
     <string name="onboarding_issuance_title">Hämta personuppgifter</string>
     <string name="onboarding_pin_verify_title">Bekräfta pinkod för identifiering</string>
