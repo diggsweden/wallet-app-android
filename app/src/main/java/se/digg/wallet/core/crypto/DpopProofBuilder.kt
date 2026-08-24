@@ -14,6 +14,9 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import eu.europa.ec.eudi.openid4vci.HttpsUrl
+import eu.europa.ec.eudi.openid4vci.JwsAlgorithm
+import eu.europa.ec.eudi.openid4vci.ProvisionDPoPSigner
 import eu.europa.ec.eudi.openid4vci.SignFunction
 import eu.europa.ec.eudi.openid4vci.SignOperation
 import eu.europa.ec.eudi.openid4vci.Signer
@@ -28,12 +31,17 @@ import se.digg.wallet.core.network.DpopProofProvider
 
 private const val DPOP_JWT_TYPE = "dpop+jwt"
 private const val ES256_JAVA_ALGORITHM = "SHA256withECDSA"
+private val ES256 = JwsAlgorithm("ES256")
 
 class DpopProofBuilder(
     private val key: ECKey = ECKeyGenerator(Curve.P_256).generate(),
     private val clock: Clock = Clock.systemUTC(),
 ) : DpopProofProvider,
-    Signer<JWK> {
+    Signer<JWK>,
+    ProvisionDPoPSigner {
+
+    override val popAlgorithm: JwsAlgorithm = ES256
+    override suspend fun invoke(authorizationServer: HttpsUrl): Signer<JWK> = this
 
     override suspend fun proof(
         endpoint: Url,

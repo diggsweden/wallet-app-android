@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import dagger.hilt.android.lifecycle.HiltViewModel
-import eu.europa.ec.eudi.openid4vp.JarConfiguration
 import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig
 import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig.Companion.SelfIssued
 import eu.europa.ec.eudi.openid4vp.OpenId4Vp
@@ -17,8 +16,8 @@ import eu.europa.ec.eudi.openid4vp.Resolution
 import eu.europa.ec.eudi.openid4vp.ResolvedRequestObject
 import eu.europa.ec.eudi.openid4vp.ResponseEncryptionConfiguration
 import eu.europa.ec.eudi.openid4vp.ResponseMode
+import eu.europa.ec.eudi.openid4vp.SignedRequestConfiguration
 import eu.europa.ec.eudi.openid4vp.SupportedClientIdPrefix
-import eu.europa.ec.eudi.openid4vp.VPConfiguration
 import eu.europa.ec.eudi.openid4vp.VpFormatsSupported
 import eu.europa.ec.eudi.openid4vp.asException
 import eu.europa.ec.eudi.openid4vp.dcql.ClaimPath as DcqlClaimPath
@@ -64,7 +63,6 @@ class PresentationViewModel @Inject constructor(
     private val opaqueTransport: WalletOpaqueClient,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
-    private var walletConfig: OpenId4VPConfig? = null
     private var presentationUri: String = ""
     private var authorization: ResolvedRequestObject? = null
     private var optionalItemsList: List<PresentationItem> = emptyList()
@@ -83,27 +81,25 @@ class PresentationViewModel @Inject constructor(
 
     private fun setupWalletConfig() {
         viewModelScope.launch {
-            walletConfig = OpenId4VPConfig(
+            val walletConfig = OpenId4VPConfig(
                 issuer = SelfIssued,
-                jarConfiguration = JarConfiguration.Default,
+                signedRequestConfiguration = SignedRequestConfiguration.Default,
                 responseEncryptionConfiguration = ResponseEncryptionConfiguration.Supported(
                     supportedMethods = listOf(EncryptionMethod.A128GCM),
                     supportedAlgorithms = listOf(JWEAlgorithm.RSA_OAEP_256, JWEAlgorithm.ECDH_ES),
                 ),
-                vpConfiguration = VPConfiguration(
-                    knownDCQLQueriesPerScope = emptyMap(),
-                    vpFormatsSupported = VpFormatsSupported(
-                        sdJwtVc = VpFormatsSupported.SdJwtVc.HAIP,
-                        msoMdoc = null,
-                    ),
-                    supportedTransactionDataTypes = emptyList(),
+                knownDCQLQueriesPerScope = emptyMap(),
+                vpFormatsSupported = VpFormatsSupported(
+                    sdJwtVc = VpFormatsSupported.SdJwtVc.HAIP,
+                    msoMdoc = null,
                 ),
+                supportedTransactionDataTypes = emptyList(),
                 supportedClientIdPrefixes = listOf<SupportedClientIdPrefix>(
                     SupportedClientIdPrefix.X509SanDns { true },
                 ),
             )
             try {
-                val resolution = OpenId4Vp.invoke(walletConfig!!, httpClient)
+                val resolution = OpenId4Vp.overRedirects(walletConfig, httpClient)
                     .resolveRequestUri(presentationUri)
                 when (resolution) {
                     is Resolution.Invalid -> {
