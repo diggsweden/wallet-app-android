@@ -36,4 +36,21 @@
     <string name="onboarding_fetch_id_description_2">In order to use the wallet, we need to collect information about you. The information collected is used as an ID card.</string>
     <string name="generic_cancel">Cancel</string>
     <string name="error_screen_failed_description">%1$s failed</string>
+    <string name="error_connectivity_title">No connection</string>
+    <string name="error_connectivity_message">Check your internet connection and try again.</string>
+    <string name="error_device_key_duplicate_title">Account already exists</string>
+    <string name="error_device_key_duplicate_message">This device is already registered to an account.</string>
+    <string name="wallet_setup_step_create_account">Create account</string>
+    <string name="wallet_setup_step_init_hsm">" Establishing a secure connection"</string>
+    <string name="wallet_setup_step_register_pin">Register PIN</string>
+    <string name="wallet_setup_step_authenticate">Authenticate</string>
+    <string name="wallet_setup_step_post_hsm_key">Post HSM key</string>
+    <string name="error_detail_timestamp">Timestamp</string>
+    <string name="error_detail_title">Title</string>
+    <string name="error_detail_message">Message</string>
+    <string name="error_detail_status">Status</string>
+    <string name="error_detail_type">Type</string>
+    <string name="error_detail_instance">Instance</string>
+    <string name="error_detail_transaction_id">Transaction ID</string>
+    <string name="error_detail_invalid_parameter">Invalid parameter</string>
 </resources>

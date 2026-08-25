@@ -35,6 +35,7 @@ internal class DefaultWalletSetupService @Inject constructor(
         val ecKey = keyPair.toECKey(withThumbprint = true)
         val accountId = userRepository.createAccount(
             CreateAccountRequest(
+                //email = "123123",
                 deviceKey = EcJwkRequest(
                     kty = ecKey.keyType.value,
                     crv = ecKey.curve.name,

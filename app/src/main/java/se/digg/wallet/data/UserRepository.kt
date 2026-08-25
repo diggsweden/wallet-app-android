@@ -11,12 +11,12 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
+import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
-import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.V0AccountsClient
 import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
 import se.wallet.client.gateway.client.WuaClient
@@ -34,41 +34,13 @@ class UserRepository @Inject constructor(
     private val walletKeysClient = V0AccountsWalletKeysClient(gatewayClient)
 
     suspend fun fetchWua(nonce: String? = null): String =
-        when (val response = wuaClient.createWua(nonce = nonce)) {
-            is NetworkResult.Failure -> {
-                throw IllegalStateException(
-                    "Wallet Unit Attestation (WUA) is missing",
-                )
-            }
-
-            is NetworkResult.Success -> {
-                return response.data.jwt
-            }
-        }
+        wuaClient.createWua(nonce = nonce).getOrThrow().jwt
 
     suspend fun createAccount(request: CreateAccountRequest): String =
-        when (val response = accountsClient.createAccount(createAccountRequest = request)) {
-            is NetworkResult.Failure -> {
-                throw IllegalStateException("Failed creating account: ${response.error}")
-            }
-
-            is NetworkResult.Success -> {
-                return response.data.accountId
-            }
-        }
+        accountsClient.createAccount(createAccountRequest = request).getOrThrow().accountId
 
     suspend fun postWalletKey(request: EcJwkRequest) {
-        when (
-            val response = walletKeysClient.addAccountWalletKey(
-                ecJwkRequest = request,
-            )
-        ) {
-            is NetworkResult.Failure -> throw IllegalStateException(
-                "Failed posting wallet key: ${response.error}",
-            )
-
-            is NetworkResult.Success -> Unit
-        }
+        walletKeysClient.addAccountWalletKey(ecJwkRequest = request).getOrThrow()
     }
 
     suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
