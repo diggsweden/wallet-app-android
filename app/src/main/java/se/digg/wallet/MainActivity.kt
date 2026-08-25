@@ -37,6 +37,7 @@ import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.core.navigation.toNavKey
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
+import se.digg.wallet.core.permission.requestLocalNetworkAccess
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -62,6 +63,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        requestLocalNetworkAccess()
 
         val initialDeepLinkKey = intent.data?.toNavKey()
 
