@@ -19,11 +19,11 @@ import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadata
 import eu.europa.ec.eudi.openid4vci.CredentialOffer
 import eu.europa.ec.eudi.openid4vci.CredentialRequestEncryption
 import eu.europa.ec.eudi.openid4vci.CredentialResponseEncryptionPolicy
+import eu.europa.ec.eudi.openid4vci.DPoPConfig
 import eu.europa.ec.eudi.openid4vci.DPoPUsage
 import eu.europa.ec.eudi.openid4vci.Display
 import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
 import eu.europa.ec.eudi.openid4vci.Issuer
-import eu.europa.ec.eudi.openid4vci.KeyAttestationRequirement
 import eu.europa.ec.eudi.openid4vci.MsoMdocCredential
 import eu.europa.ec.eudi.openid4vci.OpenId4VCIConfig
 import eu.europa.ec.eudi.openid4vci.ProofType
@@ -107,7 +107,7 @@ class IssuanceViewModel @Inject constructor(
             rcaKeySize = 256,
             credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
         ),
-        dPoPUsage = DPoPUsage.IfSupported(dpopProofBuilder),
+        dPoPUsage = DPoPUsage.IfSupported(DPoPConfig(dpopProofBuilder)),
     )
 
     private var claimDisplayNames: Map<String, String> = mutableMapOf()
@@ -123,7 +123,7 @@ class IssuanceViewModel @Inject constructor(
         _uiState.value = IssuanceState.Loading
         viewModelScope.launch {
             try {
-                val issuer = Issuer.make(
+                val (issuer, _) = Issuer.make(
                     config = openId4VCIConfig,
                     httpClient = httpClient,
                     credentialOfferUri = uri,
@@ -282,8 +282,7 @@ class IssuanceViewModel @Inject constructor(
         val proofTypeJwt = checkNotNull(
             credentialConfiguration.proofTypesSupported[ProofType.JWT] as? ProofTypeMeta.Jwt,
         ) { "Unsupported proof type" }
-        val isKeyAttestationRequired =
-            proofTypeJwt.keyAttestationRequirement is KeyAttestationRequirement.Required
+        val isKeyAttestationRequired = proofTypeJwt.keyAttestationRequirement.hasConstrains
 
         val aud = checkNotNull(_issuerMetadata.value?.credentialIssuerIdentifier?.value) {
             "Missing credential issuer identifier"
@@ -319,7 +318,7 @@ class IssuanceViewModel @Inject constructor(
         val jwtProof = JwtUtils.signJwtWith(
             payload = payload,
             headers = headers,
-            jwk = if (isKeyAttestationRequired) null else hsmKey,
+            jwk = hsmKey.takeIf { !isKeyAttestationRequired },
         ) { data ->
             opaqueClient.sign(hsmKey.keyID, data).signature
         }
