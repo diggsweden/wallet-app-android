@@ -26,7 +26,6 @@ fun OnboardingIssuanceRoute(
         onFinishClick = { onFinish.invoke() },
         headerContent = {
             OnboardingHeader(
-                pageNumber = pageNumber,
                 pageTitle = stringResource(
                     R.string.onboarding_issuance_title,
                 ),

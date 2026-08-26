@@ -185,12 +185,10 @@ fun OnboardingStepContent(
 ) {
     when (step) {
         OnboardingStep.SETUP_PIN -> PinSetupRoute(
-            pageNumber = pageNumber,
             onPinEntered = { onAction(OnboardingAction.PinEntered(it, step)) },
         )
 
         OnboardingStep.VERIFY_PIN -> PinSetupRoute(
-            pageNumber = pageNumber,
             verifyPin = true,
             onPinEntered = {},
             onPinVerified = { onAction(OnboardingAction.PinVerified(it, step)) },
@@ -198,7 +196,6 @@ fun OnboardingStepContent(
         )
 
         OnboardingStep.SETUP_WALLET -> WalletSetupRoute(
-            pageNumber = pageNumber,
             pin = capturedPin,
             onNext = { onAction(OnboardingAction.Next(step)) },
             onCancel = { onAction(OnboardingAction.Close) },

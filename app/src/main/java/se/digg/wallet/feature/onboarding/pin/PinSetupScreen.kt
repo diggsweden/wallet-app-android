@@ -28,14 +28,12 @@ import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
 fun PinSetupRoute(
-    pageNumber: Int,
     onPinEntered: (String) -> Unit,
     onPinVerified: (String) -> Unit = {},
     onBack: () -> Unit = {},
     verifyPin: Boolean = false,
 ) {
     PinSetupScreen(
-        pageNumber = pageNumber,
         verifyPin = verifyPin,
         onSubmit = { pin -> if (verifyPin) onPinVerified(pin) else onPinEntered(pin) },
     )
@@ -43,7 +41,8 @@ fun PinSetupRoute(
 
 @Composable
 private fun PinSetupScreen(
-    pageNumber: Int, verifyPin: Boolean, onSubmit: (String) -> Unit,) {
+    verifyPin: Boolean, onSubmit: (String) -> Unit,
+) {
     Column(
         Modifier
             .fillMaxSize()
@@ -51,21 +50,18 @@ private fun PinSetupScreen(
             .padding(bottom = OnboardingDefaults.BottomPadding)
             .verticalScroll(rememberScrollState()),
     ) {
-        if (verifyPin) {
-            OnboardingHeader(
-                pageNumber = pageNumber,
-                pageTitle = stringResource(R.string.onboarding_pin_verify_title),
-            )
-        } else {
-            OnboardingHeader(
-                pageNumber = pageNumber,
-                pageTitle = stringResource(R.string.onboarding_pin_title),
-            )
-        }
+        OnboardingHeader(
+            if (verifyPin) {
+                stringResource(R.string.onboarding_pin_verify_title)
+            } else {
+                stringResource(R.string.onboarding_pin_title)
+            },
+        )
         Text(
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            text = stringResource(R.string.onboarding_pin_description_1),
+            text = if (verifyPin) stringResource(R.string.onboarding_pin_verify_description) else stringResource(
+                R.string.onboarding_pin_description_1,
+            ),
             style = WalletTextStyle.BodyLG,
         )
         Spacer(Modifier.height(16.dp))
@@ -81,7 +77,6 @@ private fun PinSetupScreen(
 private fun PinSetupScreenPreview() {
     WalletPreview {
         PinSetupScreen(
-            pageNumber = 6,
             verifyPin = true,
             onSubmit = {},
         )

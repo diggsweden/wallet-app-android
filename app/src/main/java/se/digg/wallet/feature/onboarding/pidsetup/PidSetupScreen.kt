@@ -70,13 +70,12 @@ fun PidSetupRoute(
 
     PidSetupScreen(
         uiState = uiState,
-        pageNumber = pageNumber,
         onFetchId = { viewModel.getCredentialOffer(launchAuthTab) },
     )
 }
 
 @Composable
-private fun PidSetupScreen(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> Unit) {
+private fun PidSetupScreen(uiState: PidSetupUiState, onFetchId: () -> Unit) {
     when (uiState) {
         PidSetupUiState.Error -> GenericErrorScreen(
             errorTitle = stringResource(R.string.generic_error),
@@ -86,7 +85,6 @@ private fun PidSetupScreen(uiState: PidSetupUiState, pageNumber: Int, onFetchId:
 
         PidSetupUiState.Idle -> Content(
             uiState = uiState,
-            pageNumber = pageNumber,
             onFetchId = { onFetchId.invoke() },
         )
 
@@ -95,7 +93,7 @@ private fun PidSetupScreen(uiState: PidSetupUiState, pageNumber: Int, onFetchId:
 }
 
 @Composable
-private fun Content(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> Unit) {
+private fun Content(uiState: PidSetupUiState, onFetchId: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -104,7 +102,6 @@ private fun Content(uiState: PidSetupUiState, pageNumber: Int, onFetchId: () -> 
             .verticalScroll(rememberScrollState()),
     ) {
         OnboardingHeader(
-            pageNumber = pageNumber,
             pageTitle = stringResource(
                 R.string.onboarding_fetch_id_title,
             ),
@@ -161,7 +158,6 @@ private fun PidSetupScreenPreview() {
     WalletPreview {
         PidSetupScreen(
             uiState = PidSetupUiState.Idle,
-            pageNumber = 8,
             onFetchId = {},
         )
     }

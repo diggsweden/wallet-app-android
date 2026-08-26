@@ -20,7 +20,7 @@ enum class SetupStep {
  * It's null for every other failure shape (plain text, connectivity, unexpected) - screens
  * that only care about [title]/[message] never need to touch it.
  */
-data class WalletSetupErrorUiModel(
+data class ErrorUiModel(
     val title: String?,
     val message: String?,
     val problem: AppError.Problem?,
@@ -28,7 +28,7 @@ data class WalletSetupErrorUiModel(
 
 sealed interface WalletSetupUiState {
     data class InProgress(val step: SetupStep) : WalletSetupUiState
-    data class Failed(val step: SetupStep, val error: WalletSetupErrorUiModel) : WalletSetupUiState
+    data class Failed(val step: SetupStep, val error: ErrorUiModel) : WalletSetupUiState
 }
 
 sealed interface WalletSetupUiEffect {

@@ -30,7 +30,6 @@ import se.digg.wallet.core.error.AppError
 
 @Composable
 fun WalletSetupRoute(
-    pageNumber: Int,
     pin: String,
     onNext: () -> Unit,
     onCancel: () -> Unit,
@@ -139,7 +138,7 @@ private fun WalletSetupFailedPreview() {
         WalletSetupScreen(
             uiState = WalletSetupUiState.Failed(
                 SetupStep.AUTHENTICATE,
-                WalletSetupErrorUiModel(title = null, message = null, problem = null),
+                ErrorUiModel(title = null, message = null, problem = null),
             ),
             onRetry = {},
             onCancel = {},

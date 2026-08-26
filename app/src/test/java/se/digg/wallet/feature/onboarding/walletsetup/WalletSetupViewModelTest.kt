@@ -94,7 +94,7 @@ class WalletSetupViewModelTest {
         assertEquals(
             WalletSetupUiState.Failed(
                 SetupStep.AUTHENTICATE,
-                WalletSetupErrorUiModel(null, null, null),
+                ErrorUiModel(null, null, null),
             ),
             viewModel.uiState.value,
         )

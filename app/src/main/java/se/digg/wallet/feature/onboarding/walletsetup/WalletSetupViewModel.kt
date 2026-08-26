@@ -39,7 +39,7 @@ class WalletSetupViewModel @Inject constructor(
     private var pin: String = ""
 
     private val unexpectedErrorUiModel =
-        WalletSetupErrorUiModel(title = null, message = null, problem = null)
+        ErrorUiModel(title = null, message = null, problem = null)
 
     fun start(pin: String) {
         this.pin = pin
@@ -89,8 +89,8 @@ class WalletSetupViewModel @Inject constructor(
 
     private fun randomDelay(): Long = Random.nextLong(250L, 800L)
 
-    private fun AppError.toUiModel(): WalletSetupErrorUiModel = when (this) {
-        is AppError.Problem -> WalletSetupErrorUiModel(title = title, message = detail, problem = this)
+    private fun AppError.toUiModel(): ErrorUiModel = when (this) {
+        is AppError.Problem -> ErrorUiModel(title = title, message = detail, problem = this)
         is AppError.PlainMessage,
         is AppError.Connectivity,
         is AppError.Unexpected,

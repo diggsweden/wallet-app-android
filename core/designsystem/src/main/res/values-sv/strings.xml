@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="credential_offer_issuer">Utfärdare:</string>
-    <string name="error_contact_support">Kontakta kundtjänst</string>
+    <string name="generic_yes">Ja</string>
+    <string name="generic_no">Nej</string>
+    <string name="generic_home">Till startsidan</string>
+    <string name="generic_retry">Försök igen</string>
     <string name="generic_error_screen_message">Vi kunde inte visa innehållet just nu. Försök gärna igen senare.</string>
     <string name="generic_error_screen_title">Hoppsan! Något gick fel</string>
+    <string name="generic_error">Fel</string>
+    <string name="error_contact_support">Kontakta kundtjänst</string>
     <string name="error_navigate_back">Navigera bakåt</string>
     <string name="error_details_button">Visa detaljer</string>
     <string name="error_details_title">Felinformation</string>
@@ -23,12 +27,8 @@
     <string name="device_info_network_other">Annat</string>
     <string name="device_info_network_offline">Offline</string>
     <string name="device_info_network_unknown">Okänt</string>
-    <string name="generic_error">Fel</string>
-    <string name="generic_home">Till startsidan</string>
-    <string name="generic_no">Nej</string>
-    <string name="generic_retry">Försök igen</string>
-    <string name="generic_yes">Ja</string>
-    <string name="onboarding_intro_subtitle">Din data, ditt val</string>
+    <string name="credential_offer_issuer">Utfärdare:</string>
+    <string name="onboarding_intro_subtitle">Hela Sveriges digitala identitetsplånbok</string>
     <string name="onboarding_intro_title">Plånboken</string>
     <string name="settings_app_version">App version: %1$s (%2$d)</string>
 </resources>
