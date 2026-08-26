@@ -4,8 +4,10 @@
 
 package se.digg.wallet.core.designsystem.component
 
+import android.Manifest
 import android.content.ClipData
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -62,6 +64,7 @@ data class ErrorDetail(val title: String, val value: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 fun GenericErrorScreen(
     modifier: Modifier = Modifier,
     @DrawableRes image: Int = R.drawable.phone_error_1,
@@ -166,6 +169,7 @@ private const val ERROR_DETAILS_CLIPBOARD_LABEL = "error-details"
 private const val COPIED_LABEL_DURATION_MS = 1_500L
 
 @Composable
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun ErrorDetailsSheetContent(details: List<ErrorDetail>, modifier: Modifier = Modifier) {
     val labelColor = if (isSystemInDarkTheme()) Brown50 else Brown70
     val valueColor = if (isSystemInDarkTheme()) Brown30 else Brown100
@@ -265,6 +269,7 @@ private fun ErrorDetailRows(details: List<ErrorDetail>, labelColor: Color, value
 }
 
 @Composable
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun rememberDeviceErrorDetails(): List<ErrorDetail> {
     val context = LocalContext.current
     val deviceInfo = remember { getDeviceInfo(context) }
@@ -303,6 +308,7 @@ private fun NetworkType.toLabel(): String = when (this) {
 
 @Composable
 @PreviewsWallet
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun GenericErrorScreenDefaultPreview() {
     WalletPreview {
         GenericErrorScreen(
@@ -313,6 +319,7 @@ private fun GenericErrorScreenDefaultPreview() {
 
 @Composable
 @PreviewsWallet
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun GenericErrorScreenNetworkPreview() {
     WalletPreview {
         GenericErrorScreen(
@@ -327,6 +334,7 @@ private fun GenericErrorScreenNetworkPreview() {
 
 @Composable
 @PreviewsWallet
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun GenericErrorScreenWithDetailsPreview() {
     WalletPreview {
         GenericErrorScreen(
@@ -346,6 +354,7 @@ private fun GenericErrorScreenWithDetailsPreview() {
 
 @Composable
 @PreviewsWallet
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun GenericErrorScreenMessageOnlyPreview() {
     WalletPreview {
         GenericErrorScreen(
@@ -358,6 +367,7 @@ private fun GenericErrorScreenMessageOnlyPreview() {
 
 @Composable
 @PreviewsWallet
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun GenericErrorScreenFullPreview() {
     WalletPreview {
         GenericErrorScreen(
@@ -373,6 +383,7 @@ private fun GenericErrorScreenFullPreview() {
 
 @Composable
 @PreviewsWallet
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun GenericErrorScreenWithBackPreview() {
     WalletPreview {
         GenericErrorScreen(

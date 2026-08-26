@@ -4,10 +4,12 @@
 
 package se.digg.wallet.core.designsystem.utils
 
+import android.Manifest
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import androidx.annotation.RequiresPermission
 
 enum class NetworkType {
     WIFI,
@@ -29,6 +31,7 @@ data class DeviceInfo(
     val appVersionCode: Long,
 )
 
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 fun getDeviceInfo(context: Context): DeviceInfo {
     val appVersion = getAppVersion(context)
     return DeviceInfo(
@@ -42,6 +45,7 @@ fun getDeviceInfo(context: Context): DeviceInfo {
     )
 }
 
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun getNetworkType(context: Context): NetworkType {
     val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
