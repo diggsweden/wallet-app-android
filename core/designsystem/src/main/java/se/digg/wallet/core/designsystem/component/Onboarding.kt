@@ -17,14 +17,14 @@ import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 
 @Composable
-fun OnboardingHeader(pageNumber: Int, pageTitle: String, modifier: Modifier = Modifier) {
+fun OnboardingHeader(pageTitle: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(36.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.onboarding_screen_header_title, pageNumber, pageTitle),
+            text = pageTitle,
             style = WalletTextStyle.H1,
         )
-        Spacer(Modifier.height(70.dp))
+        Spacer(Modifier.height(24.dp))
     }
 }

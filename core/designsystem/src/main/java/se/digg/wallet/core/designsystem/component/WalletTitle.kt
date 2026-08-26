@@ -31,7 +31,6 @@ fun WalletTitle(modifier: Modifier = Modifier) {
 
     Column(
         modifier = Modifier
-            .padding(all = 16.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

@@ -37,7 +37,7 @@ fun CredentialOfferHeader(logoUrl: String?, issuerName: String?, modifier: Modif
                 contentDescription = null,
             )
         }
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,

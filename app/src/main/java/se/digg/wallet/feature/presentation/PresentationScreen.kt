@@ -103,11 +103,7 @@ private fun PresentationScreen(
         modifier = modifier.fillMaxSize(),
         {
             TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.presentation_app_bar_title),
-                    )
-                },
+                title = {},
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
@@ -189,7 +185,7 @@ private fun PresentationScreen(
                             )
                             Spacer(Modifier.height(8.dp))
                             requiredClaims.forEach { item ->
-                                ClaimList(claims = item.claims)
+                                ClaimList(claims = item.claims, showShare = true)
                             }
                             if (optionalClaims.isNotEmpty()) {
                                 SelectiveDisclosureList(

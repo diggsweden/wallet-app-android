@@ -6,14 +6,14 @@ package se.digg.wallet.core.network
 
 import java.security.KeyPair
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.UserDao
-import se.wallet.client.gateway.client.NetworkResult
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
-import se.wallet.client.gateway.models.ValidateAuthChallengeRequestDto
+import se.wallet.client.gateway.models.AuthChallengeRequest
 
 class SessionManager(
     val challengeClient: PublicAuthSessionChallengeClient,
@@ -40,15 +40,7 @@ class SessionManager(
     }
 
     suspend fun getChallenge(accountId: String, keyId: String): String =
-        when (val result = challengeClient.initChallenge(accountId, keyId)) {
-            is NetworkResult.Failure -> {
-                throw Exception("Failed getting challenge")
-            }
-
-            is NetworkResult.Success -> {
-                result.data.nonce ?: ""
-            }
-        }
+        challengeClient.initChallenge(accountId, keyId).getOrThrow().nonce ?: ""
 
     suspend fun validateChallenge(keyId: String, key: KeyPair, nonce: String): String {
         val jwt =
@@ -57,17 +49,8 @@ class SessionManager(
                 payload = mapOf("nonce" to nonce),
                 headers = mapOf("kid" to keyId),
             ).serialize()
-        val result = validateClient.validateChallenge(
-            ValidateAuthChallengeRequestDto(signedJwt = jwt),
-        )
-        return when (result) {
-            is NetworkResult.Failure -> {
-                throw Exception("Failed validating challenge")
-            }
-
-            is NetworkResult.Success -> {
-                result.data.sessionId
-            }
-        }
+        return validateClient.validateChallenge(
+            AuthChallengeRequest(signedJwt = jwt),
+        ).getOrThrow().sessionId
     }
 }

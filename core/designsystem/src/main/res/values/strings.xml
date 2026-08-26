@@ -2,9 +2,27 @@
 <resources>
     <string name="credential_offer_issuer">Issuer:</string>
     <string name="error_contact_support">Contact support</string>
-    <string name="error_generic_screen_message">We were unable to display the content at this time. Please try again later.</string>
+    <string name="generic_error_screen_title">"Oops! Something went wrong."</string>
+    <string name="generic_error_screen_message">We were unable to display the content at this time. Please try again later.</string>
     <string name="error_navigate_back" translatable="false">Navigate back</string>
-    <string name="error_something_went_wrong">"We are unable to display the content at this time."</string>
+    <string name="error_details_button">Show details</string>
+    <string name="error_details_title">Error details</string>
+    <string name="error_details_copy">Copy</string>
+    <string name="error_details_copied">Copied</string>
+    <string name="device_info_title">Device information</string>
+    <string name="device_info_brand">Brand</string>
+    <string name="device_info_model">Model</string>
+    <string name="device_info_version">Version</string>
+    <string name="device_info_android_version">Android version</string>
+    <string name="device_info_network_type">Network type</string>
+    <string name="device_info_app_version">App version</string>
+    <string name="device_info_network_wifi">Wi-Fi</string>
+    <string name="device_info_network_cellular">Cellular</string>
+    <string name="device_info_network_ethernet">Ethernet</string>
+    <string name="device_info_network_vpn">VPN</string>
+    <string name="device_info_network_other">Other</string>
+    <string name="device_info_network_offline">Offline</string>
+    <string name="device_info_network_unknown">Unknown</string>
     <string name="generic_error">Error</string>
     <string name="generic_home">To the home page</string>
     <string name="generic_no">No</string>
@@ -12,7 +30,6 @@
     <string name="generic_yes">Yes</string>
     <string name="onboarding_intro_subtitle">Your data, your choice</string>
     <string name="onboarding_intro_title">Wallet</string>
-    <string name="onboarding_screen_header_title" translatable="false">%1$d. %2$s</string>
     <string name="settings_app_version">App version: %1$s (%2$d)</string>
     <string name="settings_app_version_variant" translatable="false">App version: %1$s (%2$d) (%3$s)</string>
 </resources>

@@ -36,9 +36,11 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
+import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
+import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 
 @Composable
@@ -74,10 +76,6 @@ fun IssuanceScreen(
                 } else {
                     Spacer(Modifier.height(26.dp))
                 }
-                CredentialOfferHeader(
-                    logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
-                    issuerName = issuerMetadata?.display?.firstOrNull()?.name,
-                )
 
                 when (currentState) {
                     IssuanceState.Loading -> {
@@ -85,6 +83,10 @@ fun IssuanceScreen(
                     }
 
                     is IssuanceState.IssuerFetched -> {
+                        CredentialOfferHeader(
+                            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
+                            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
+                        )
                         Spacer(modifier = Modifier.weight(1f))
                         PrimaryButton(
                             text = stringResource(R.string.generic_login),
@@ -94,9 +96,17 @@ fun IssuanceScreen(
                     }
 
                     is IssuanceState.ReadyToSign -> {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text =
+                                stringResource(R.string.onboarding_issuance_ready_to_sign_description),
+                            style = WalletTextStyle.BodyLG,
+                        )
                         Spacer(modifier = Modifier.weight(1f))
                         PinInput(
-                            buttonLabel = stringResource(R.string.generic_confirm),
+                            buttonLabel = stringResource(
+                                R.string.onboarding_issuance_ready_to_sign_confirm_button,
+                            ),
                             onSubmit = { pin -> viewModel.createProof(pin) },
                         )
                     }
@@ -107,6 +117,10 @@ fun IssuanceScreen(
                     }
 
                     is IssuanceState.CredentialFetched -> {
+                        CredentialOfferHeader(
+                            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
+                            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
+                        )
                         Spacer(modifier = Modifier.height(30.dp))
                         ClaimList(claims = currentState.claims)
                         Spacer(modifier = Modifier.height(24.dp))

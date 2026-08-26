@@ -22,7 +22,11 @@ import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.data.ClaimUiModel
 
 @Composable
-fun ClaimList(claims: List<ClaimUiModel>, modifier: Modifier = Modifier) {
+fun ClaimList(
+    claims: List<ClaimUiModel>,
+    modifier: Modifier = Modifier,
+    showShare: Boolean = false,
+) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(10.dp),
@@ -38,13 +42,15 @@ fun ClaimList(claims: List<ClaimUiModel>, modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
         ) {
-            Text(
-                text = stringResource(R.string.presentation_required_claims_title),
-                style = WalletTextStyle.H3,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp, horizontal = 20.dp),
-            )
+            if (showShare) {
+                Text(
+                    text = stringResource(R.string.presentation_required_claims_title),
+                    style = WalletTextStyle.H3,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 20.dp),
+                )
+            }
             claims.forEach { claim ->
                 ClaimItem(
                     claim = claim,

@@ -91,7 +91,13 @@ class WalletSetupViewModelTest {
         viewModel.start(pin = "123456")
         advanceUntilIdle()
 
-        assertEquals(WalletSetupUiState.Failed(SetupStep.AUTHENTICATE), viewModel.uiState.value)
+        assertEquals(
+            WalletSetupUiState.Failed(
+                SetupStep.AUTHENTICATE,
+                ErrorUiModel(null, null, null),
+            ),
+            viewModel.uiState.value,
+        )
         assertTrue(effects.isEmpty())
         assertEquals(0, service.callCounts.getValue(SetupStep.POST_HSM_KEY))
     }
