@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -71,8 +72,11 @@ fun PidCard(issueDate: Date, onClick: () -> Unit, modifier: Modifier = Modifier)
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 val formattedDate = formatDate(issueDate)
-                Text("Min ID-handling", style = WalletTextStyle.H5)
-                Text("Uppdaterad: $formattedDate", style = WalletTextStyle.BodySM)
+                Text(stringResource(R.string.dashboard_main_pid_title), style = WalletTextStyle.H5)
+                Text(
+                    stringResource(R.string.dashboard_main_pid_description, formattedDate),
+                    style = WalletTextStyle.BodySM,
+                )
             }
         }
     }

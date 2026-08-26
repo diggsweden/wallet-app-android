@@ -31,6 +31,6 @@ data class PresentationKey(val fullUri: String) : NavKey
 
 fun Uri.toNavKey(): NavKey? = when (scheme) {
     "openid-credential-offer", "haip-vci" -> IssuanceDeepLinkKey(toString())
-    "eudi-openid4vp", "openid4vp" -> PresentationKey(toString())
+    "eudi-openid4vp", "openid4vp", "haip-vp" -> PresentationKey(toString())
     else -> null
 }
