@@ -39,6 +39,8 @@ plugins {
     alias(libs.plugins.fabrikt)
     alias(libs.plugins.kotlinter)
     alias(libs.plugins.room)
+    alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.aboutlibrariesAndroid)
 }
 
 kotlin {
@@ -177,6 +179,7 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.browser)
+    implementation(libs.aboutlibraries.compose.m3)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.mock)

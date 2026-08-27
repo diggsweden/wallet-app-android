@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -41,18 +42,20 @@ fun PrimaryButton(
     enabled: Boolean = true,
     hapticEnabled: Boolean = false,
     rightIcon: Int? = null,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
 ) {
     val haptic = LocalHapticFeedback.current
 
     val buttonColors = if (isSystemInDarkTheme()) {
         ButtonDefaults.buttonColors(
-            containerColor = ButtonContainerPrimaryDark,
-            contentColor = ButtonContentPrimaryDark,
+            containerColor = containerColor ?: ButtonContainerPrimaryDark,
+            contentColor = contentColor ?: ButtonContentPrimaryDark,
         )
     } else {
         ButtonDefaults.buttonColors(
-            containerColor = ButtonContainerPrimary,
-            contentColor = ButtonContentPrimary,
+            containerColor = containerColor ?: ButtonContainerPrimary,
+            contentColor = contentColor ?: ButtonContentPrimary,
         )
     }
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {

@@ -3,6 +3,8 @@
     <string name="generic_ok">Okay</string>
     <string name="generic_continue">Continue</string>
     <string name="settings_logout">Sign out</string>
+    <string name="settings_logout_dialog_title">Sign out?</string>
+    <string name="settings_logout_dialog_description">Signing out will delete all your data from this device, including your documents. This cannot be undone.</string>
     <string name="generic_close">Close</string>
     <string name="generic_next">Next</string>
     <string name="issuance_approve_button">Approve</string>
@@ -17,6 +19,25 @@
     <string name="dashboard_credentials_header">Documents</string>
     <string name="generic_skip">Skip</string>
     <string name="settings_title">Settings</string>
+    <string name="settings_feedback_title">Send feedback</string>
+    <string name="settings_feedback_description">Click here to send feedback to the developer</string>
+    <string name="settings_feedback_email_subject">App feedback</string>
+    <string name="settings_feedback_email_body">\n\n\n---\nApp version: %1$s (%2$d)\nDevice: %3$s %4$s\nOS version: %5$s (API %6$d)\nNetwork: %7$s</string>
+    <string name="settings_app_info_title">App info</string>
+    <string name="settings_app_info_description">You can manage permissions and storage from the app settings.</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_option_system">System language</string>
+    <string name="settings_language_option_english" translatable="false">English</string>
+    <string name="settings_language_option_swedish" translatable="false">Svenska</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_appearance_option_system">System default</string>
+    <string name="settings_appearance_option_light">Light</string>
+    <string name="settings_appearance_option_dark">Dark</string>
+    <string name="settings_help">Help</string>
+    <string name="help_developer_portal">Developerportal</string>
+    <string name="settings_about">About</string>
+    <string name="about_title">About</string>
+    <string name="about_licenses">Licences</string>
     <string name="presentation_required_claims_title">"Data to shared: "</string>
     <string name="generic_error_retry">Something went wrong, try again.</string>
     <string name="onboarding_fetch_id_title">Request personal data</string>
