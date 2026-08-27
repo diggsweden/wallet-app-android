@@ -5,7 +5,6 @@
 package se.digg.wallet.core.designsystem.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,12 +24,13 @@ import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.theme.Yellow100
 import se.digg.wallet.core.designsystem.theme.Yellow130
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun DocumentCard(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val backgroundColor = if (isSystemInDarkTheme()) {
+    val backgroundColor = if (isWalletInDarkTheme()) {
         Yellow130
     } else {
         Yellow100

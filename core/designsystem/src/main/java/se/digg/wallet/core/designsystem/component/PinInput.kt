@@ -8,7 +8,6 @@ import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +48,7 @@ import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.DiggBlack
 import se.digg.wallet.core.designsystem.theme.DiggBrown
 import se.digg.wallet.core.designsystem.theme.DiggPink
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -170,7 +170,7 @@ private fun PinBalls(requiredLength: Int, pinLength: Int) {
 
 @Composable
 private fun PinCircle(filled: Boolean, size: Dp) {
-    val color = if (!isSystemInDarkTheme()) {
+    val color = if (!isWalletInDarkTheme()) {
         DiggBrown
     } else {
         DiggPink
@@ -383,7 +383,7 @@ private fun NumericButton(
                     lineHeight = 13.sp,
                     fontFamily = ubuntuFontFamily,
                     fontWeight = FontWeight.Light,
-                    color = if (isSystemInDarkTheme()) {
+                    color = if (isWalletInDarkTheme()) {
                         MaterialTheme.colorScheme.onPrimary
                     } else {
                         DiggBlack

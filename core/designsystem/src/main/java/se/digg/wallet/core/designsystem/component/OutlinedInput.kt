@@ -5,7 +5,6 @@
 package se.digg.wallet.core.designsystem.component
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,6 +46,7 @@ import se.digg.wallet.core.designsystem.theme.PlaceholderTextDarkMode
 import se.digg.wallet.core.designsystem.theme.TextColor
 import se.digg.wallet.core.designsystem.theme.TextColorDarkMode
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -65,7 +65,7 @@ fun OutLinedInput(
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
-    val isDarkMode = isSystemInDarkTheme()
+    val isDarkMode = isWalletInDarkTheme()
     val containerColor = if (isDarkMode) Color.Transparent else Color.Transparent
     val errorContainerColor = if (isDarkMode) ErrorContainerDarkMode else ErrorContainer
     val errorOutlineColor = if (isDarkMode) ErrorOutlineDarkMode else ErrorOutline

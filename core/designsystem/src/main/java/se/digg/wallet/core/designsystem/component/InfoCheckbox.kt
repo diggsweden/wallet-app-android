@@ -5,7 +5,6 @@
 package se.digg.wallet.core.designsystem.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -40,19 +40,19 @@ fun InfoCheckBox(
     errorText: String? = null,
     checked: Boolean = false,
 ) {
-    val tintColor = if (!isSystemInDarkTheme()) {
+    val tintColor = if (!isWalletInDarkTheme()) {
         Color(0xFF556951)
     } else {
         Color(0xFFD5DAD4)
     }
 
-    val errorTextColor = if (!isSystemInDarkTheme()) {
+    val errorTextColor = if (!isWalletInDarkTheme()) {
         Color(0xFFB50000)
     } else {
         Color(0xFFEDBFBF)
     }
 
-    val textColor = if (!isSystemInDarkTheme()) {
+    val textColor = if (!isWalletInDarkTheme()) {
         Color(0xFF2B2A29)
     } else {
         Color(0xFFFFFFFF)

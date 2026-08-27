@@ -11,32 +11,17 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -56,10 +40,9 @@ import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
+import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.PrimaryButton
-import se.digg.wallet.core.designsystem.component.collapsingAppBarTitle
-import se.digg.wallet.core.designsystem.component.collapsingContentTitle
-import se.digg.wallet.core.designsystem.component.rememberCollapsingTitleState
+import se.digg.wallet.core.designsystem.component.WalletListItem
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.getDeviceInfo
@@ -100,8 +83,6 @@ fun SettingsRoute(
 
 private const val FEEDBACK_EMAIL_ADDRESS = "test@test.com"
 
-// ACTION_SENDTO (not ACTION_SEND) so only email apps offer to handle this, not every
-// text/plain-sharing app.
 private fun openFeedbackEmail(context: Context) {
     val deviceInfo = getDeviceInfo(context)
     val body = context.getString(
@@ -127,8 +108,6 @@ private fun openFeedbackEmail(context: Context) {
     }
 }
 
-// There is no public API to open directly on the Permissions sub-screen; App Info is the
-// standard, documented entry point and puts "Permissions" one tap away.
 private fun openAppPermissionsSettings(context: Context) {
     val intent = Intent(
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -137,7 +116,6 @@ private fun openAppPermissionsSettings(context: Context) {
     context.startActivity(intent)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreen(
     onBackClick: () -> Unit,
@@ -150,56 +128,21 @@ private fun SettingsScreen(
     onThemeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollState = rememberScrollState()
-    val titleState = rememberCollapsingTitleState(scrollState)
-
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings_title),
-                        modifier = Modifier.collapsingAppBarTitle(titleState),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { onBackClick.invoke() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = null,
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        Surface {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(innerPadding),
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_title),
-                    style = MaterialTheme.typography.headlineLarge,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                        .collapsingContentTitle(titleState),
-                )
-                SettingsHeader()
-                SettingsMenu(
-                    onFeedbackClick = onFeedbackClick,
-                    onDevicePermissionsClick = onDevicePermissionsClick,
-                    onHelpClick = onHelpClick,
-                    onAboutClick = onAboutClick,
-                    onLanguageClick = onLanguageClick,
-                    onThemeClick = onThemeClick,
-                )
-                SettingsContent(onLogoutClick = { onLogoutClick.invoke() })
-            }
-        }
+    CollapsingTitleScaffold(
+        title = stringResource(R.string.settings_title),
+        onBackClick = onBackClick,
+        modifier = modifier,
+    ) {
+        SettingsHeader()
+        SettingsMenu(
+            onFeedbackClick = onFeedbackClick,
+            onDevicePermissionsClick = onDevicePermissionsClick,
+            onHelpClick = onHelpClick,
+            onAboutClick = onAboutClick,
+            onLanguageClick = onLanguageClick,
+            onThemeClick = onThemeClick,
+        )
+        SettingsContent(onLogoutClick = onLogoutClick)
     }
 }
 
@@ -234,16 +177,16 @@ private fun SettingsMenu(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        SettingsDetailedListItem(
-            iconRes = R.drawable.feedback_24px,
+        WalletListItem(
+            leadingIconRes = R.drawable.feedback_24px,
             title = stringResource(R.string.settings_feedback_title),
             description = stringResource(R.string.settings_feedback_description),
             onClick = onFeedbackClick,
             trailingIconRes = R.drawable.mail_24px,
         )
         HorizontalDivider()
-        SettingsDetailedListItem(
-            iconRes = R.drawable.admin_panel_settings_24px,
+        WalletListItem(
+            leadingIconRes = R.drawable.admin_panel_settings_24px,
             title = stringResource(R.string.settings_app_info_title),
             description = stringResource(R.string.settings_app_info_description),
             onClick = onDevicePermissionsClick,
@@ -290,117 +233,10 @@ private data class SettingsRowSpec(
 @Composable
 private fun SettingsRows(items: List<SettingsRowSpec>) {
     items.forEachIndexed { index, item ->
-        SettingsListItem(iconRes = item.iconRes, label = item.label, onClick = item.onClick)
+        WalletListItem(leadingIconRes = item.iconRes, title = item.label, onClick = item.onClick)
         if (index != items.lastIndex) {
             HorizontalDivider()
         }
-    }
-}
-
-@Composable
-private fun SettingsCategoryHeader(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-    )
-}
-
-@Composable
-private fun SettingsListItem(
-    @DrawableRes iconRes: Int,
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick, role = Role.Button)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f),
-        )
-        Icon(
-            painter = painterResource(R.drawable.arrow_right),
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-@Composable
-private fun SettingsDetailedListItem(
-    @DrawableRes iconRes: Int,
-    title: String,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    @DrawableRes trailingIconRes: Int = R.drawable.arrow_right,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick, role = Role.Button)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Icon(
-            painter = painterResource(trailingIconRes),
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-@Composable
-internal fun SettingsRadioRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f),
-        )
-        RadioButton(selected = selected, onClick = null)
     }
 }
 

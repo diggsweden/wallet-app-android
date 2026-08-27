@@ -6,7 +6,6 @@ package se.digg.wallet.core.designsystem.component
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,10 +19,11 @@ import se.digg.wallet.core.designsystem.theme.Progress
 import se.digg.wallet.core.designsystem.theme.ProgressDarkMode
 import se.digg.wallet.core.designsystem.theme.Track
 import se.digg.wallet.core.designsystem.theme.TrackDarkMode
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 
 @Composable
 fun ProgressIndicator(progress: Float, modifier: Modifier = Modifier) {
-    val isDarkMode = isSystemInDarkTheme()
+    val isDarkMode = isWalletInDarkTheme()
     val color = if (isDarkMode) ProgressDarkMode else Progress
     val trackColor = if (isDarkMode) TrackDarkMode else Track
 
@@ -40,7 +40,7 @@ fun ProgressIndicator(progress: Float, modifier: Modifier = Modifier) {
 
 @Composable
 fun AnimatedLinearProgress(targetProgress: Float, modifier: Modifier = Modifier) {
-    val isDarkMode = isSystemInDarkTheme()
+    val isDarkMode = isWalletInDarkTheme()
     val color = if (isDarkMode) ProgressDarkMode else Progress
     val trackColor = if (isDarkMode) TrackDarkMode else Track
 

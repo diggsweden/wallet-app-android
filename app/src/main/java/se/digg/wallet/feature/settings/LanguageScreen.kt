@@ -7,15 +7,7 @@ package se.digg.wallet.feature.settings
 import android.app.Activity
 import android.content.Context
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,9 +15,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
+import se.digg.wallet.core.designsystem.component.WalletRadioRow
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.locale.LocaleOverride
@@ -35,37 +28,20 @@ fun LanguageRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
     LanguageScreen(onBackClick = onBack, modifier = modifier)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.settings_language)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = null,
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
+    CollapsingTitleScaffold(
+        title = stringResource(R.string.settings_language),
+        onBackClick = onBackClick,
+        modifier = modifier,
+    ) {
         val context = LocalContext.current
         var selectedOption by remember { mutableStateOf(currentAppLanguageOption(context)) }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .selectableGroup(),
-        ) {
+        Column(modifier = Modifier.selectableGroup()) {
             AppLanguageOption.entries.forEach { option ->
-                SettingsRadioRow(
-                    label = when (option) {
+                WalletRadioRow(
+                    title = when (option) {
                         AppLanguageOption.SYSTEM -> {
                             stringResource(R.string.settings_language_option_system)
                         }

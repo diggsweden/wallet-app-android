@@ -6,7 +6,6 @@ package se.digg.wallet.core.designsystem.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,12 +32,13 @@ import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.Brown70
 import se.digg.wallet.core.designsystem.theme.TextColor
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
 fun PidCard(issueDate: Date, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val backgroundColor = if (isSystemInDarkTheme()) {
+    val backgroundColor = if (isWalletInDarkTheme()) {
         Brown100
     } else {
         Brown70

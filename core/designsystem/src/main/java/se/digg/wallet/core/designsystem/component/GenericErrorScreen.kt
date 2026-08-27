@@ -9,7 +9,6 @@ import android.content.ClipData
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +54,7 @@ import se.digg.wallet.core.designsystem.theme.Brown30
 import se.digg.wallet.core.designsystem.theme.Brown50
 import se.digg.wallet.core.designsystem.theme.Brown70
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.NetworkType
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -80,7 +80,7 @@ fun GenericErrorScreen(
     errorDetails: List<ErrorDetail> = emptyList(),
     detailsButtonLabel: String? = null,
 ) {
-    val textColor = if (isSystemInDarkTheme()) Brown30 else Brown100
+    val textColor = if (isWalletInDarkTheme()) Brown30 else Brown100
     var showDetails by remember { mutableStateOf(false) }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -171,8 +171,8 @@ private const val COPIED_LABEL_DURATION_MS = 1_500L
 @Composable
 @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 private fun ErrorDetailsSheetContent(details: List<ErrorDetail>, modifier: Modifier = Modifier) {
-    val labelColor = if (isSystemInDarkTheme()) Brown50 else Brown70
-    val valueColor = if (isSystemInDarkTheme()) Brown30 else Brown100
+    val labelColor = if (isWalletInDarkTheme()) Brown50 else Brown70
+    val valueColor = if (isWalletInDarkTheme()) Brown30 else Brown100
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     var copied by remember { mutableStateOf(false) }

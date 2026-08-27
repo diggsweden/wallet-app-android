@@ -4,7 +4,6 @@
 
 package se.digg.wallet.core.designsystem.component
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,11 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import se.digg.wallet.core.designsystem.R
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.theme.ubuntuFontFamily
 
 @Composable
 fun WalletTitle(modifier: Modifier = Modifier) {
-    val textColor = when (isSystemInDarkTheme()) {
+    val textColor = when (isWalletInDarkTheme()) {
         true -> Color(0xFFB6B0AC)
         false -> Color(0xFF6D6059)
     }

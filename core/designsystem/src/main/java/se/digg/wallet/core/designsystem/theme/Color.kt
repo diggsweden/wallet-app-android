@@ -71,7 +71,7 @@ val ButtonBorderSecondaryDark = Color(0xFFD4D9D3)
 
 // DIGG
 val DefaultBackground = Color(0xFFFFFFFF)
-val DefaultBackgroundDarkMode = Color(0xFF2B2A29)
+val DefaultBackgroundDarkMode = Color(0xFF2B2A28)
 val DefaultLink = Color(0xFF556951)
 val DefaultLinkDarkMode = Color(0xFFFFFFFF)
 val DefaultCheckBox = Color(0xFF556951)

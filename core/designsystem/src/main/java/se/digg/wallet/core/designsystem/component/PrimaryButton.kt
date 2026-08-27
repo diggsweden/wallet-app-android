@@ -4,7 +4,6 @@
 
 package se.digg.wallet.core.designsystem.component
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +30,7 @@ import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimaryDark
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimary
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimaryDark
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -47,7 +47,7 @@ fun PrimaryButton(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    val buttonColors = if (isSystemInDarkTheme()) {
+    val buttonColors = if (isWalletInDarkTheme()) {
         ButtonDefaults.buttonColors(
             containerColor = containerColor ?: ButtonContainerPrimaryDark,
             contentColor = contentColor ?: ButtonContentPrimaryDark,

@@ -6,7 +6,6 @@ package se.digg.wallet.feature.onboarding.intro
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +25,7 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletTitle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -39,7 +39,7 @@ private fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
     BackHandler {
     }
 
-    val isDarkMode = isSystemInDarkTheme()
+    val isDarkMode = isWalletInDarkTheme()
     val walletImageResource = when (isDarkMode) {
         true -> painterResource(id = R.drawable.wallet_logo_dark)
         false -> painterResource(id = R.drawable.wallet_logo_light)
