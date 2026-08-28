@@ -41,6 +41,7 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.aboutlibrariesAndroid)
+    id("jacoco")
 }
 
 kotlin {
@@ -183,6 +184,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.mock)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -267,4 +269,50 @@ tasks.withType<KspAATask>().configureEach {
 
 tasks.named("preBuild") {
     dependsOn(fabriktGenerateTask)
+}
+private val generatedCode = listOf(
+    "se/wallet/client/gateway/**",
+    "**/Dagger*",
+    "**/Hilt_*",
+    "**/*_HiltModules*",
+    "hilt_aggregated_deps/**",
+    "**/*_Impl*",
+    "**/*ComposableSingletons*",
+)
+private val composeUi = listOf(
+    "**/*ScreenKt.class",
+    "**/*ScreenKt$*.class",
+    "se/digg/wallet/core/designsystem/**",
+    "**/WalletNavHostKt*",
+    "**/MainActivity.class",
+    "**/MainActivity$*.class",
+    "**/MainActivityKt*",
+)
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    group = "verification"
+    description = "Coverage for the demoDebug unit tests, excluding generated code and Compose UI."
+    dependsOn("testDemoDebugUnitTest")
+
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+    classDirectories.setFrom(
+        files(
+            layout.buildDirectory.dir(
+                "intermediates/built_in_kotlinc/demoDebug/compileDemoDebugKotlin/classes",
+            ),
+            layout.buildDirectory.dir(
+                "intermediates/javac/demoDebug/compileDemoDebugJavaWithJavac/classes",
+            ),
+        ).asFileTree.matching { exclude(generatedCode + composeUi) },
+    )
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory) {
+            include("outputs/unit_test_code_coverage/demoDebugUnitTest/*.exec")
+        },
+    )
 }
