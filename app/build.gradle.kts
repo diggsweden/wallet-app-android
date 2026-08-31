@@ -41,7 +41,6 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.aboutlibrariesAndroid)
-    id("jacoco")
 }
 
 kotlin {
