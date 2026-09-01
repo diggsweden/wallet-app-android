@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 data object DashboardKey : NavKey
 
 @Serializable
-data object SettingsKey : NavKey
+data class SettingsKey(val isFromIntro: Boolean = false) : NavKey
 
 @Serializable
 data object AboutKey : NavKey

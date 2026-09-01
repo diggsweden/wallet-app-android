@@ -49,6 +49,7 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
             entry<IntroKey> {
                 IntroRoute(
                     onContinue = { navigator.navigate(OnboardingKey) },
+                    onSettingsClick = { navigator.navigate(SettingsKey(isFromIntro = true)) },
                 )
             }
             entry<OnboardingKey> {
@@ -60,7 +61,7 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
             entry<DashboardKey> {
                 DashboardRoute(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
-                    onSettingsClick = { navigator.navigate(SettingsKey) },
+                    onSettingsClick = { navigator.navigate(SettingsKey()) },
                 )
             }
             entry<CredentialDetailsKey> { key ->
@@ -69,8 +70,9 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
                     onBack = { navigator.goBack() },
                 )
             }
-            entry<SettingsKey> {
+            entry<SettingsKey> { key ->
                 SettingsRoute(
+                    isFromIntro = key.isFromIntro,
                     onBack = { navigator.goBack() },
                     onLogout = { navigator.resetToOnboarding() },
                     onAbout = { navigator.navigate(AboutKey) },

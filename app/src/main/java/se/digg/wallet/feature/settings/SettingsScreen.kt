@@ -50,6 +50,7 @@ fun SettingsRoute(
     onLanguage: () -> Unit,
     onTheme: () -> Unit,
     onHelp: () -> Unit,
+    isFromIntro: Boolean = false,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -73,6 +74,7 @@ fun SettingsRoute(
         onAboutClick = onAbout,
         onLanguageClick = onLanguage,
         onThemeClick = onTheme,
+        isFromIntro = isFromIntro,
     )
 }
 
@@ -121,6 +123,7 @@ private fun SettingsScreen(
     onAboutClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onThemeClick: () -> Unit,
+    isFromIntro: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     CollapsingTitleScaffold(
@@ -136,7 +139,9 @@ private fun SettingsScreen(
             onLanguageClick = onLanguageClick,
             onThemeClick = onThemeClick,
         )
-        SettingsContent(onLogoutClick = onLogoutClick)
+        if (!isFromIntro) {
+            SettingsContent(onLogoutClick = onLogoutClick)
+        }
     }
 }
 
