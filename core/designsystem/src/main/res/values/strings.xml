@@ -28,7 +28,7 @@
     <string name="generic_no">No</string>
     <string name="generic_retry">Retry</string>
     <string name="generic_yes">Yes</string>
-    <string name="onboarding_intro_subtitle">Your data, your choice</string>
+    <string name="onboarding_intro_subtitle">Sweden’s digital identity wallet</string>
     <string name="onboarding_intro_title">Wallet</string>
     <string name="settings_app_version">App version: %1$s (%2$d)</string>
     <string name="settings_app_version_variant" translatable="false">App version: %1$s (%2$d) (%3$s)</string>

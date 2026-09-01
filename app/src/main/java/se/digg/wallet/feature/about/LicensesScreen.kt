@@ -35,7 +35,7 @@ private fun LicensesScreen(onBackClick: () -> Unit, modifier: Modifier = Modifie
         modifier = modifier.fillMaxSize(),
         topBar = {
             WalletTopAppBar(
-                title = { Text(text = stringResource(R.string.about_licenses)) },
+                title = { Text(text = stringResource(R.string.about_acknowledgements)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(

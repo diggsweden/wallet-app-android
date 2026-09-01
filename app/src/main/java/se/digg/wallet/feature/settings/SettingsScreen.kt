@@ -10,14 +10,12 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,21 +26,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
-import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletListItem
+import se.digg.wallet.core.designsystem.theme.Error
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.getDeviceInfo
@@ -81,7 +76,7 @@ fun SettingsRoute(
     )
 }
 
-private const val FEEDBACK_EMAIL_ADDRESS = "test@test.com"
+private const val FEEDBACK_EMAIL_ADDRESS = "digitalwallet@digg.se"
 
 private fun openFeedbackEmail(context: Context) {
     val deviceInfo = getDeviceInfo(context)
@@ -133,7 +128,6 @@ private fun SettingsScreen(
         onBackClick = onBackClick,
         modifier = modifier,
     ) {
-        SettingsHeader()
         SettingsMenu(
             onFeedbackClick = onFeedbackClick,
             onDevicePermissionsClick = onDevicePermissionsClick,
@@ -143,26 +137,6 @@ private fun SettingsScreen(
             onThemeClick = onThemeClick,
         )
         SettingsContent(onLogoutClick = onLogoutClick)
-    }
-}
-
-@Composable
-private fun SettingsHeader() {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 32.dp)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            painter = painterResource(R.drawable.playstore_icon),
-            contentDescription = null,
-            modifier = Modifier
-                .width(160.dp)
-                .height(160.dp),
-        )
-        AppVersionText(variant = BuildConfig.FLAVOR.takeIf { BuildConfig.DEBUG })
     }
 }
 
@@ -266,12 +240,18 @@ private fun SettingsContent(onLogoutClick: () -> Unit) {
                         showSignOutDialog = false
                         onLogoutClick.invoke()
                     },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Error),
                 ) {
                     Text(text = stringResource(R.string.settings_logout))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSignOutDialog = false }) {
+                TextButton(
+                    onClick = { showSignOutDialog = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = AlertDialogDefaults.titleContentColor,
+                    ),
+                ) {
                     Text(text = stringResource(R.string.generic_cancel))
                 }
             },
