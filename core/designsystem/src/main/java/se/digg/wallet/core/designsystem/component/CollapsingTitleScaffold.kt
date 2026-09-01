@@ -26,9 +26,8 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 /**
  * Scaffold for a titled, scrollable screen with a back button: the large [title] in the
- * scrollable content fades out as it scrolls under the top bar, while the same title fades in
- * in the [WalletTopAppBar]. Used by settings and its subpages so they all share one title
- * behavior instead of each wiring up [rememberCollapsingTitleState] by hand.
+ * scrollable content fades out as it scrolls under the top bar, while the same title fades
+ * in the [WalletTopAppBar].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

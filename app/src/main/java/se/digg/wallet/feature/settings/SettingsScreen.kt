@@ -69,7 +69,7 @@ fun SettingsRoute(
         onBackClick = onBack,
         onLogoutClick = { viewModel.onLogout() },
         onFeedbackClick = { openFeedbackEmail(context) },
-        onDevicePermissionsClick = { openAppPermissionsSettings(context) },
+        onAppInfoClick = { openOsAppSettings(context) },
         onHelpClick = onHelp,
         onAboutClick = onAbout,
         onLanguageClick = onLanguage,
@@ -105,7 +105,7 @@ private fun openFeedbackEmail(context: Context) {
     }
 }
 
-private fun openAppPermissionsSettings(context: Context) {
+private fun openOsAppSettings(context: Context) {
     val intent = Intent(
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
         Uri.fromParts("package", context.packageName, null),
@@ -118,7 +118,7 @@ private fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onFeedbackClick: () -> Unit,
-    onDevicePermissionsClick: () -> Unit,
+    onAppInfoClick: () -> Unit,
     onHelpClick: () -> Unit,
     onAboutClick: () -> Unit,
     onLanguageClick: () -> Unit,
@@ -133,7 +133,7 @@ private fun SettingsScreen(
     ) {
         SettingsMenu(
             onFeedbackClick = onFeedbackClick,
-            onDevicePermissionsClick = onDevicePermissionsClick,
+            onAppInfoClick = onAppInfoClick,
             onHelpClick = onHelpClick,
             onAboutClick = onAboutClick,
             onLanguageClick = onLanguageClick,
@@ -148,7 +148,7 @@ private fun SettingsScreen(
 @Composable
 private fun SettingsMenu(
     onFeedbackClick: () -> Unit,
-    onDevicePermissionsClick: () -> Unit,
+    onAppInfoClick: () -> Unit,
     onHelpClick: () -> Unit,
     onAboutClick: () -> Unit,
     onLanguageClick: () -> Unit,
@@ -168,7 +168,7 @@ private fun SettingsMenu(
             leadingIconRes = R.drawable.admin_panel_settings_24px,
             title = stringResource(R.string.settings_app_info_title),
             description = stringResource(R.string.settings_app_info_description),
-            onClick = onDevicePermissionsClick,
+            onClick = onAppInfoClick,
         )
         HorizontalDivider()
         SettingsRows(
@@ -272,7 +272,7 @@ private fun SettingsScreenPreview() {
             onBackClick = {},
             onLogoutClick = {},
             onFeedbackClick = {},
-            onDevicePermissionsClick = {},
+            onAppInfoClick = {},
             onHelpClick = {},
             onAboutClick = {},
             onLanguageClick = {},

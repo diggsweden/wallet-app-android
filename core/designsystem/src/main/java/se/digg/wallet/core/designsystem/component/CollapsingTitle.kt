@@ -16,27 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 
-/**
- * Drives a scroll-linked crossfade between a large title in a screen's scrollable
- * content and the same title in its [androidx.compose.material3.TopAppBar].
- *
- * Usage:
- * ```
- * val scrollState = rememberScrollState()
- * val titleState = rememberCollapsingTitleState(scrollState)
- *
- * Scaffold(
- *     topBar = {
- *         TopAppBar(title = { Text(title, modifier = Modifier.collapsingAppBarTitle(titleState)) })
- *     },
- * ) { padding ->
- *     Column(Modifier.verticalScroll(scrollState).padding(padding)) {
- *         Text(title, style = ..., modifier = Modifier.collapsingContentTitle(titleState))
- *         // rest of the content
- *     }
- * }
- * ```
- */
 class CollapsingTitleState internal constructor(private val scrollState: ScrollState) {
     internal var contentTitleHeightPx by mutableIntStateOf(0)
 
