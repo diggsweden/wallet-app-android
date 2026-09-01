@@ -9,7 +9,8 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.fabrikt) apply false
     alias(libs.plugins.kotlinter) apply false
-
+    alias(libs.plugins.aboutlibraries) apply false
+    alias(libs.plugins.aboutlibrariesAndroid) apply false
 }
 
 

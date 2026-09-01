@@ -5,7 +5,6 @@
 package se.digg.wallet.core.designsystem.component
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.theme.ButtonBorderSecondary
 import se.digg.wallet.core.designsystem.theme.ButtonBorderSecondaryDark
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -42,7 +42,7 @@ fun SecondaryButton(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    val contentColor = if (isSystemInDarkTheme()) {
+    val contentColor = if (isWalletInDarkTheme()) {
         ButtonBorderSecondaryDark
     } else {
         ButtonBorderSecondary

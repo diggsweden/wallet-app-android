@@ -4,7 +4,6 @@
 
 package se.digg.wallet.core.designsystem.component
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -30,6 +30,7 @@ import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimaryDark
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimary
 import se.digg.wallet.core.designsystem.theme.ButtonContentPrimaryDark
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
@@ -41,18 +42,20 @@ fun PrimaryButton(
     enabled: Boolean = true,
     hapticEnabled: Boolean = false,
     rightIcon: Int? = null,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
 ) {
     val haptic = LocalHapticFeedback.current
 
-    val buttonColors = if (isSystemInDarkTheme()) {
+    val buttonColors = if (isWalletInDarkTheme()) {
         ButtonDefaults.buttonColors(
-            containerColor = ButtonContainerPrimaryDark,
-            contentColor = ButtonContentPrimaryDark,
+            containerColor = containerColor ?: ButtonContainerPrimaryDark,
+            contentColor = contentColor ?: ButtonContentPrimaryDark,
         )
     } else {
         ButtonDefaults.buttonColors(
-            containerColor = ButtonContainerPrimary,
-            contentColor = ButtonContentPrimary,
+            containerColor = containerColor ?: ButtonContainerPrimary,
+            contentColor = contentColor ?: ButtonContentPrimary,
         )
     }
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {

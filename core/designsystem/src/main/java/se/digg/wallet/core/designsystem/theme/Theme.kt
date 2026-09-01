@@ -12,6 +12,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -51,6 +53,20 @@ private val LightColorScheme = lightColorScheme(
      */
 )
 
+/**
+ * Whether the app is effectively in dark mode right now — [WalletTheme]'s [darkTheme][WalletTheme]
+ * value, honoring the user's in-app theme override, not just the OS setting. Read this instead of
+ * [isSystemInDarkTheme] anywhere a component picks a color by dark/light, so hand-picked colors
+ * stay in sync with [se.digg.wallet.core.theme.ThemePreference] the same way [MaterialTheme.colorScheme]
+ * already does.
+ */
+val LocalIsDarkTheme = staticCompositionLocalOf<Boolean> {
+    error("LocalIsDarkTheme not provided — wrap content in WalletTheme")
+}
+
+@Composable
+fun isWalletInDarkTheme(): Boolean = LocalIsDarkTheme.current
+
 @Composable
 fun WalletTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -72,9 +88,11 @@ fun WalletTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = UbuntuTypography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalIsDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = UbuntuTypography,
+            content = content,
+        )
+    }
 }

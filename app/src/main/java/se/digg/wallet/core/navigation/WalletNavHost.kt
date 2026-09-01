@@ -13,13 +13,18 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import se.digg.wallet.feature.about.AboutRoute
+import se.digg.wallet.feature.about.LicensesRoute
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsRoute
 import se.digg.wallet.feature.dashboard.DashboardRoute
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
 import se.digg.wallet.feature.onboarding.OnboardingRoute
 import se.digg.wallet.feature.onboarding.intro.IntroRoute
 import se.digg.wallet.feature.presentation.PresentationRoute
+import se.digg.wallet.feature.settings.HelpRoute
+import se.digg.wallet.feature.settings.LanguageRoute
 import se.digg.wallet.feature.settings.SettingsRoute
+import se.digg.wallet.feature.settings.ThemeRoute
 
 @Composable
 fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) {
@@ -44,6 +49,7 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
             entry<IntroKey> {
                 IntroRoute(
                     onContinue = { navigator.navigate(OnboardingKey) },
+                    onSettingsClick = { navigator.navigate(SettingsKey(isFromIntro = true)) },
                 )
             }
             entry<OnboardingKey> {
@@ -55,7 +61,7 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
             entry<DashboardKey> {
                 DashboardRoute(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
-                    onSettingsClick = { navigator.navigate(SettingsKey) },
+                    onSettingsClick = { navigator.navigate(SettingsKey()) },
                 )
             }
             entry<CredentialDetailsKey> { key ->
@@ -64,11 +70,34 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
                     onBack = { navigator.goBack() },
                 )
             }
-            entry<SettingsKey> {
+            entry<SettingsKey> { key ->
                 SettingsRoute(
+                    isFromIntro = key.isFromIntro,
                     onBack = { navigator.goBack() },
                     onLogout = { navigator.resetToOnboarding() },
+                    onAbout = { navigator.navigate(AboutKey) },
+                    onLanguage = { navigator.navigate(LanguageKey) },
+                    onTheme = { navigator.navigate(ThemeKey) },
+                    onHelp = { navigator.navigate(HelpKey) },
                 )
+            }
+            entry<AboutKey> {
+                AboutRoute(
+                    onBack = { navigator.goBack() },
+                    onLicensesClick = { navigator.navigate(LicensesKey) },
+                )
+            }
+            entry<LicensesKey> {
+                LicensesRoute(onBack = { navigator.goBack() })
+            }
+            entry<LanguageKey> {
+                LanguageRoute(onBack = { navigator.goBack() })
+            }
+            entry<ThemeKey> {
+                ThemeRoute(onBack = { navigator.goBack() })
+            }
+            entry<HelpKey> {
+                HelpRoute(onBack = { navigator.goBack() })
             }
             entry<IssuanceDeepLinkKey> { key ->
                 DeepLinkedIssuanceRoute(

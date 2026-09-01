@@ -4,6 +4,7 @@
 
 package se.digg.wallet
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -11,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.browser.auth.AuthTabIntent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@ import javax.inject.Inject
 import se.digg.wallet.core.deeplink.DeepLinkHandler
 import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
+import se.digg.wallet.core.locale.LocaleOverride
 import se.digg.wallet.core.navigation.IntroKey
 import se.digg.wallet.core.navigation.WalletNavDisplay
 import se.digg.wallet.core.navigation.WalletNavigator
@@ -38,6 +41,8 @@ import se.digg.wallet.core.navigation.toNavKey
 import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
 import se.digg.wallet.core.permission.requestLocalNetworkAccess
+import se.digg.wallet.core.theme.ThemeOption
+import se.digg.wallet.core.theme.ThemePreference
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -60,6 +65,10 @@ class MainActivity : ComponentActivity() {
 
     private var walletNavigator: WalletNavigator? = null
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleOverride.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -72,8 +81,15 @@ class MainActivity : ComponentActivity() {
             val nav = remember { WalletNavigator(backStack) }
             SideEffect { walletNavigator = nav }
 
+            val themeOption by ThemePreference.option.collectAsState()
+            val darkTheme = when (themeOption) {
+                ThemeOption.SYSTEM -> isSystemInDarkTheme()
+                ThemeOption.LIGHT -> false
+                ThemeOption.DARK -> true
+            }
+
             ProvideAuthTabLauncher(launcher = ::launchAuthTab) {
-                WalletTheme {
+                WalletTheme(darkTheme = darkTheme) {
                     Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
                         AppRoot(
                             navigator = nav,

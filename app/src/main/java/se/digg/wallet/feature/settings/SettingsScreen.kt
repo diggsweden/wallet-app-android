@@ -4,45 +4,57 @@
 
 package se.digg.wallet.feature.settings
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
-import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
-import se.digg.wallet.core.designsystem.component.AppVersionText
+import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.component.WalletListItem
+import se.digg.wallet.core.designsystem.theme.Error
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.designsystem.utils.getDeviceInfo
 
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
     onLogout: () -> Unit,
+    onAbout: () -> Unit,
+    onLanguage: () -> Unit,
+    onTheme: () -> Unit,
+    onHelp: () -> Unit,
+    isFromIntro: Boolean = false,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
@@ -56,80 +68,200 @@ fun SettingsRoute(
     SettingsScreen(
         onBackClick = onBack,
         onLogoutClick = { viewModel.onLogout() },
+        onFeedbackClick = { openFeedbackEmail(context) },
+        onAppInfoClick = { openOsAppSettings(context) },
+        onHelpClick = onHelp,
+        onAboutClick = onAbout,
+        onLanguageClick = onLanguage,
+        onThemeClick = onTheme,
+        isFromIntro = isFromIntro,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val FEEDBACK_EMAIL_ADDRESS = "digitalwallet@digg.se"
+
+private fun openFeedbackEmail(context: Context) {
+    val deviceInfo = getDeviceInfo(context)
+    val body = context.getString(
+        R.string.settings_feedback_email_body,
+        deviceInfo.appVersionName,
+        deviceInfo.appVersionCode,
+        deviceInfo.brand,
+        deviceInfo.model,
+        deviceInfo.osVersion,
+        deviceInfo.sdkVersion,
+        deviceInfo.networkType.name,
+    )
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = "mailto:".toUri()
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(FEEDBACK_EMAIL_ADDRESS))
+        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_feedback_email_subject))
+        putExtra(Intent.EXTRA_TEXT, body)
+    }
+    try {
+        context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        // No email app installed; nothing to fall back to.
+    }
+}
+
+private fun openOsAppSettings(context: Context) {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null),
+    )
+    context.startActivity(intent)
+}
+
 @Composable
 private fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onFeedbackClick: () -> Unit,
+    onAppInfoClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    onLanguageClick: () -> Unit,
+    onThemeClick: () -> Unit,
+    isFromIntro: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings_title),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { onBackClick.invoke() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = null,
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        Surface {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
-            ) {
-                SettingsHeader()
-                SettingsContent(onLogoutClick = { onLogoutClick.invoke() })
-            }
+    CollapsingTitleScaffold(
+        title = stringResource(R.string.settings_title),
+        onBackClick = onBackClick,
+        modifier = modifier,
+    ) {
+        SettingsMenu(
+            onFeedbackClick = onFeedbackClick,
+            onAppInfoClick = onAppInfoClick,
+            onHelpClick = onHelpClick,
+            onAboutClick = onAboutClick,
+            onLanguageClick = onLanguageClick,
+            onThemeClick = onThemeClick,
+        )
+        if (!isFromIntro) {
+            SettingsContent(onLogoutClick = onLogoutClick)
         }
     }
 }
 
 @Composable
-private fun SettingsHeader() {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 64.dp)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            painter = painterResource(R.drawable.playstore_icon),
-            contentDescription = null,
-            modifier = Modifier
-                .width(160.dp)
-                .height(160.dp),
+private fun SettingsMenu(
+    onFeedbackClick: () -> Unit,
+    onAppInfoClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    onLanguageClick: () -> Unit,
+    onThemeClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        WalletListItem(
+            leadingIconRes = R.drawable.feedback_24px,
+            title = stringResource(R.string.settings_feedback_title),
+            description = stringResource(R.string.settings_feedback_description),
+            onClick = onFeedbackClick,
+            trailingIconRes = R.drawable.mail_24px,
         )
-        AppVersionText(variant = BuildConfig.FLAVOR.takeIf { BuildConfig.DEBUG })
+        HorizontalDivider()
+        WalletListItem(
+            leadingIconRes = R.drawable.admin_panel_settings_24px,
+            title = stringResource(R.string.settings_app_info_title),
+            description = stringResource(R.string.settings_app_info_description),
+            onClick = onAppInfoClick,
+        )
+        HorizontalDivider()
+        SettingsRows(
+            listOf(
+                SettingsRowSpec(
+                    iconRes = R.drawable.language_24px,
+                    label = stringResource(R.string.settings_language),
+                    onClick = onLanguageClick,
+                ),
+                SettingsRowSpec(
+                    iconRes = R.drawable.contrast_24px,
+                    label = stringResource(R.string.settings_theme),
+                    onClick = onThemeClick,
+                ),
+            ),
+        )
+        HorizontalDivider()
+        SettingsRows(
+            listOf(
+                SettingsRowSpec(
+                    iconRes = R.drawable.help_24px,
+                    label = stringResource(R.string.settings_help),
+                    onClick = onHelpClick,
+                ),
+                SettingsRowSpec(
+                    iconRes = R.drawable.info_24px,
+                    label = stringResource(R.string.settings_about),
+                    onClick = onAboutClick,
+                ),
+            ),
+        )
+    }
+}
+
+private data class SettingsRowSpec(
+    @DrawableRes val iconRes: Int,
+    val label: String,
+    val onClick: () -> Unit,
+)
+
+@Composable
+private fun SettingsRows(items: List<SettingsRowSpec>) {
+    items.forEachIndexed { index, item ->
+        WalletListItem(leadingIconRes = item.iconRes, title = item.label, onClick = item.onClick)
+        if (index != items.lastIndex) {
+            HorizontalDivider()
+        }
     }
 }
 
 @Composable
 private fun SettingsContent(onLogoutClick: () -> Unit) {
+    var showSignOutDialog by remember { mutableStateOf(false) }
+
     PrimaryButton(
         text = stringResource(R.string.settings_logout),
-        onClick = {
-            onLogoutClick.invoke()
-        },
-        modifier = Modifier.fillMaxWidth(),
+        onClick = { showSignOutDialog = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 32.dp, bottom = 32.dp),
+        containerColor = MaterialTheme.colorScheme.error,
+        contentColor = MaterialTheme.colorScheme.onError,
     )
+
+    if (showSignOutDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutDialog = false },
+            title = { Text(text = stringResource(R.string.settings_logout_dialog_title)) },
+            text = { Text(text = stringResource(R.string.settings_logout_dialog_description)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSignOutDialog = false
+                        onLogoutClick.invoke()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Error),
+                ) {
+                    Text(text = stringResource(R.string.settings_logout))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showSignOutDialog = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = AlertDialogDefaults.titleContentColor,
+                    ),
+                ) {
+                    Text(text = stringResource(R.string.generic_cancel))
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -139,6 +271,12 @@ private fun SettingsScreenPreview() {
         SettingsScreen(
             onBackClick = {},
             onLogoutClick = {},
+            onFeedbackClick = {},
+            onAppInfoClick = {},
+            onHelpClick = {},
+            onAboutClick = {},
+            onLanguageClick = {},
+            onThemeClick = {},
         )
     }
 }

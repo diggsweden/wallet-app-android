@@ -6,7 +6,7 @@ package se.digg.wallet.feature.onboarding.intro
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,58 +28,80 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletTitle
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 @Composable
-fun IntroRoute(onContinue: () -> Unit, modifier: Modifier = Modifier) {
-    IntroScreen(onContinue = { onContinue.invoke() }, modifier = modifier)
+fun IntroRoute(onContinue: () -> Unit, onSettingsClick: () -> Unit, modifier: Modifier = Modifier) {
+    IntroScreen(
+        onContinue = { onContinue.invoke() },
+        onSettingsClick = onSettingsClick,
+        modifier = modifier,
+    )
 }
 
 @Composable
-private fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
+private fun IntroScreen(
+    onContinue: () -> Unit,
+    onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     BackHandler {
     }
 
-    val isDarkMode = isSystemInDarkTheme()
+    val isDarkMode = isWalletInDarkTheme()
     val walletImageResource = when (isDarkMode) {
         true -> painterResource(id = R.drawable.wallet_logo_dark)
         false -> painterResource(id = R.drawable.wallet_logo_light)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .padding(top = 8.dp, bottom = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            painter = walletImageResource,
-            contentDescription = null,
-        )
-        Spacer(modifier = Modifier.height(53.dp))
-        Image(
-            painter = painterResource(R.drawable.digg_intro_man_bun),
-            contentDescription = null,
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .width(333.dp)
-                .height(341.dp)
-                .graphicsLayer(scaleX = 1.4f, scaleY = 1.4f),
-        )
-        Spacer(modifier = Modifier.weight(2f))
-        WalletTitle()
-        Spacer(modifier = Modifier.weight(2f))
-        PrimaryButton(
-            text = stringResource(R.string.onboarding_intro_button),
-            onClick = {
-                onContinue.invoke()
-            },
-            modifier = Modifier,
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        AppVersionText(variant = BuildConfig.FLAVOR.takeIf { BuildConfig.DEBUG })
-        Spacer(modifier = Modifier.height(24.dp))
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(top = 8.dp, bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Image(
+                painter = walletImageResource,
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.height(53.dp))
+            Image(
+                painter = painterResource(R.drawable.digg_intro_man_bun),
+                contentDescription = null,
+                modifier = Modifier
+                    .width(333.dp)
+                    .height(341.dp)
+                    .graphicsLayer(scaleX = 1.4f, scaleY = 1.4f),
+            )
+            Spacer(modifier = Modifier.weight(2f))
+            WalletTitle()
+            Spacer(modifier = Modifier.weight(2f))
+            PrimaryButton(
+                text = stringResource(R.string.onboarding_intro_button),
+                onClick = {
+                    onContinue.invoke()
+                },
+                modifier = Modifier,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            AppVersionText(variant = BuildConfig.FLAVOR.takeIf { BuildConfig.DEBUG })
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+        IconButton(
+            onClick = onSettingsClick,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .statusBarsPadding(),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.settings_24px),
+                contentDescription = null,
+            )
+        }
     }
 }
 
@@ -85,6 +109,6 @@ private fun IntroScreen(onContinue: () -> Unit, modifier: Modifier = Modifier) {
 @PreviewsWallet
 private fun IntroScreenPreview() {
     WalletPreview {
-        IntroScreen(onContinue = {})
+        IntroScreen(onContinue = {}, onSettingsClick = {})
     }
 }
