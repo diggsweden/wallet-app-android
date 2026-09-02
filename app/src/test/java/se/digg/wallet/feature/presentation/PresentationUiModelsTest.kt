@@ -7,7 +7,6 @@ package se.digg.wallet.feature.presentation
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps
 import eu.europa.ec.eudi.sdjwt.vc.ClaimPath
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import se.digg.wallet.data.ClaimUiModel
@@ -53,20 +52,6 @@ class PresentationUiModelsTest {
 
         assertEquals(listOf("pid"), state.requiredClaims.map { it.id })
         assertEquals(listOf("loyalty"), state.optionalClaims.map { it.id })
-    }
-
-    @Test
-    fun `the presentation states are distinct`() {
-        val states: List<PresentationUiState> = listOf(
-            PresentationUiState.Loading,
-            PresentationUiState.EnterPin,
-            PresentationUiState.ShareSuccess,
-            PresentationUiState.Error("failed"),
-            PresentationUiState.Error(null),
-        )
-
-        assertEquals(5, states.distinct().size)
-        assertNull((states[4] as PresentationUiState.Error).message)
     }
 
     @Test

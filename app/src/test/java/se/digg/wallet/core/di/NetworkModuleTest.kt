@@ -5,11 +5,13 @@
 package se.digg.wallet.core.di
 
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttpConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.pluginOrNull
-import io.ktor.http.URLProtocol
 import io.mockk.mockk
+import javax.net.ssl.SSLSession
+import kotlinx.coroutines.job
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -17,11 +19,6 @@ import org.junit.Test
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.storage.user.UserDao
 
-/**
- * The providers build real Ktor/OkHttp clients - no Android framework involved - so
- * the wiring they perform (base URL, API key header, timeouts, plugins) is checkable
- * on the JVM. Every client is closed so the test does not leak dispatcher threads.
- */
 class NetworkModuleTest {
 
     private fun <T> withClient(client: HttpClient, block: (HttpClient) -> T): T = client.use(block)
@@ -41,18 +38,20 @@ class NetworkModuleTest {
 
         client.close()
 
-        // Closing twice is safe - the providers hand out singletons that Hilt
-        // may tear down more than once in tests.
-        client.close()
+        assertTrue(!client.coroutineContext.job.isActive)
     }
 
     @Test
-    fun `the unsafe client trusts every certificate`() {
+    fun `the unsafe client accepts any certificate chain and any hostname`() {
         withClient(NetworkModule.provideUnsafeHttpClient()) { client ->
-            assertNotNull(client.pluginOrNull(ContentNegotiation))
-            // The unsafe client deliberately omits the DPoP plugin - it exists only
-            // for talking to a local issuer over a self-signed certificate.
-            assertNotNull(client)
+            val okHttp = requireNotNull((client.engine.config as OkHttpConfig).preconfigured)
+
+            val trustManager = requireNotNull(okHttp.x509TrustManager)
+            assertEquals(0, trustManager.acceptedIssuers.size)
+            // An empty chain is what a real verifier rejects first; this one accepts it.
+            trustManager.checkServerTrusted(emptyArray(), "ECDHE_ECDSA")
+
+            assertTrue(okHttp.hostnameVerifier.verify("not.the.right.host", mockk<SSLSession>()))
         }
     }
 
@@ -87,12 +86,9 @@ class NetworkModuleTest {
 
     @Test
     fun `every flavor supplies a scheme-less gateway and issuer host`() {
-        // The providers prepend the scheme themselves, so a flavor must contribute
-        // only the host - this runs for the demo and local flavors alike.
         listOf(BuildConfig.BASE_URL, BuildConfig.PID_ISSUER_URL).forEach { host ->
             assertTrue(host.isNotBlank())
             assertTrue("$host should not carry a scheme", !host.contains("://"))
         }
-        assertEquals("https", URLProtocol.HTTPS.name)
     }
 }

@@ -7,13 +7,18 @@ package se.digg.wallet.core.network
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
+import io.mockk.coEvery
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import java.security.KeyPairGenerator
 import java.security.spec.ECGenParameterSpec
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import se.digg.wallet.core.error.AppException
+import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.util.FakeUserDao
 import se.digg.wallet.util.RecordingHttpClient
@@ -28,6 +33,22 @@ class SessionManagerTest {
     private fun keyPair() = KeyPairGenerator.getInstance("EC").apply {
         initialize(ECGenParameterSpec("secp256r1"))
     }.generateKeyPair()
+
+    /**
+     * `initSession` reads the device key from the Android Keystore, which does not exist on the
+     * JVM, so the tests that drive it substitute a locally generated key pair.
+     */
+    private suspend fun withStoredAccount(): RecordingHttpClient {
+        mockkObject(KeystoreManager)
+        coEvery { KeystoreManager.getOrCreateEs256Key(any(), any()) } returns keyPair()
+        dao.upsert(User(uuid = null, accountId = "acc-1", credentials = emptyList(), pid = null))
+        return RecordingHttpClient {
+            respondJson("""{"nonce":"nonce-1","sessionId":"session-1"}""")
+        }
+    }
+
+    @After
+    fun tearDown() = unmockkObject(KeystoreManager)
 
     private fun sessionManager(recorder: RecordingHttpClient) = SessionManager(
         challengeClient = PublicAuthSessionChallengeClient(recorder.client),
@@ -86,17 +107,16 @@ class SessionManagerTest {
     }
 
     @Test
-    fun `getToken reuses a token that has already been issued`() = runTest {
-        var calls = 0
-        val recorder = RecordingHttpClient {
-            calls++
-            respondJson("""{"nonce":"nonce-1","sessionId":"session-1"}""")
-        }
+    fun `getToken establishes a session once and then serves it from cache`() = runTest {
+        val recorder = withStoredAccount()
         val manager = sessionManager(recorder)
 
-        val issued = manager.validateChallenge("kid-1", keyPair(), "nonce-1")
-        assertEquals("session-1", issued)
-        assertEquals(1, calls)
+        assertEquals("session-1", manager.getToken())
+        assertEquals("session-1", manager.getToken())
+
+        // Establishing a session costs a challenge plus a validation; the second
+        // getToken must not repeat them.
+        assertEquals(2, recorder.requests.size)
     }
 
     @Test
@@ -119,12 +139,14 @@ class SessionManagerTest {
     }
 
     @Test
-    fun `reset clears the cached token`() = runTest {
-        val recorder = RecordingHttpClient { respondJson("{}") }
+    fun `reset forces the next getToken to establish a new session`() = runTest {
+        val recorder = withStoredAccount()
         val manager = sessionManager(recorder)
+        manager.getToken()
 
         manager.reset()
+        manager.getToken()
 
-        assertEquals("No account", runCatching { manager.getToken() }.exceptionOrNull()!!.message)
+        assertEquals(4, recorder.requests.size)
     }
 }

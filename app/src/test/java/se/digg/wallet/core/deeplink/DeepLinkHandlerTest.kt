@@ -51,12 +51,4 @@ class DeepLinkHandlerTest {
         assertEquals(uri, (result as DeepLinkResult.Unhandled).uri)
         verify(exactly = 0) { oAuthCoordinator.onDeepLink(any()) }
     }
-
-    @Test
-    fun `Unhandled is a value type keyed on its uri`() {
-        val uri = mockk<Uri>()
-
-        assertEquals(DeepLinkResult.Unhandled(uri), DeepLinkResult.Unhandled(uri))
-        assertTrue(DeepLinkResult.Unhandled(uri) != DeepLinkResult.Consumed)
-    }
 }

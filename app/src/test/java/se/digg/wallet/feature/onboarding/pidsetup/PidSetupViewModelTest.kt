@@ -165,19 +165,4 @@ class PidSetupViewModelTest {
 
         vm.awaitError()
     }
-
-    @Test
-    fun `the ui states, events and effects are distinct values`() {
-        val states: List<PidSetupUiState> =
-            listOf(PidSetupUiState.Idle, PidSetupUiState.Loading, PidSetupUiState.Error)
-
-        assertEquals(3, states.distinct().size)
-        assertEquals(PidSetupUiEvent.NextClicked, PidSetupUiEvent.NextClicked)
-        assertEquals(PidSetupUiEvent.PidSetupClicked, PidSetupUiEvent.PidSetupClicked)
-        assertEquals(PidSetupUiEffect.OnNext, PidSetupUiEffect.OnNext)
-        assertEquals(
-            PidSetupUiEffect.OnCredentialOfferFetched("a"),
-            PidSetupUiEffect.OnCredentialOfferFetched("a"),
-        )
-    }
 }

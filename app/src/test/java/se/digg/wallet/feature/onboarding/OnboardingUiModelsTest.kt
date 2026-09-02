@@ -16,7 +16,7 @@ class OnboardingUiModelsTest {
     }
 
     @Test
-    fun `default onboarding state starts at NOTIFICATION`() {
+    fun `default onboarding state starts at SETUP_PIN`() {
         assertEquals(OnboardingStep.SETUP_PIN, OnboardingUiState().currentStep)
     }
 

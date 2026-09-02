@@ -57,10 +57,4 @@ class DpopProofBuilderSignerTest {
         // DER-encoded ECDSA signatures start with a SEQUENCE tag.
         assertEquals(0x30.toByte(), signature.first())
     }
-
-    @Test
-    fun `releasing a sign operation is a no-op`() = runTest {
-        builder.release(builder.acquire())
-        builder.release(null)
-    }
 }

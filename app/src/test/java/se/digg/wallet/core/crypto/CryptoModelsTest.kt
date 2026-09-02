@@ -4,15 +4,11 @@
 
 package se.digg.wallet.core.crypto
 
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.jwk.Curve
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
 import org.junit.Test
 
 @Serializable
@@ -20,8 +16,6 @@ private data class TestPayload(val nonce: String, val htu: String)
 
 class CryptoModelsTest {
 
-    // The flattened form puts default and payload members side by side, so decoding
-    // either half necessarily sees the other half's keys as unknown.
     private val json = Json { ignoreUnknownKeys = true }
     private val serializer = JwtClaimsSerializer(TestPayload.serializer())
 
@@ -78,15 +72,5 @@ class CryptoModelsTest {
     @Test
     fun `serializer descriptor is named JwtClaims`() {
         assertEquals("JwtClaims", serializer.descriptor.serialName)
-    }
-
-    @Test
-    fun `CryptoSpec holds the recipient key and encryption method`() {
-        val jwk = ECKeyGenerator(Curve.P_256).generate()
-
-        val spec = CryptoSpec(jwk = jwk, encryptionMethod = EncryptionMethod.A128GCM)
-
-        assertSame(jwk, spec.jwk)
-        assertEquals(EncryptionMethod.A128GCM, spec.encryptionMethod)
     }
 }

@@ -270,7 +270,7 @@ tasks.named("preBuild") {
     dependsOn(fabriktGenerateTask)
 }
 private val generatedCode = listOf(
-    "se/wallet/client/gateway/**",
+    "se/wallet/client/gateway/client/**",
     "**/Dagger*",
     "**/Hilt_*",
     "**/*_HiltModules*",
@@ -288,9 +288,52 @@ private val composeUi = listOf(
     "**/MainActivityKt*",
 )
 
+private val allSourceDirectories
+    get() = files(
+        "src/main/java",
+        fabriktOutputDirectory.map { it.dir("src/main/kotlin") },
+        layout.buildDirectory.dir("generated/ksp/demoDebug/java"),
+        layout.buildDirectory.dir("generated/ksp/demoDebug/kotlin"),
+        layout.buildDirectory.dir("generated/hilt/component_sources/demoDebug"),
+        layout.buildDirectory.dir("generated/ap_generated_sources/demoDebug/out"),
+    )
+
+private val allClassDirectories
+    get() = files(
+        layout.buildDirectory.dir(
+            "intermediates/built_in_kotlinc/demoDebug/compileDemoDebugKotlin/classes",
+        ),
+        layout.buildDirectory.dir(
+            "intermediates/javac/demoDebug/compileDemoDebugJavaWithJavac/classes",
+        ),
+        // Hilt's generated component tree is compiled by its own task, outside javac's output.
+        layout.buildDirectory.dir("intermediates/classes/demoDebug/hiltJavaCompileDemoDebug"),
+    )
+
+tasks.register<JacocoReport>("jacocoTestReportAll") {
+    group = "verification"
+    description =
+        "Unfiltered coverage for the demoDebug unit tests, including generated code and Compose UI."
+    dependsOn("testDemoDebugUnitTest")
+
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+    classDirectories.setFrom(allClassDirectories.asFileTree)
+    sourceDirectories.setFrom(allSourceDirectories)
+    executionData.setFrom(
+        fileTree(layout.buildDirectory) {
+            include("outputs/unit_test_code_coverage/demoDebugUnitTest/*.exec")
+        },
+    )
+}
+
 tasks.register<JacocoReport>("jacocoTestReport") {
     group = "verification"
-    description = "Coverage for the demoDebug unit tests, excluding generated code and Compose UI."
+    description =
+        "Coverage for the demoDebug unit tests, excluding DI/Room/Ktor-client generated code and Compose UI."
     dependsOn("testDemoDebugUnitTest")
 
     reports {
@@ -308,7 +351,12 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             ),
         ).asFileTree.matching { exclude(generatedCode + composeUi) },
     )
-    sourceDirectories.setFrom(files("src/main/java"))
+    sourceDirectories.setFrom(
+        files(
+            "src/main/java",
+            fabriktOutputDirectory.map { it.dir("src/main/kotlin") },
+        ),
+    )
     executionData.setFrom(
         fileTree(layout.buildDirectory) {
             include("outputs/unit_test_code_coverage/demoDebugUnitTest/*.exec")

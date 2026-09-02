@@ -7,7 +7,9 @@ package se.digg.wallet.feature.dashboard
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
+import java.time.Month
 import java.time.ZoneId
+import java.time.format.TextStyle
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -88,32 +90,19 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `formatDate renders the credential issue date`() {
+    fun `formatDate zero-pads the day and abbreviates the month`() {
         val date = Date.from(
             LocalDate.of(2026, 3, 9).atStartOfDay(ZoneId.systemDefault()).toInstant(),
         )
 
         val formatted = formatDate(date)
 
-        assertEquals(
-            LocalDate.of(2026, 3, 9)
-                .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy")),
-            formatted,
+        // The pattern resolves month names against the default format locale,
+        // so the expected month name has to come from the same locale.
+        val month = Month.MARCH.getDisplayName(
+            TextStyle.SHORT,
+            Locale.getDefault(Locale.Category.FORMAT),
         )
-        assertEquals(11, formatted.length)
-        assertEquals("09", formatted.take(2))
+        assertEquals("09 $month 2026", formatted)
     }
-
-    @Test
-    fun `DashboardUiModel is a value type`() {
-        val pid = credential("pid-1")
-
-        assertEquals(
-            DashboardUiModel(pid, listOf(credential("c"))),
-            DashboardUiModel(pid, listOf(credential("c"))),
-        )
-    }
-
-    @Suppress("unused")
-    private val locale = Locale.getDefault()
 }

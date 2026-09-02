@@ -42,8 +42,6 @@ class JwtUtilsTest {
         )
 
         assertEquals("ES256", jwt.header.algorithm.name)
-        // Custom params stay custom on a freshly built header; only parsing promotes
-        // them to the typed members.
         assertEquals("dpop+jwt", jwt.header.getCustomParam("typ"))
         assertNull(jwt.header.jwk)
 

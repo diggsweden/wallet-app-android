@@ -50,18 +50,4 @@ class WalletSetupUiModelsTest {
         assertNull(model.message)
         assertNull(model.problem)
     }
-
-    @Test
-    fun `ui states are value types keyed on step`() {
-        assertEquals(
-            WalletSetupUiState.InProgress(SetupStep.INIT_HSM),
-            WalletSetupUiState.InProgress(SetupStep.INIT_HSM),
-        )
-        val error = ErrorUiModel(null, null, null)
-        assertEquals(
-            WalletSetupUiState.Failed(SetupStep.INIT_HSM, error),
-            WalletSetupUiState.Failed(SetupStep.INIT_HSM, error),
-        )
-        assertEquals(WalletSetupUiEffect.OnNext, WalletSetupUiEffect.OnNext)
-    }
 }

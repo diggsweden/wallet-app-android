@@ -17,7 +17,6 @@ class AppNavigationTest {
         val keys: List<NavKey> = listOf(DashboardKey, SettingsKey, IntroKey, OnboardingKey)
 
         assertEquals(4, keys.distinct().size)
-        assertEquals(DashboardKey, DashboardKey)
     }
 
     @Test
