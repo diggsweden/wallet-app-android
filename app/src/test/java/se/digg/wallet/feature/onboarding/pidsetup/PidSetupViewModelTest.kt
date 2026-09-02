@@ -8,8 +8,11 @@ import android.net.Uri
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,9 +22,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import se.digg.wallet.core.oauth.LaunchAuthTab
@@ -61,6 +66,20 @@ class PidSetupViewModelTest {
 
     private fun viewModel(recorder: RecordingHttpClient) =
         PidSetupViewModel(userRepository, oAuthCoordinator, recorder.client)
+
+    /**
+     * The browser fallback builds its URL with `Uri.parse`, which is one of the Android stubs
+     * that throws on the JVM. Without this the fallback dies before it reaches the coordinator,
+     * and every test below would reach [PidSetupUiState.Error] whatever the OAuth result was.
+     */
+    @Before
+    fun stubUriParsing() {
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()) } returns mockk(relaxed = true)
+    }
+
+    @After
+    fun tearDown() = unmockkStatic(Uri::class)
 
     /** The issuer endpoint is unavailable, so the browser fallback is taken. */
     private fun failingIssuer() = RecordingHttpClient {
@@ -130,6 +149,7 @@ class PidSetupViewModelTest {
         vm.getCredentialOffer(launchAuthTab)
 
         vm.awaitError()
+        coVerify(exactly = 1) { oAuthCoordinator.authorize(any(), any(), any()) }
     }
 
     @Test
