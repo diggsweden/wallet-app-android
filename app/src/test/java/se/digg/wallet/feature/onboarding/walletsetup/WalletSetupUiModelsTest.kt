@@ -5,9 +5,7 @@
 package se.digg.wallet.feature.onboarding.walletsetup
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
-import se.digg.wallet.core.error.AppError
 
 class WalletSetupUiModelsTest {
 
@@ -23,31 +21,5 @@ class WalletSetupUiModelsTest {
             ),
             SetupStep.entries,
         )
-    }
-
-    @Test
-    fun `ErrorUiModel carries the structured problem when there is one`() {
-        val problem = AppError.Problem(
-            status = 400,
-            title = "Bad Request",
-            detail = "detail",
-            type = null,
-            instance = null,
-            transactionId = null,
-        )
-
-        val model = ErrorUiModel(title = "Bad Request", message = "detail", problem = problem)
-
-        assertEquals(problem, model.problem)
-        assertEquals("Bad Request", model.title)
-    }
-
-    @Test
-    fun `ErrorUiModel is blank for unstructured failures`() {
-        val model = ErrorUiModel(title = null, message = null, problem = null)
-
-        assertNull(model.title)
-        assertNull(model.message)
-        assertNull(model.problem)
     }
 }

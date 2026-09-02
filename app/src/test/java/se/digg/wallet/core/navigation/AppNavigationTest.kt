@@ -7,15 +7,19 @@ package se.digg.wallet.core.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AppNavigationTest {
 
     @Test
-    fun `the parameterless destinations are singletons`() {
+    fun `each parameterless destination is a single shared instance`() {
         val keys: List<NavKey> = listOf(DashboardKey, SettingsKey, IntroKey, OnboardingKey)
 
+        // A back stack compares keys by identity, so every mention of a destination has to be
+        // the same object, and no two destinations may collapse into one.
+        keys.forEach { assertSame(it, keys.single { other -> other === it }) }
         assertEquals(4, keys.distinct().size)
     }
 

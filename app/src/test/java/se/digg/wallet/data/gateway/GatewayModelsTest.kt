@@ -9,29 +9,22 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import se.wallet.client.gateway.models.ApiInfoResponse
-import se.wallet.client.gateway.models.AuthChallengeRequest
-import se.wallet.client.gateway.models.AuthChallengeResponse
 import se.wallet.client.gateway.models.CreateAccountRequest
-import se.wallet.client.gateway.models.CreateAccountResponse
-import se.wallet.client.gateway.models.EcJwkRequest
-import se.wallet.client.gateway.models.EcJwkResponse
 import se.wallet.client.gateway.models.HsmAsyncStatus
-import se.wallet.client.gateway.models.HsmRequest
 import se.wallet.client.gateway.models.HsmRequestType
-import se.wallet.client.gateway.models.HsmResponse
 import se.wallet.client.gateway.models.ProblemParameterResponse
 import se.wallet.client.gateway.models.ProblemResponse
-import se.wallet.client.gateway.models.RegisterStateRequest
-import se.wallet.client.gateway.models.RegisterStateResponse
-import se.wallet.client.gateway.models.SessionResponse
 import se.wallet.client.gateway.models.WalletDeviceOS
-import se.wallet.client.gateway.models.WuaResponse
 
 /**
- * Round-trip tests for the Fabrikt-generated client-gateway models. These guard the wire contract
- * in `src/main/openapi/client-gateway.yaml`: a regenerated model that renames, retypes or drops a
- * property fails here rather than at runtime against the gateway.
+ * Pins the members of the Fabrikt-generated client-gateway models whose wire form does not follow
+ * from the Kotlin name: hyphenated RFC 9457 members, a misspelling kept for compatibility, and the
+ * enums that travel as a query parameter or header rather than as JSON. A regeneration that loses
+ * one of these fails here rather than at runtime against the gateway.
+ *
+ * Plain round-trips of the other generated models are deliberately absent: they restate the
+ * OpenAPI document in Kotlin and are exercised for real by the client tests
+ * ([se.digg.wallet.core.network.WalletOpaqueClientTest] and friends).
  */
 class GatewayModelsTest {
 
@@ -42,34 +35,6 @@ class GatewayModelsTest {
         """
         {"kty":"EC","kid":"device-1","alg":"ES256","use":"sig","crv":"P-256","x":"eG9v","y":"eW9v"}
         """.trimIndent()
-
-    @Test
-    fun `ApiInfoResponse round-trips every documented member`() {
-        val decoded = json.decodeFromString<ApiInfoResponse>(
-            """
-            {"name":"client-gateway","version":"1.4.0","releaseDate":"2026-08-31",
-             "status":"active","links":["https://example.test/docs"]}
-            """.trimIndent(),
-        )
-
-        assertEquals("client-gateway", decoded.name)
-        assertEquals("1.4.0", decoded.version)
-        assertEquals("2026-08-31", decoded.releaseDate)
-        assertEquals("active", decoded.status)
-        assertEquals(listOf("https://example.test/docs"), decoded.links)
-        assertEquals(decoded, json.decodeFromString<ApiInfoResponse>(json.encodeToString(decoded)))
-    }
-
-    @Test
-    fun `ApiInfoResponse tolerates an absent links array and unknown members`() {
-        val decoded = json.decodeFromString<ApiInfoResponse>(
-            """{"name":"client-gateway","version":"1.4.0","releaseDate":"2026-08-31",
-                "status":"beta","futureField":"ignored"}""",
-        )
-
-        assertNull(decoded.links)
-        assertEquals("beta", decoded.status)
-    }
 
     @Test
     fun `ProblemResponse maps the hyphenated RFC 9457 members to their Kotlin names`() {
@@ -102,56 +67,6 @@ class GatewayModelsTest {
     }
 
     @Test
-    fun `ProblemResponse keeps only status and title mandatory`() {
-        val decoded = json.decodeFromString<ProblemResponse>(
-            """{"status":503,"title":"Service Unavailable"}""",
-        )
-
-        assertNull(decoded.type)
-        assertNull(decoded.detail)
-        assertNull(decoded.instance)
-        assertNull(decoded.transactionId)
-        assertNull(decoded.invalidParameters)
-        assertEquals(503, decoded.status)
-    }
-
-    @Test
-    fun `ProblemParameterResponse defaults every member to null`() {
-        val decoded = json.decodeFromString<ProblemParameterResponse>("{}")
-
-        assertNull(decoded.reason)
-        assertNull(decoded.value)
-        assertNull(decoded.property)
-    }
-
-    @Test
-    fun `EcJwkRequest and EcJwkResponse share the same wire shape`() {
-        val request = json.decodeFromString<EcJwkRequest>(ecJwkJson)
-        val response = json.decodeFromString<EcJwkResponse>(ecJwkJson)
-
-        assertEquals(request.kty, response.kty)
-        assertEquals(request.kid, response.kid)
-        assertEquals(request.alg, response.alg)
-        assertEquals(request.use, response.use)
-        assertEquals(request.crv, response.crv)
-        assertEquals(request.x, response.x)
-        assertEquals(request.y, response.y)
-        assertEquals(request, json.decodeFromString<EcJwkRequest>(json.encodeToString(request)))
-        assertEquals(response, json.decodeFromString<EcJwkResponse>(json.encodeToString(response)))
-    }
-
-    @Test
-    fun `EcJwk alg and use stay optional`() {
-        val minimal =
-            """{"kty":"EC","kid":"device-1","crv":"P-256","x":"eG9v","y":"eW9v"}"""
-
-        assertNull(json.decodeFromString<EcJwkRequest>(minimal).alg)
-        assertNull(json.decodeFromString<EcJwkRequest>(minimal).use)
-        assertNull(json.decodeFromString<EcJwkResponse>(minimal).alg)
-        assertNull(json.decodeFromString<EcJwkResponse>(minimal).use)
-    }
-
-    @Test
     fun `CreateAccountRequest carries both the correct and the misspelled email member`() {
         val request = CreateAccountRequest(
             personalIdentityNumber = "199001011234",
@@ -165,126 +80,6 @@ class GatewayModelsTest {
         assertTrue(encoded.contains("\"email\":\"user@example.test\""))
         assertTrue(encoded.contains("\"emailAdress\":\"user@example.test\""))
         assertEquals(request, json.decodeFromString<CreateAccountRequest>(encoded))
-    }
-
-    @Test
-    fun `CreateAccountRequest requires only the device key`() {
-        val decoded = json.decodeFromString<CreateAccountRequest>(
-            """{"deviceKey":$ecJwkJson}""",
-        )
-
-        assertNull(decoded.personalIdentityNumber)
-        assertNull(decoded.email)
-        assertNull(decoded.emailAdress)
-        assertNull(decoded.telephoneNumber)
-        assertEquals("device-1", decoded.deviceKey.kid)
-    }
-
-    @Test
-    fun `single-member responses expose their identifier`() {
-        assertEquals(
-            "account-1",
-            json.decodeFromString<CreateAccountResponse>("""{"accountId":"account-1"}""").accountId,
-        )
-        assertEquals(
-            "session-1",
-            json.decodeFromString<SessionResponse>("""{"sessionId":"session-1"}""").sessionId,
-        )
-        assertEquals(
-            "header.payload.signature",
-            json.decodeFromString<WuaResponse>(
-                """{"jwt":"header.payload.signature"}""",
-            ).jwt,
-        )
-    }
-
-    @Test
-    fun `AuthChallengeRequest and AuthChallengeResponse round-trip`() {
-        val request = AuthChallengeRequest(signedJwt = "header.payload.signature")
-        assertEquals(
-            request,
-            json.decodeFromString<AuthChallengeRequest>(json.encodeToString(request)),
-        )
-
-        assertEquals(
-            "nonce-1",
-            json.decodeFromString<AuthChallengeResponse>("""{"nonce":"nonce-1"}""").nonce,
-        )
-        assertNull(json.decodeFromString<AuthChallengeResponse>("{}").nonce)
-    }
-
-    @Test
-    fun `RegisterStateRequest keeps ttl optional`() {
-        val withTtl = RegisterStateRequest(
-            deviceKey = json.decodeFromString(ecJwkJson),
-            ttl = "PT10M",
-        )
-
-        assertEquals(
-            withTtl,
-            json.decodeFromString<RegisterStateRequest>(json.encodeToString(withTtl)),
-        )
-        assertNull(
-            json.decodeFromString<RegisterStateRequest>("""{"deviceKey":$ecJwkJson}""").ttl,
-        )
-    }
-
-    @Test
-    fun `RegisterStateResponse decodes the nested server JWS public key`() {
-        val decoded = json.decodeFromString<RegisterStateResponse>(
-            """
-            {"status":"COMPLETE","devAuthorizationCode":"code-1",
-             "serverJwsPublicKey":$ecJwkJson,"opaqueServerId":"opaque-1"}
-            """.trimIndent(),
-        )
-
-        assertEquals("COMPLETE", decoded.status)
-        assertEquals("code-1", decoded.devAuthorizationCode)
-        assertEquals("device-1", decoded.serverJwsPublicKey?.kid)
-        assertEquals("opaque-1", decoded.opaqueServerId)
-        assertEquals(
-            decoded,
-            json.decodeFromString<RegisterStateResponse>(json.encodeToString(decoded)),
-        )
-    }
-
-    @Test
-    fun `RegisterStateResponse requires only a status`() {
-        val decoded = json.decodeFromString<RegisterStateResponse>("""{"status":"PENDING"}""")
-
-        assertEquals("PENDING", decoded.status)
-        assertNull(decoded.devAuthorizationCode)
-        assertNull(decoded.serverJwsPublicKey)
-        assertNull(decoded.opaqueServerId)
-    }
-
-    @Test
-    fun `HsmRequest and HsmResponse round-trip a pending async operation`() {
-        val request = HsmRequest(outerRequestJws = "header.payload.signature")
-        assertEquals(request, json.decodeFromString<HsmRequest>(json.encodeToString(request)))
-
-        val pending = json.decodeFromString<HsmResponse>(
-            """
-            {"id":"op-1","status":"PENDING","resultUrl":"https://example.test/hsm/op-1"}
-            """.trimIndent(),
-        )
-
-        assertEquals("op-1", pending.id)
-        assertEquals(HsmAsyncStatus.PENDING, pending.status)
-        assertNull(pending.result)
-        assertEquals("https://example.test/hsm/op-1", pending.resultUrl)
-    }
-
-    @Test
-    fun `HsmResponse carries the JWT result once complete`() {
-        val complete = json.decodeFromString<HsmResponse>(
-            """{"id":"op-1","status":"COMPLETE","result":"header.payload.signature"}""",
-        )
-
-        assertEquals(HsmAsyncStatus.COMPLETE, complete.status)
-        assertEquals("header.payload.signature", complete.result)
-        assertNull(complete.resultUrl)
-        assertEquals(complete, json.decodeFromString<HsmResponse>(json.encodeToString(complete)))
     }
 
     // HsmAsyncStatus is a body member (HsmResponse.status). The generated enums are not annotated

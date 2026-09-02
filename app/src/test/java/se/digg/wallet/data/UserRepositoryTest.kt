@@ -125,34 +125,59 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun `isOnboarded requires both a pid and an account id`() = runTest {
+    fun `a user with no stored row is not onboarded`() = runTest {
         val (repository, _) = repository()
 
         assertTrue(!repository.isOnboarded())
+    }
+
+    @Test
+    fun `an account without a pid is not onboarded`() = runTest {
+        val (repository, _) = repository()
 
         dao.upsert(User(uuid = null, accountId = "acc", credentials = emptyList(), pid = null))
+
         assertTrue(!repository.isOnboarded())
+    }
+
+    @Test
+    fun `a pid without an account is not onboarded`() = runTest {
+        val (repository, _) = repository()
 
         dao.upsert(
             User(uuid = null, accountId = null, credentials = emptyList(), pid = credential("p")),
         )
+
         assertTrue(!repository.isOnboarded())
+    }
+
+    @Test
+    fun `an account holding a pid is onboarded`() = runTest {
+        val (repository, _) = repository()
 
         dao.upsert(
             User(uuid = null, accountId = "acc", credentials = emptyList(), pid = credential("p")),
         )
+
         assertTrue(repository.isOnboarded())
     }
 
     @Test
-    fun `setUuid and setAccountId create the row when none exists`() = runTest {
+    fun `setUuid creates the row when none exists`() = runTest {
         val (repository, _) = repository()
         val uuid = UUID.fromString("6d3f2b4c-0000-4000-8000-000000000001")
 
         repository.setUuid(uuid)
-        repository.setAccountId("acc-1")
 
         assertEquals(uuid, dao.current!!.uuid)
+    }
+
+    @Test
+    fun `setAccountId creates the row when none exists`() = runTest {
+        val (repository, _) = repository()
+
+        repository.setAccountId("acc-1")
+
         assertEquals("acc-1", repository.getAccountId())
     }
 
@@ -204,6 +229,12 @@ class UserRepositoryTest {
         val (repository, _) = repository()
 
         assertEquals(emptyList<SavedCredential>(), repository.getCredentials())
+    }
+
+    @Test
+    fun `the pid and account id are absent when no row exists`() = runTest {
+        val (repository, _) = repository()
+
         assertNull(repository.getPid())
         assertNull(repository.getAccountId())
     }
