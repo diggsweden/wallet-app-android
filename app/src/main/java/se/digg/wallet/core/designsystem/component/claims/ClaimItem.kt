@@ -171,11 +171,6 @@ private fun ClaimContent(value: ClaimValue) {
 private const val PREVIEW_PORTRAIT_URI = "data:image/jpeg;base64,portrait"
 private const val PREVIEW_BROKEN_PORTRAIT_URI = "data:image/jpeg;base64,not-an-image"
 
-/**
- * Stands in for the decoded portrait so previews do not depend on Coil running its fetcher and
- * decoder under Layoutlib. The 3:4 intrinsic size matches a PID portrait, so the preview lays out
- * exactly as the real image does.
- */
 @OptIn(ExperimentalCoilApi::class)
 private fun portraitPreviewHandler() = AsyncImagePreviewHandler {
     ColorImage(color = 0xFF3A588A.toInt(), width = 24, height = 32)
