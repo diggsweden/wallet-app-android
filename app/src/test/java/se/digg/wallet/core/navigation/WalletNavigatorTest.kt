@@ -47,7 +47,7 @@ class WalletNavigatorTest {
 
     @Test
     fun `resetToOnboarding replaces the stack with the intro screen`() {
-        val navigator = navigator(DashboardKey, SettingsKey, CredentialDetailsKey("c"))
+        val navigator = navigator(DashboardKey, SettingsKey(), CredentialDetailsKey("c"))
 
         navigator.resetToOnboarding()
 

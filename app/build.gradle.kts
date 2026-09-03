@@ -271,12 +271,20 @@ tasks.named("preBuild") {
 }
 private val generatedCode = listOf(
     "se/wallet/client/gateway/client/**",
+    "se/wallet/client/gateway/models/**",
     "**/Dagger*",
     "**/Hilt_*",
+    "**/HiltWrapper_*",
     "**/*_HiltModules*",
+    "**/*_Factory*",
     "hilt_aggregated_deps/**",
     "**/*_Impl*",
     "**/*ComposableSingletons*",
+)
+
+private val diWiring = listOf(
+    "se/digg/wallet/core/di/RepositoryModule*",
+    "se/digg/wallet/core/di/DatabaseModule*",
 )
 private val composeUi = listOf(
     "**/*ScreenKt.class",
@@ -349,7 +357,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             layout.buildDirectory.dir(
                 "intermediates/javac/demoDebug/compileDemoDebugJavaWithJavac/classes",
             ),
-        ).asFileTree.matching { exclude(generatedCode + composeUi) },
+        ).asFileTree.matching { exclude(generatedCode + composeUi + diWiring) },
     )
     sourceDirectories.setFrom(
         files(

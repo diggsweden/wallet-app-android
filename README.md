@@ -118,63 +118,54 @@ Your device is now ready to connect to your local services.
 JaCoCo (Java Code Coverage) is used to measure unit test coverage locally. Follow the steps below to
 run tests and generate a coverage report.
 
-### Step 1 — Discover available coverage tasks (optional)
-
-To list all available coverage-related Gradle tasks:
+### Step 1 — Run the unit tests and generate the coverage report
 
 ```bash
-./gradlew tasks --all | grep -i coverage
+./gradlew jacocoTestReport
 ```
 
-### Step 2 — Run the unit tests and generate the coverage report
+This runs the `demoDebug` unit tests and writes the report that the team reads in review. It counts
+only code we write: DI/Room/Ktor-client generated code and Compose UI are excluded, because a
+coverage number that includes them measures the code generators, not the test suite.
 
-Run tests and produce the HTML/XML coverage report in one step. Choose the variant that matches your
-build:
-
-**localDebug** (default for local development):
-
-```bash
-./gradlew createLocalDebugUnitTestCoverageReport
-```
-
-**demoDebug** (demo flavor):
+### Step 2 — View the report
 
 ```bash
-./gradlew createDemoDebugUnitTestCoverageReport
-```
-
-Or run both at once:
-
-```bash
-./gradlew createLocalDebugUnitTestCoverageReport createDemoDebugUnitTestCoverageReport
-```
-
-Or using just:
-
-```bash
-just test
-```
-
-### Step 3 — View the report
-
-Open the generated HTML report in a browser:
-
-**localDebug:**
-
-```bash
-open app/build/reports/coverage/test/local/debug/index.html
-```
-
-**demoDebug:**
-
-```bash
-open app/build/reports/coverage/test/demo/debug/index.html
+open app/build/reports/jacoco/jacocoTestReport/html/index.html
 ```
 
 The report shows overall coverage percentages and highlights which lines, branches, and methods are
 covered or missed.
 
----
+### Reading the number
+
+The expectation is roughly 90% line and branch coverage, held as a review expectation rather than a
+CI gate — a threshold a pipeline enforces rewards tests that execute a line without asserting
+anything about it. Some code is deliberately left uncovered and should stay that way:
+
+- `KeystoreManager`, `OAuthCoordinator`, `AuthTabLauncher` and `getCustomTabsProvider` need the
+  Android Keystore, Custom Tabs or `PackageManager`, none of which exist on the JVM. These belong in
+  instrumented tests.
+- Coverage of `inline` functions is understated. JaCoCo attributes inlined bytecode to the call
+  site, so `NullCheckExtensions` reports near-zero despite being exercised in full by
+  `NullCheckExtensionsTest`.
+
+### Seeing everything, including generated code
+
+```bash
+./gradlew jacocoTestReportAll
+```
+
+The unfiltered twin of `jacocoTestReport`, useful when checking whether an exclusion pattern is
+still doing what it should. Its percentage is much lower and is not the number to quote in review.
+
+### Running the tests without coverage
+
+```bash
+just test
+```
+
+Wraps `./gradlew test`, which runs the unit tests for every variant. This is what CI runs.
 
 ## Licenses
 
