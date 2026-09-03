@@ -5,9 +5,12 @@
 package se.digg.wallet.core.di
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -32,8 +35,11 @@ import javax.net.ssl.X509TrustManager
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import se.digg.wallet.BuildConfig
+import se.digg.wallet.core.designsystem.utils.getAppVersion
+import se.digg.wallet.core.network.DeviceInfo
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
+import se.digg.wallet.core.network.deviceInfoPlugin
 import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.storage.user.UserDao
@@ -64,7 +70,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @BaseHttpClient
-    fun provideHttpClient(): HttpClient = HttpClient(OkHttp) {
+    fun provideHttpClient(deviceInfo: DeviceInfo): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(networkJson)
             json(networkJson, contentType = problemJsonContentType)
@@ -83,61 +89,29 @@ object NetworkModule {
         }
 
         install(dpopPlugin)
-    }
-
-    @Provides
-    @Singleton
-    @UnsafeHttpClient
-    @SuppressLint("TrustAllX509TrustManager")
-    fun provideUnsafeHttpClient(): HttpClient {
-        val trustAllCerts =
-            arrayOf<TrustManager>(
-                @SuppressLint("CustomX509TrustManager")
-                object : X509TrustManager {
-                    override fun checkClientTrusted(
-                        chain: Array<out X509Certificate>?,
-                        authType: String?,
-                    ) {
-                    }
-
-                    override fun checkServerTrusted(
-                        chain: Array<out X509Certificate>?,
-                        authType: String?,
-                    ) {
-                    }
-
-                    override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-                },
-            )
-
-        val trustManager = trustAllCerts[0] as X509TrustManager
-
-        val sslContext =
-            SSLContext.getInstance("TLS").apply {
-                init(null, trustAllCerts, SecureRandom())
-            }
-
-        val unsafeOkHttp =
-            OkHttpClient
-                .Builder()
-                .sslSocketFactory(sslContext.socketFactory, trustManager)
-                .hostnameVerifier { _, _ -> true }
-                .build()
-
-        return HttpClient(OkHttp) {
-            engine {
-                preconfigured = unsafeOkHttp
-            }
-            install(ContentNegotiation) {
-                json(networkJson)
-                json(networkJson, contentType = problemJsonContentType)
-            }
+        install(deviceInfoPlugin) {
+            this.deviceInfo = deviceInfo
         }
     }
 
     @Provides
     @Singleton
-    fun provideSessionManager(@BaseHttpClient base: HttpClient, userDao: UserDao): SessionManager {
+    fun provideDeviceInfo(@ApplicationContext context: Context): DeviceInfo {
+        val appVersion = getAppVersion(context)
+        return DeviceInfo(
+            os = "Android",
+            osVersion = Build.VERSION.RELEASE ?: "?",
+            model = Build.MODEL,
+            appVersion = "${appVersion.versionName} (${appVersion.versionCode})",
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSessionManager(
+        @BaseHttpClient base: HttpClient,
+        userDao: UserDao,
+    ): SessionManager {
         val client = base.config {
             defaultRequest {
                 url {
