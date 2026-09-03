@@ -55,6 +55,7 @@
     <string name="generic_login">Sign in</string>
     <string name="issuance_app_bar_title">Fetch credential</string>
     <string name="claim_item_missing_value">No data</string>
+    <string name="claim_item_image_unavailable">The image could not be displayed</string>
     <string name="presentation_selective_disclosure_title">Optional data:</string>
     <string name="onboarding_step_title">Step %1$d of %2$d</string>
     <string name="onboarding_intro_button">Get started with the wallet</string>

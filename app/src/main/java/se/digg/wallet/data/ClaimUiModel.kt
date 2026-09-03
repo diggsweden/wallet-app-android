@@ -10,6 +10,7 @@ data class ClaimUiModel(val id: String, val displayName: String?, val value: Cla
 
 sealed interface ClaimValue {
     data class TextValue(val value: String) : ClaimValue
+    data class ImageValue(val dataUri: String) : ClaimValue
     data class DateValue(val value: LocalDate) : ClaimValue
     data class IntValue(val value: Long) : ClaimValue
     data class DoubleValue(val value: Double) : ClaimValue

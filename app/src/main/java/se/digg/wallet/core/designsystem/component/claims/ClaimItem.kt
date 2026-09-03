@@ -11,17 +11,25 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import coil3.ColorImage
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.AsyncImagePreviewHandler
+import coil3.compose.LocalAsyncImagePreviewHandler
+import coil3.compose.SubcomposeAsyncImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -52,6 +60,28 @@ private fun ClaimContent(value: ClaimValue) {
     when (value) {
         is ClaimValue.TextValue -> {
             Text(text = value.value, style = WalletTextStyle.BodyMD)
+        }
+
+        is ClaimValue.ImageValue -> {
+            SubcomposeAsyncImage(
+                model = value.dataUri,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp),
+                error = {
+                    Icon(
+                        painter = painterResource(R.drawable.broken_image_24px),
+                        contentDescription = stringResource(
+                            R.string.claim_item_image_unavailable,
+                        ),
+                        modifier = Modifier.requiredSize(120.dp),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                },
+                alignment = Alignment.CenterStart,
+                contentScale = ContentScale.Fit,
+            )
         }
 
         is ClaimValue.DateValue -> {
@@ -138,11 +168,59 @@ private fun ClaimContent(value: ClaimValue) {
     }
 }
 
+private const val PREVIEW_PORTRAIT_URI = "data:image/jpeg;base64,portrait"
+private const val PREVIEW_BROKEN_PORTRAIT_URI = "data:image/jpeg;base64,not-an-image"
+
+/**
+ * Stands in for the decoded portrait so previews do not depend on Coil running its fetcher and
+ * decoder under Layoutlib. The 3:4 intrinsic size matches a PID portrait, so the preview lays out
+ * exactly as the real image does.
+ */
+@OptIn(ExperimentalCoilApi::class)
+private fun portraitPreviewHandler() = AsyncImagePreviewHandler {
+    ColorImage(color = 0xFF3A588A.toInt(), width = 24, height = 32)
+}
+
+@OptIn(ExperimentalCoilApi::class)
+@PreviewsWallet
+@Composable
+private fun ClaimItemImagePreview() {
+    val itemModifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp)
+    WalletPreview {
+        Column(modifier = Modifier.padding(16.dp)) {
+            CompositionLocalProvider(
+                LocalAsyncImagePreviewHandler provides portraitPreviewHandler(),
+            ) {
+                ClaimItem(
+                    claim = ClaimUiModel(
+                        "portrait",
+                        "Photo",
+                        ClaimValue.ImageValue(PREVIEW_PORTRAIT_URI),
+                    ),
+                    modifier = itemModifier,
+                )
+            }
+            ClaimItem(
+                claim = ClaimUiModel(
+                    "portrait_broken",
+                    "Photo",
+                    ClaimValue.ImageValue(PREVIEW_BROKEN_PORTRAIT_URI),
+                ),
+                modifier = itemModifier,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalCoilApi::class)
 @PreviewsWallet
 @Composable
 private fun ClaimItemPreview() {
     val claims = listOf(
         ClaimUiModel("text", "Text", ClaimValue.TextValue("Hello world")),
+        ClaimUiModel("image", "Image", ClaimValue.ImageValue(PREVIEW_PORTRAIT_URI)),
         ClaimUiModel("date", "Date", ClaimValue.DateValue(LocalDate.of(1990, 6, 15))),
         ClaimUiModel("int", "Integer", ClaimValue.IntValue(42)),
         ClaimUiModel("double", "Double", ClaimValue.DoubleValue(3.14)),
@@ -171,14 +249,18 @@ private fun ClaimItemPreview() {
         ),
     )
     WalletPreview {
-        Column(modifier = Modifier.padding(16.dp)) {
-            claims.forEach { claim ->
-                ClaimItem(
-                    claim = claim,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                )
+        CompositionLocalProvider(
+            LocalAsyncImagePreviewHandler provides portraitPreviewHandler(),
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                claims.forEach { claim ->
+                    ClaimItem(
+                        claim = claim,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                    )
+                }
             }
         }
     }
