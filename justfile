@@ -62,6 +62,11 @@ setup-devtools:
 setup-secrets:
     @[ -f "secrets.properties" ] || cp secrets.properties.example secrets.properties
 
+# ▪ Fetch the latest Wallet Client Gateway OpenAPI spec
+[group('setup')]
+update-openapi-spec:
+    @scripts/update-openapi-spec.sh
+
 # Check required tools are installed
 [group('setup')]
 check-tools: _ensure-devtools
