@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,9 +26,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import coil3.ColorImage
 import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
-import coil3.compose.SubcomposeAsyncImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -63,22 +62,13 @@ private fun ClaimContent(value: ClaimValue) {
         }
 
         is ClaimValue.ImageValue -> {
-            SubcomposeAsyncImage(
+            AsyncImage(
                 model = value.dataUri,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp),
-                error = {
-                    Icon(
-                        painter = painterResource(R.drawable.broken_image_24px),
-                        contentDescription = stringResource(
-                            R.string.claim_item_image_unavailable,
-                        ),
-                        modifier = Modifier.requiredSize(120.dp),
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                },
+                error = painterResource(id = R.drawable.broken_image_24px),
                 alignment = Alignment.CenterStart,
                 contentScale = ContentScale.Fit,
             )
