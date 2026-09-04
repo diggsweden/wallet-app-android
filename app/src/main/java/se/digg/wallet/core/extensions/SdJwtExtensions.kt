@@ -23,6 +23,8 @@ private val RESERVED_CLAIMS = setOf(
     "cnf", "vct", "_sd", "_sd_alg", "status",
 )
 
+private const val IMAGE_DATA_URI_PREFIX = "data:image/"
+
 fun SdJwt<JwtAndClaims>.toClaimUiModels(displayNames: Map<String, String>): List<ClaimUiModel> {
     val claims = recreateClaimsAndDisclosuresPerClaim().first
     return claims.keys
@@ -92,8 +94,8 @@ private fun JsonElement?.toClaimValue(path: String, displayNames: Map<String, St
                     tryParseLocalDate(content)
                         ?.let { return ClaimValue.DateValue(it) }
 
-                    if (content.startsWith("data:image")) {
-                        return ClaimValue.TextValue("Todo")
+                    if (content.startsWith(IMAGE_DATA_URI_PREFIX, ignoreCase = true)) {
+                        return ClaimValue.ImageValue(content)
                     }
 
                     return ClaimValue.TextValue(content)
