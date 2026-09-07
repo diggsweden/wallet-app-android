@@ -34,7 +34,9 @@ import eu.europa.ec.eudi.sdjwt.JwtAndClaims
 import eu.europa.ec.eudi.sdjwt.SdJwt
 import io.ktor.client.HttpClient
 import java.net.URI
+import java.time.Clock
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -97,7 +99,9 @@ class IssuanceViewModel @Inject constructor(
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
-    private val dpopProofBuilder = DpopProofBuilder()
+    private val clock: Clock = Clock.systemUTC()
+
+    private val dpopProofBuilder = DpopProofBuilder(clock = clock)
 
     val openId4VCIConfig = OpenId4VCIConfig(
         clientAuthentication = ClientAuthentication.None(id = "wallet-dev"),
@@ -108,6 +112,7 @@ class IssuanceViewModel @Inject constructor(
             credentialResponseEncryptionPolicy = CredentialResponseEncryptionPolicy.SUPPORTED,
         ),
         dPoPUsage = DPoPUsage.IfSupported(DPoPConfig(dpopProofBuilder)),
+        clock = clock,
     )
 
     private var claimDisplayNames: Map<String, String> = mutableMapOf()
@@ -131,8 +136,10 @@ class IssuanceViewModel @Inject constructor(
                 claimDisplayNames = getClaimDisplayNames(issuer.credentialOffer)
                 _issuerMetadata.value = issuer.credentialOffer.credentialIssuerMetadata
                 _uiState.value = IssuanceState.IssuerFetched(issuer)
-            } catch (e: Exception) {
-                Timber.d("IssuanceViewModel: Fetch issuer error: ${e.message}")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Timber.d(e, "IssuanceViewModel: Fetch issuer error")
                 _uiState.value = IssuanceState.Error(
                     onRetry = {
                         fetchIssuer(uri)
@@ -189,8 +196,10 @@ class IssuanceViewModel @Inject constructor(
                         throw IllegalStateException()
                     }
                 }
-            } catch (e: Exception) {
-                Timber.d("IssuanceViewModel: Authorize error: ${e.message}")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Timber.d(e, "IssuanceViewModel: Authorize error")
                 _uiState.value = IssuanceState.Error(
                     onRetry = {
                         _uiState.value = IssuanceState.IssuerFetched(issuer)
@@ -206,7 +215,9 @@ class IssuanceViewModel @Inject constructor(
             _uiState.value = IssuanceState.Loading
             val proof = try {
                 createSignedProofJwt(pin, session.credentialConfig)
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
                 Timber.d(e, "IssuanceViewModel: Create proof error")
                 authenticatedOpaqueClient = null
                 _uiState.value = IssuanceState.Error(
@@ -226,7 +237,9 @@ class IssuanceViewModel @Inject constructor(
             _uiState.value = IssuanceState.Loading
             try {
                 doFetchCredential(state.session, state.proof)
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
                 Timber.d(e, "IssuanceViewModel: Fetch credential error")
                 _uiState.value = IssuanceState.Error(
                     onRetry = {
@@ -254,16 +267,8 @@ class IssuanceViewModel @Inject constructor(
             "No credential found"
         }
         val (credential, claims) = parseCredential(credentialSdJwt, session.credentialConfig)
-        saveCredential(credential)
+        userRepository.addCredentials(listOf(credential))
         _uiState.value = IssuanceState.CredentialFetched(claims)
-    }
-
-    private suspend fun saveCredential(credential: SavedCredential) {
-        if (!userRepository.isOnboarded()) {
-            userRepository.setPid(credential)
-        } else {
-            userRepository.addCredentials(listOf(credential))
-        }
     }
 
     private fun resolveCredentialConfig(issuer: Issuer): SdJwtVcCredential {
