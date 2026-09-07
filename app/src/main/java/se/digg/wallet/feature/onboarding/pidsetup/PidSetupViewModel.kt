@@ -52,7 +52,7 @@ class PidSetupViewModel @Inject constructor(
 
     val credential =
         userRepository.user
-            .map { it?.pid }
+            .map { user -> user?.credentials?.firstOrNull() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun getCredentialOffer(launchAuthTab: LaunchAuthTab) {

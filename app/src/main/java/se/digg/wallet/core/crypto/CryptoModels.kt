@@ -4,7 +4,9 @@
 
 package se.digg.wallet.core.crypto
 
+import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -23,7 +25,11 @@ data class DefaultJwtClaims(val iat: Int, val nbf: Int, val exp: Int)
 @Serializable
 data class JwtClaims<T>(val defaults: DefaultJwtClaims, val payload: T)
 
-data class CryptoSpec(val jwk: JWK, val encryptionMethod: EncryptionMethod)
+data class CryptoSpec(
+    val jwk: JWK,
+    val encryptionMethod: EncryptionMethod,
+    val encryptionAlgorithm: JWEAlgorithm? = null,
+)
 
 class JwtClaimsSerializer<T>(private val payloadSerializer: KSerializer<T>) :
     KSerializer<JwtClaims<T>> {

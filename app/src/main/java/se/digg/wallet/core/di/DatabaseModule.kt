@@ -25,7 +25,8 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "app-db",
-        ).build()
+        ).addMigrations(AppDatabase.MIGRATION_4_5)
+        .build()
 
     @Provides
     fun provideUser(database: AppDatabase): UserDao = database.userDao()
