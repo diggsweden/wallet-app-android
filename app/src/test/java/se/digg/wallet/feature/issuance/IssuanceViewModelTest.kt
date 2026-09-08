@@ -4,12 +4,15 @@
 
 package se.digg.wallet.feature.issuance
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -60,6 +63,7 @@ private class FakeIssuanceService : IssuanceService {
     var createProofCount = 0
     var fetchCredentialCount = 0
     var proofPin: String? = null
+    var proofGate: CompletableDeferred<Unit>? = null
 
     override suspend fun fetchOffer(credentialOfferUri: String): IssuerDisplay? {
         fetchOfferCount++
@@ -81,6 +85,7 @@ private class FakeIssuanceService : IssuanceService {
     override suspend fun createProof(pin: String) {
         createProofCount++
         proofPin = pin
+        proofGate?.await()
         createProofError?.let { throw it }
     }
 
@@ -93,6 +98,7 @@ private class FakeIssuanceService : IssuanceService {
 
 private class FakeAuthorizationLauncher : AuthorizationLauncher {
     var result: OAuthResult = OAuthResult.Success("wallet-app://authorize?code=code&state=state")
+    var gate: CompletableDeferred<Unit>? = null
     var count = 0
     override suspend fun authorize(
         url: String,
@@ -100,6 +106,7 @@ private class FakeAuthorizationLauncher : AuthorizationLauncher {
         launchAuthTab: LaunchAuthTab,
     ): OAuthResult {
         count++
+        gate?.await()
         return result
     }
 }
@@ -206,14 +213,12 @@ class IssuanceViewModelTest {
     }
 
     @Test
-    fun `proof creation prepares the credential fetch`() = runTest(dispatcher) {
+    fun `createProof signs with the pin and fetches the credential`() = runTest(dispatcher) {
         val viewModel = IssuanceViewModel(service, launcher, store)
         reachAwaitingPin(viewModel)
 
         viewModel.createProof("123456")
-        advanceUntilIdle()
-        assertEquals(IssuanceState.ReadyToFetch, viewModel.uiState.value)
-        viewModel.fetchCredential()
+        assertEquals(IssuanceState.Loading, viewModel.uiState.value)
         advanceUntilIdle()
 
         assertEquals("123456", service.proofPin)
@@ -249,15 +254,11 @@ class IssuanceViewModelTest {
 
         viewModel.createProof("123456")
         advanceUntilIdle()
-        viewModel.fetchCredential()
-        advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is IssuanceState.Error)
 
         service.fetchCredentialError = null
         viewModel.retry()
-        assertEquals(IssuanceState.ReadyToFetch, viewModel.uiState.value)
-        viewModel.fetchCredential()
         advanceUntilIdle()
 
         assertEquals(1, service.createProofCount)
@@ -266,6 +267,19 @@ class IssuanceViewModelTest {
             IssuanceState.CredentialIssued(issuer = issuerDisplay, claims = claims),
             viewModel.uiState.value,
         )
+    }
+
+    @Test
+    fun `createProof twice only issues one credential`() = runTest(dispatcher) {
+        val viewModel = IssuanceViewModel(service, launcher, store)
+        reachAwaitingPin(viewModel)
+
+        viewModel.createProof("123456")
+        viewModel.createProof("123456")
+        advanceUntilIdle()
+
+        assertEquals(1, service.createProofCount)
+        assertEquals(1, service.fetchCredentialCount)
     }
 
     @Test
@@ -280,5 +294,102 @@ class IssuanceViewModelTest {
         assertEquals(0, service.createProofCount)
         assertNull(service.proofPin)
         assertEquals(IssuanceState.OfferReady(issuerDisplay), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `browser cancellation returns to the offer without exchanging code`() =
+        runTest(dispatcher) {
+            launcher.result = OAuthResult.Cancelled
+            val viewModel = IssuanceViewModel(service, launcher, store)
+            reachAwaitingPin(viewModel)
+            assertEquals(IssuanceState.OfferReady(issuerDisplay), viewModel.uiState.value)
+            assertEquals(0, service.exchangeCount)
+        }
+
+    @Test
+    fun `authorization blocks repeated taps while browser is open`() = runTest(dispatcher) {
+        launcher.gate = CompletableDeferred()
+        val viewModel = IssuanceViewModel(service, launcher, store)
+        viewModel.fetchIssuer("offer")
+        advanceUntilIdle()
+        viewModel.authorize(launchAuthTab)
+        assertEquals(IssuanceState.Loading, viewModel.uiState.value)
+        viewModel.authorize(launchAuthTab)
+        runCurrent()
+        viewModel.authorize(launchAuthTab)
+        launcher.gate!!.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(1, launcher.count)
+        assertEquals(1, service.exchangeCount)
+    }
+
+    @Test
+    fun `browser failure and exchange failure can return to authorization`() = runTest(dispatcher) {
+        val viewModel = IssuanceViewModel(service, launcher, store)
+        launcher.result = OAuthResult.Failure("Timeout")
+        reachAwaitingPin(viewModel)
+        assertEquals(IssuanceState.Error(IssuanceRetryStep.Authorize), viewModel.uiState.value)
+        assertEquals(0, service.exchangeCount)
+        viewModel.retry()
+        launcher.result = OAuthResult.Success("wallet-app://authorize?code=code")
+        service.exchangeError = IllegalStateException("offline")
+        viewModel.authorize(launchAuthTab)
+        advanceUntilIdle()
+        assertEquals(IssuanceState.Error(IssuanceRetryStep.Authorize), viewModel.uiState.value)
+        viewModel.retry()
+        service.exchangeError = null
+        viewModel.authorize(launchAuthTab)
+        advanceUntilIdle()
+        assertEquals(IssuanceState.AwaitingPin, viewModel.uiState.value)
+    }
+
+    @Test
+    fun `save retry does not fetch or sign again and ignores repeated taps`() =
+        runTest(dispatcher) {
+            store.error = IllegalStateException("storage unavailable")
+            val viewModel = IssuanceViewModel(service, launcher, store)
+            reachAwaitingPin(viewModel)
+            viewModel.createProof("123456")
+            advanceUntilIdle()
+            assertEquals(
+                IssuanceState.Error(IssuanceRetryStep.SaveCredential),
+                viewModel.uiState.value,
+            )
+            store.error = null
+            viewModel.retry()
+            viewModel.retry()
+            advanceUntilIdle()
+            assertEquals(1, service.createProofCount)
+            assertEquals(1, service.fetchCredentialCount)
+            assertEquals(2, store.count)
+            assertEquals(listOf(issued.credential), store.stored)
+            assertTrue(viewModel.uiState.value is IssuanceState.CredentialIssued)
+        }
+
+    @Test
+    fun `proof cancellation does not become a retryable error or fetch a credential`() =
+        runTest(dispatcher) {
+            service.createProofError = CancellationException("cancelled")
+            val viewModel = IssuanceViewModel(service, launcher, store)
+            reachAwaitingPin(viewModel)
+            viewModel.createProof("123456")
+            advanceUntilIdle()
+            assertEquals(IssuanceState.Loading, viewModel.uiState.value)
+            assertEquals(0, service.fetchCredentialCount)
+            assertEquals(0, store.count)
+        }
+
+    @Test
+    fun `repeated proof submission while signing does not sign again`() = runTest(dispatcher) {
+        service.proofGate = CompletableDeferred()
+        val viewModel = IssuanceViewModel(service, launcher, store)
+        reachAwaitingPin(viewModel)
+        viewModel.createProof("123456")
+        runCurrent()
+        viewModel.createProof("123456")
+        service.proofGate!!.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(1, service.createProofCount)
+        assertEquals(1, store.count)
     }
 }
