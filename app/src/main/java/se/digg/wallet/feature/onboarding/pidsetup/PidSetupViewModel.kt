@@ -4,7 +4,6 @@
 
 package se.digg.wallet.feature.onboarding.pidsetup
 
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +12,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.Url
 import io.ktor.http.contentType
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -27,8 +27,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.oauth.AuthorizationLauncher
 import se.digg.wallet.core.oauth.LaunchAuthTab
-import se.digg.wallet.core.oauth.OAuthCoordinator
 import se.digg.wallet.core.oauth.OAuthResult
 import se.digg.wallet.data.CredentialsOfferRequestModel
 import se.digg.wallet.data.CredentialsOfferResponseModel
@@ -40,7 +40,7 @@ private const val PID_CREDENTIAL_ID = "eu.europa.ec.eudi.pid_vc_sd_jwt"
 @HiltViewModel
 class PidSetupViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val oAuthCoordinator: OAuthCoordinator,
+    private val authorizationLauncher: AuthorizationLauncher,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
@@ -88,8 +88,8 @@ class PidSetupViewModel @Inject constructor(
 
     private suspend fun generateOfferInBrowser(launchAuthTab: LaunchAuthTab): String = when (
         val oAuthCallback =
-            oAuthCoordinator.authorize(
-                url = "https://${BuildConfig.PID_ISSUER_URL}".toUri(),
+            authorizationLauncher.authorize(
+                url = "https://${BuildConfig.PID_ISSUER_URL}",
                 redirectScheme = "openid-credential-offer",
                 launchAuthTab = launchAuthTab,
             )
@@ -107,11 +107,11 @@ class PidSetupViewModel @Inject constructor(
         }
 
         is OAuthResult.Success -> {
-            Timber.d("OAuth Success: ${oAuthCallback.uri}")
-            if (oAuthCallback.uri.getQueryParameter("credential_offer") == null) {
+            Timber.d("OAuth Success: ${oAuthCallback.redirectUri}")
+            if (Url(oAuthCallback.redirectUri).parameters["credential_offer"] == null) {
                 throw IllegalStateException("credential offer query parameter missing")
             }
-            oAuthCallback.uri.toString()
+            oAuthCallback.redirectUri
         }
     }
 }

@@ -12,7 +12,9 @@ import io.ktor.client.HttpClient
 import javax.inject.Singleton
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.storage.user.UserDao
+import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.UserRepository
+import se.digg.wallet.data.WuaProvider
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -29,4 +31,10 @@ object RepositoryModule {
         gatewayClient = gatewayClient,
         sessionManager = sessionManager,
     )
+
+    @Provides
+    fun provideCredentialStore(userRepository: UserRepository): CredentialStore = userRepository
+
+    @Provides
+    fun provideWuaProvider(userRepository: UserRepository): WuaProvider = userRepository
 }

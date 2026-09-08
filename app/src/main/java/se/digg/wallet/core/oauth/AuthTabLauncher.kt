@@ -4,12 +4,11 @@
 
 package se.digg.wallet.core.oauth
 
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 
-typealias LaunchAuthTab = (url: Uri, redirectScheme: String) -> Unit
+typealias LaunchAuthTab = (url: String, redirectScheme: String) -> Unit
 
 val LocalAuthTabLauncher = staticCompositionLocalOf<LaunchAuthTab> {
     error("No AuthTabLauncher provided")
