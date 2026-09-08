@@ -6,7 +6,6 @@ package se.digg.wallet
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -58,9 +58,9 @@ class MainActivity : ComponentActivity() {
             oAuthCoordinator.onResult(result)
         }
 
-    private fun launchAuthTab(url: Uri, redirectScheme: String) {
+    private fun launchAuthTab(url: String, redirectScheme: String) {
         val authTabIntent = AuthTabIntent.Builder().build()
-        authTabIntent.launch(authLauncher, url, redirectScheme)
+        authTabIntent.launch(authLauncher, url.toUri(), redirectScheme)
     }
 
     private var walletNavigator: WalletNavigator? = null

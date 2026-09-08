@@ -11,6 +11,7 @@ import android.net.Uri
 import androidx.browser.auth.AuthTabIntent
 import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,16 +22,17 @@ import se.digg.wallet.core.getCustomTabsProvider
 import timber.log.Timber
 
 @Singleton
-class OAuthCoordinator @Inject constructor(@ApplicationContext private val context: Context) {
+class OAuthCoordinator @Inject constructor(@ApplicationContext private val context: Context) :
+    AuthorizationLauncher {
 
     private var pendingAuthResult: CompletableDeferred<OAuthResult>? = null
 
     fun hasOngoingPendingResult(): Boolean = pendingAuthResult != null
 
-    suspend fun authorize(
-        url: Uri,
-        launchAuthTab: LaunchAuthTab,
+    override suspend fun authorize(
+        url: String,
         redirectScheme: String,
+        launchAuthTab: LaunchAuthTab,
     ): OAuthResult {
         check(pendingAuthResult == null) {
             "Auth session already ongoing"
@@ -41,6 +43,7 @@ class OAuthCoordinator @Inject constructor(@ApplicationContext private val conte
 
         try {
             val provider = getCustomTabsProvider(context)
+            val uri = url.toUri()
             when {
                 provider != null && CustomTabsClient.isAuthTabSupported(context, provider) -> {
                     Timber.d("OauthCoordinator - AuthTab started")
@@ -49,12 +52,12 @@ class OAuthCoordinator @Inject constructor(@ApplicationContext private val conte
 
                 provider != null -> {
                     Timber.d("OauthCoordinator - CustomTabs started")
-                    launchCustomTab(url)
+                    launchCustomTab(uri)
                 }
 
                 else -> {
                     Timber.d("OauthCoordinator - External browser started")
-                    launchExternalBrowser(url)
+                    launchExternalBrowser(uri)
                 }
             }
 
@@ -96,7 +99,7 @@ class OAuthCoordinator @Inject constructor(@ApplicationContext private val conte
 
             AuthTabIntent.RESULT_OK -> {
                 result.resultUri?.let {
-                    OAuthResult.Success(it)
+                    OAuthResult.Success(it.toString())
                 } ?: OAuthResult.Failure("Missing redirect URI")
             }
 
@@ -115,12 +118,12 @@ class OAuthCoordinator @Inject constructor(@ApplicationContext private val conte
     }
 
     fun onDeepLink(uri: Uri) {
-        pendingAuthResult?.complete(OAuthResult.Success(uri))
+        pendingAuthResult?.complete(OAuthResult.Success(uri.toString()))
     }
 }
 
 sealed interface OAuthResult {
-    data class Success(val uri: Uri) : OAuthResult
+    data class Success(val redirectUri: String) : OAuthResult
     data object Cancelled : OAuthResult
     data class Failure(val message: String) : OAuthResult
 }
