@@ -52,7 +52,6 @@ fun IssuanceScreen(
     viewModel: IssuanceViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val issuerMetadata by viewModel.issuerMetadata.collectAsState()
 
     val launchAuthTab = LocalAuthTabLauncher.current
     LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri) }
@@ -81,10 +80,10 @@ fun IssuanceScreen(
                         GenericLoading()
                     }
 
-                    is IssuanceState.IssuerFetched -> {
+                    is IssuanceState.OfferReady -> {
                         CredentialOfferHeader(
-                            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
-                            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
+                            logoUrl = currentState.issuer?.logo?.uri?.toString(),
+                            issuerName = currentState.issuer?.name,
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         PrimaryButton(
@@ -94,11 +93,13 @@ fun IssuanceScreen(
                         )
                     }
 
-                    is IssuanceState.ReadyToSign -> {
+                    is IssuanceState.AwaitingPin -> {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
                             text =
-                                stringResource(R.string.onboarding_issuance_ready_to_sign_description),
+                                stringResource(
+                                    R.string.onboarding_issuance_ready_to_sign_description,
+                                ),
                             style = WalletTextStyle.BodyLG,
                         )
                         Spacer(modifier = Modifier.weight(1f))
@@ -110,15 +111,15 @@ fun IssuanceScreen(
                         )
                     }
 
-                    is IssuanceState.ReadyToFetch -> {
+                    IssuanceState.ReadyToFetch -> {
                         LaunchedEffect(Unit) { viewModel.fetchCredential() }
                         GenericLoading()
                     }
 
-                    is IssuanceState.CredentialFetched -> {
+                    is IssuanceState.CredentialIssued -> {
                         CredentialOfferHeader(
-                            logoUrl = issuerMetadata?.display?.firstOrNull()?.logo?.uri?.toString(),
-                            issuerName = issuerMetadata?.display?.firstOrNull()?.name,
+                            logoUrl = currentState.issuer?.logo?.uri?.toString(),
+                            issuerName = currentState.issuer?.name,
                         )
                         Spacer(modifier = Modifier.height(30.dp))
                         ClaimList(claims = currentState.claims)

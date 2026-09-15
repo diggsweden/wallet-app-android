@@ -8,12 +8,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import se.digg.wallet.core.crypto.HsmProofSigner
-import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.oauth.AuthorizationLauncher
+import se.digg.wallet.core.oauth.OAuthCoordinator
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface CryptoModule {
+interface OAuthModule {
     @Binds
-    fun bindProofSigner(impl: HsmProofSigner): ProofSigner
+    fun bindAuthorizationLauncher(impl: OAuthCoordinator): AuthorizationLauncher
 }

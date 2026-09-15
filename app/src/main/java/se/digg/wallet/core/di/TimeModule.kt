@@ -4,16 +4,17 @@
 
 package se.digg.wallet.core.di
 
-import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import se.digg.wallet.core.crypto.HsmProofSigner
-import se.digg.wallet.core.crypto.ProofSigner
+import java.time.Clock
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface CryptoModule {
-    @Binds
-    fun bindProofSigner(impl: HsmProofSigner): ProofSigner
+object TimeModule {
+    @Provides
+    @Singleton
+    fun provideClock(): Clock = Clock.systemUTC()
 }

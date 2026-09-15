@@ -26,13 +26,14 @@ class UserRepository @Inject constructor(
     private val userDao: UserDao,
     private val gatewayClient: HttpClient,
     private val sessionManager: SessionManager,
-) {
+) : CredentialStore,
+    WuaProvider {
     val user: Flow<User?> = userDao.observe()
     private val accountsClient = V0AccountsClient(gatewayClient)
     private val wuaClient = WuaClient(gatewayClient)
     private val walletKeysClient = V0AccountsWalletKeysClient(gatewayClient)
 
-    suspend fun fetchWua(nonce: String? = null): String =
+    override suspend fun fetchWua(nonce: String?): String =
         wuaClient.createWua(nonce = nonce).getOrThrow().jwt
 
     suspend fun createAccount(request: CreateAccountRequest): String =
@@ -44,7 +45,8 @@ class UserRepository @Inject constructor(
 
     suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
     suspend fun getPid(): SavedCredential? = getCredentials().firstOrNull()
-    suspend fun getCredentials(): List<SavedCredential> = userDao.get()?.credentials ?: emptyList()
+    override suspend fun getCredentials(): List<SavedCredential> =
+        userDao.get()?.credentials ?: emptyList()
     suspend fun getCredential(id: String): SavedCredential {
         val matchingCredential = getCredentials().firstOrNull { it.id == id }
         checkNotNull(value = matchingCredential) {
@@ -57,7 +59,7 @@ class UserRepository @Inject constructor(
 
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
 
-    suspend fun addCredentials(credentials: List<SavedCredential>) =
+    override suspend fun addCredentials(credentials: List<SavedCredential>) =
         updateUser { it.copy(credentials = it.credentials + credentials) }
 
     suspend fun saveServerParameters(params: ServerParameters) {
