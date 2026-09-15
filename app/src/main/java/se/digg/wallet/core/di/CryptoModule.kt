@@ -18,9 +18,4 @@ import se.digg.wallet.core.crypto.ProofSigner
 interface CryptoModule {
     @Binds
     fun bindProofSigner(impl: HsmProofSigner): ProofSigner
-
-    companion object {
-        @Provides
-        fun provideClock(): Clock = Clock.systemUTC()
-    }
 }
