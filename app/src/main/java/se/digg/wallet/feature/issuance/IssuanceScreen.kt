@@ -111,11 +111,6 @@ fun IssuanceScreen(
                         )
                     }
 
-                    IssuanceState.ReadyToFetch -> {
-                        LaunchedEffect(Unit) { viewModel.fetchCredential() }
-                        GenericLoading()
-                    }
-
                     is IssuanceState.CredentialIssued -> {
                         CredentialOfferHeader(
                             logoUrl = currentState.issuer?.logo?.uri?.toString(),
