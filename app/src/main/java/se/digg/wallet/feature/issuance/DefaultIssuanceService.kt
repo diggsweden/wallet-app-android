@@ -160,7 +160,7 @@ internal class DefaultIssuanceService @Inject constructor(
             credentialConfigurationId = configurationId.toString(),
             credentialType = credentialConfig.type,
             credentialName = credentialConfig.credentialMetadata?.display?.firstOrNull()?.name,
-            requiresKeyAttestation = proofTypeJwt.keyAttestationRequirement.hasConstrains,
+            requiresKeyAttestation = proofTypeJwt.keyAttestationRequirement?.hasConstrains ?: false,
             requestEncryption = getCryptoSpec(metadata.credentialRequestEncryption),
             authorization = authorizedRequest.accessToken.toRequestAuthorization(dpopProofBuilder),
             issuerDisplay = offer.issuerDisplay,
