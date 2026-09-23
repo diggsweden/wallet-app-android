@@ -55,13 +55,12 @@ jobs:
           LOCAL_API_KEY: ${{ vars.HSM_E2E_API_KEY || 'apikey' }}
         run: printf 'SANDBOX_API_KEY=unused\nLOCAL_API_KEY=%s\n' "$LOCAL_API_KEY" > secrets.properties
 
-      - name: Install podman
+      - name: Configure podman
         run: |
-          sudo apt-get update
-          sudo apt-get install -y podman podman-compose
           sudo loginctl enable-linger "$(whoami)" || true
           systemctl --user start podman.socket
           sudo sysctl -w net.ipv4.ip_unprivileged_port_start=80
+          echo "PODMAN_SOCK=$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
 
       - name: Enable KVM
         run: |
