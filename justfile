@@ -222,6 +222,34 @@ emulator-install-cert *ARGS:
     @scripts/emulator-install-cert.sh {{ARGS}}
 
 # ==================================================================================== #
+# HSM E2E - Instrumented HSM test against a running wallet-ecosystem (`just up` there)
+# ==================================================================================== #
+
+# ▪ Boot emulator, install CA, run the HSM e2e test
+[group('hsm-e2e')]
+hsm-test *CA: hsm-emulator (hsm-install-ca CA) hsm-check
+
+# Run the HSM e2e test on the running emulator
+[group('hsm-e2e')]
+hsm-check:
+    @scripts/hsm-e2e/run.sh
+
+# Boot a headless emulator
+[group('hsm-e2e')]
+hsm-emulator:
+    @scripts/hsm-e2e/emulator.sh boot
+
+# Stop running emulators
+[group('hsm-e2e')]
+hsm-emulator-stop:
+    @scripts/hsm-e2e/emulator.sh stop
+
+# Install the ecosystem CA (default: mkcert root) on the emulator without UI
+[group('hsm-e2e')]
+hsm-install-ca *CA:
+    @scripts/hsm-e2e/install-ca.sh {{CA}}
+
+# ==================================================================================== #
 # INTERNAL
 # ==================================================================================== #
 

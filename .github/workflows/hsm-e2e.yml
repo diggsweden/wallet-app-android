@@ -1,0 +1,185 @@
+# SPDX-FileCopyrightText: 2026 Digg - Agency for Digital Government
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: HSM e2e
+
+on: # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "app/src/androidTest/java/se/digg/wallet/hsm/**"
+      - "scripts/hsm-e2e/**"
+      - ".github/workflows/hsm-e2e.yml"
+
+permissions:
+  contents: read
+
+env:
+  ANDROID_API: "34"
+  ANDROID_TAG: google_apis
+  ANDROID_ABI: x86_64
+
+jobs:
+  hsm-e2e:
+    name: HSM operations e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Harden GitHub runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Checkout wallet-ecosystem
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: diggsweden/wallet-ecosystem
+          path: ecosystem
+
+      - name: Set up JDK
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Write secrets.properties
+        env:
+          LOCAL_API_KEY: ${{ vars.HSM_E2E_API_KEY || 'apikey' }}
+        run: printf 'SANDBOX_API_KEY=unused\nLOCAL_API_KEY=%s\n' "$LOCAL_API_KEY" > secrets.properties
+
+      - name: Install podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+          sudo loginctl enable-linger "$(whoami)" || true
+          systemctl --user start podman.socket
+          sudo sysctl -w net.ipv4.ip_unprivileged_port_start=80
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Bring the ecosystem up
+        working-directory: ecosystem
+        timeout-minutes: 20
+        run: |
+          cp .env.example .env
+          mkdir -p config/traefik/certs
+          openssl req -x509 -newkey rsa:2048 \
+            -keyout config/traefik/certs/wallet-key.pem \
+            -out config/traefik/certs/wallet-cert.pem \
+            -days 1 -nodes -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:10.0.2.2"
+          podman compose pull
+          podman compose up -d
+          ./wait-until-healthy.sh
+
+      - name: Cache emulator + system image + AVD
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /usr/local/lib/android/sdk/emulator
+            /usr/local/lib/android/sdk/system-images
+            ~/.android/avd
+          key: hsm-e2e-avd-v1-${{ env.ANDROID_API }}-${{ env.ANDROID_TAG }}-${{ env.ANDROID_ABI }}
+
+      - name: Set up SDK packages + AVD
+        run: |
+          set -eu
+          sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
+          {
+            echo "$sdk"
+            echo "$ANDROID_HOME/platform-tools"
+            echo "$ANDROID_HOME/emulator"
+          } >> "$GITHUB_PATH"
+
+          image="system-images;android-${ANDROID_API};${ANDROID_TAG};${ANDROID_ABI}"
+          yes | "$sdk/sdkmanager" --licenses > /dev/null 2>&1 || true
+          yes | "$sdk/sdkmanager" emulator "$image" > /dev/null
+
+          # Hand-written: the runner's avdmanager crashes on piped stdin.
+          avd="$HOME/.android/avd"
+          if [ ! -d "$avd/ci.avd" ]; then
+          mkdir -p "$avd/ci.avd"
+          cat > "$avd/ci.ini" <<EOF
+          avd.ini.encoding=UTF-8
+          path=$avd/ci.avd
+          path.rel=avd/ci.avd
+          target=android-${ANDROID_API}
+          EOF
+          cat > "$avd/ci.avd/config.ini" <<EOF
+          AvdId=ci
+          avd.ini.encoding=UTF-8
+          PlayStore.enabled=false
+          abi.type=${ANDROID_ABI}
+          hw.cpu.arch=${ANDROID_ABI}
+          tag.id=${ANDROID_TAG}
+          tag.display=Google APIs
+          image.sysdir.1=system-images/android-${ANDROID_API}/${ANDROID_TAG}/${ANDROID_ABI}/
+          image.androidVersion.api=${ANDROID_API}
+          hw.ramSize=3072
+          hw.lcd.density=420
+          hw.gpu.enabled=yes
+          hw.keyboard=yes
+          disk.dataPartition.size=6442450944
+          EOF
+          fi
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -qx ci
+
+      - name: Run HSM e2e
+        timeout-minutes: 30
+        run: |
+          set -eu
+          log="$RUNNER_TEMP/emulator.log"
+          nohup emulator -avd ci -wipe-data \
+            -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics \
+            -gpu swiftshader_indirect > "$log" 2>&1 &
+          emu_pid=$!
+
+          booted=
+          for _ in $(seq 1 120); do
+            kill -0 "$emu_pid" 2>/dev/null || { echo "emulator exited early"; cat "$log"; exit 1; }
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
+              booted=1; break
+            fi
+            sleep 3
+          done
+          [ -n "$booted" ] || { echo "emulator boot timed out"; tail -100 "$log"; exit 1; }
+          adb shell input keyevent 82 || true
+
+          scripts/hsm-e2e/install-ca.sh ecosystem/config/traefik/certs/wallet-cert.pem
+          scripts/hsm-e2e/run.sh
+
+      - name: Collect logs
+        if: always()
+        working-directory: ecosystem
+        run: podman compose logs > "$RUNNER_TEMP/compose.log" 2>&1 || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: hsm-e2e-results
+          path: |
+            ${{ runner.temp }}/compose.log
+            ${{ runner.temp }}/emulator.log
+            app/build/reports/androidTests/**
+            app/build/outputs/androidTest-results/**
+          if-no-files-found: ignore
+
+      - name: Tear down
+        if: always()
+        run: |
+          adb emu kill || true
+          (cd ecosystem && podman compose down -v) || true
