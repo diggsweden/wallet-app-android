@@ -111,6 +111,21 @@ Downloads" from the hamburger menu -> Now click on the file "rootCA.pem"
 
 Your device is now ready to connect to your local services.
 
+### HSM e2e test
+
+`HsmOperationsE2ETest` runs the onboarding, signing and HSM key operations
+against a running
+[wallet-ecosystem](https://github.com/diggsweden/wallet-ecosystem).
+Start the ecosystem with `just up` there, then run:
+
+```bash
+just hsm-test
+```
+
+This boots a headless emulator (`google_apis` image), installs the mkcert root
+CA without UI and runs the test with the `local` flavor. Tests skip if the
+gateway is unreachable.
+
 ## Local Testing with JaCoCo
 
 ---

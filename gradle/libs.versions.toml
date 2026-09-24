@@ -94,6 +94,7 @@ coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versi
 # Dependency Injection
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.2-SNAPSHOT" }
