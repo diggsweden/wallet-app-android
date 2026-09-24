@@ -8,12 +8,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import se.digg.wallet.core.oauth.AuthorizationLauncher
-import se.digg.wallet.core.oauth.OAuthCoordinator
+import se.digg.wallet.core.webauth.BrowserWebAuthenticator
+import se.digg.wallet.core.webauth.WebAuthenticator
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface OAuthModule {
+interface WebAuthModule {
     @Binds
-    fun bindAuthorizationLauncher(impl: OAuthCoordinator): AuthorizationLauncher
+    fun bindWebAuthenticator(impl: BrowserWebAuthenticator): WebAuthenticator
 }

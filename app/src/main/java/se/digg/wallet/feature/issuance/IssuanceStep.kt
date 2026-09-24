@@ -8,12 +8,11 @@ import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
 import se.digg.wallet.core.crypto.ProofKeyStore
-import se.digg.wallet.core.oauth.LaunchAuthTab
 
 sealed interface IssuanceStep {
     data class LoadingCredentialOffer(val credentialOfferUri: String) : IssuanceStep
     data object PreparingToAuthorize : IssuanceStep
-    data class Authorizing(val launchAuthTab: LaunchAuthTab) : IssuanceStep
+    data object Authorizing : IssuanceStep
     data object AwaitingPin : IssuanceStep
     data class AuthenticatingPin(val manager: ProofKeyManager) : IssuanceStep
     data class CreatingKey(val manager: ProofKeyManager) : IssuanceStep
@@ -46,7 +45,7 @@ val IssuanceState.currentStep: IssuanceStep?
 /** The step to resume from when [this] step failed. */
 internal val IssuanceStep.retryStep: IssuanceStep
     get() = when (this) {
-        is IssuanceStep.Authorizing -> IssuanceStep.PreparingToAuthorize
+        IssuanceStep.Authorizing -> IssuanceStep.PreparingToAuthorize
         is IssuanceStep.AuthenticatingPin -> IssuanceStep.AwaitingPin
         is IssuanceStep.FetchingCredential -> IssuanceStep.SigningProof(proofKey, manager)
         is IssuanceStep.LoadingCredentialOffer,
@@ -67,7 +66,7 @@ internal val IssuanceStep.pendingKey: Pair<ProofKeyId, ProofKeyStore>?
         is IssuanceStep.SavingCredential -> proofKey.id to manager
         is IssuanceStep.LoadingCredentialOffer,
         IssuanceStep.PreparingToAuthorize,
-        is IssuanceStep.Authorizing,
+        IssuanceStep.Authorizing,
         IssuanceStep.AwaitingPin,
         is IssuanceStep.AuthenticatingPin,
         is IssuanceStep.CreatingKey,

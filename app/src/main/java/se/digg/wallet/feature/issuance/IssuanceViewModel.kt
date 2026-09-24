@@ -19,9 +19,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
-import se.digg.wallet.core.oauth.AuthorizationLauncher
-import se.digg.wallet.core.oauth.LaunchAuthTab
-import se.digg.wallet.core.oauth.OAuthResult
+import se.digg.wallet.core.webauth.WebAuthResult
+import se.digg.wallet.core.webauth.WebAuthenticator
 import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.IssuerDisplay
 import timber.log.Timber
@@ -29,7 +28,7 @@ import timber.log.Timber
 @HiltViewModel
 class IssuanceViewModel @Inject constructor(
     private val issuanceService: IssuanceService,
-    private val authorizationLauncher: AuthorizationLauncher,
+    private val webAuthenticator: WebAuthenticator,
     private val credentialStore: CredentialStore,
     private val proofKeyManagerFactory: ProofKeyManagerFactory,
 ) : ViewModel() {
@@ -54,9 +53,9 @@ class IssuanceViewModel @Inject constructor(
         resume(from = failed.at.retryStep)
     }
 
-    fun login(launchAuthTab: LaunchAuthTab) {
+    fun login() {
         if (atStep != IssuanceStep.PreparingToAuthorize) return
-        resume(from = IssuanceStep.Authorizing(launchAuthTab))
+        resume(from = IssuanceStep.Authorizing)
     }
 
     fun enterPin(pin: String) {
@@ -111,27 +110,33 @@ class IssuanceViewModel @Inject constructor(
         IssuanceStep.PreparingToAuthorize,
         IssuanceStep.AwaitingPin,
         is IssuanceStep.Issued,
-        -> null
+        -> {
+            null
+        }
 
         is IssuanceStep.LoadingCredentialOffer -> {
             _issuerDisplay.value = issuanceService.fetchOffer(step.credentialOfferUri)
             IssuanceStep.PreparingToAuthorize
         }
 
-        is IssuanceStep.Authorizing -> {
-            val result = authorizationLauncher.authorize(
+        IssuanceStep.Authorizing -> {
+            val result = webAuthenticator.authenticate(
                 url = issuanceService.authorizationUrl(),
-                redirectScheme = "wallet-app",
-                launchAuthTab = step.launchAuthTab,
+                callbackScheme = "wallet-app",
             )
             when (result) {
-                is OAuthResult.Success -> {
-                    issuanceService.exchangeAuthorizationCode(result.redirectUri)
+                is WebAuthResult.Success -> {
+                    issuanceService.exchangeAuthorizationCode(result.callbackUri)
                     IssuanceStep.AwaitingPin
                 }
 
-                OAuthResult.Cancelled -> IssuanceStep.PreparingToAuthorize
-                is OAuthResult.Failure -> error(result.message)
+                WebAuthResult.Cancelled -> {
+                    IssuanceStep.PreparingToAuthorize
+                }
+
+                is WebAuthResult.Failure -> {
+                    error(result.message)
+                }
             }
         }
 

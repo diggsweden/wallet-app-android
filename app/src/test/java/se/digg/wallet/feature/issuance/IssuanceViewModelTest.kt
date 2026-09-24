@@ -28,9 +28,8 @@ import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
-import se.digg.wallet.core.oauth.AuthorizationLauncher
-import se.digg.wallet.core.oauth.LaunchAuthTab
-import se.digg.wallet.core.oauth.OAuthResult
+import se.digg.wallet.core.webauth.WebAuthResult
+import se.digg.wallet.core.webauth.WebAuthenticator
 import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.ClaimValue
 import se.digg.wallet.data.CredentialStore
@@ -110,16 +109,13 @@ private class FakeIssuanceService : IssuanceService {
     }
 }
 
-private class FakeAuthorizationLauncher : AuthorizationLauncher {
-    var result: OAuthResult = OAuthResult.Success("wallet-app://authorize?code=code&state=state")
+private class FakeWebAuthenticator : WebAuthenticator {
+    var result: WebAuthResult =
+        WebAuthResult.Success("wallet-app://authorize?code=code&state=state")
     var gate: CompletableDeferred<Unit>? = null
     var count = 0
 
-    override suspend fun authorize(
-        url: String,
-        redirectScheme: String,
-        launchAuthTab: LaunchAuthTab,
-    ): OAuthResult {
+    override suspend fun authenticate(url: String, callbackScheme: String): WebAuthResult {
         count++
         gate?.await()
         return result
@@ -168,9 +164,8 @@ class IssuanceViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val service = FakeIssuanceService()
-    private val launcher = FakeAuthorizationLauncher()
+    private val authenticator = FakeWebAuthenticator()
     private val store = FakeCredentialStore()
-    private val launchAuthTab: LaunchAuthTab = { _, _ -> }
 
     private var authenticateError: Exception? = null
     private val managers = mutableListOf<FakeProofKeyManager>()
@@ -191,7 +186,7 @@ class IssuanceViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = IssuanceViewModel(service, launcher, store, managerFactory)
+    private fun viewModel() = IssuanceViewModel(service, authenticator, store, managerFactory)
 
     private val IssuanceViewModel.step: IssuanceStep?
         get() = (uiState.value as? IssuanceState.AtStep)?.step
@@ -202,7 +197,7 @@ class IssuanceViewModelTest {
     private fun TestScope.reachAwaitingPin(viewModel: IssuanceViewModel) {
         viewModel.start(OFFER_URI)
         advanceUntilIdle()
-        viewModel.login(launchAuthTab)
+        viewModel.login()
         advanceUntilIdle()
     }
 
@@ -252,10 +247,10 @@ class IssuanceViewModelTest {
     fun `login before the offer resolves does nothing`() = runTest(dispatcher) {
         val viewModel = viewModel()
 
-        viewModel.login(launchAuthTab)
+        viewModel.login()
         advanceUntilIdle()
 
-        assertEquals(0, launcher.count)
+        assertEquals(0, authenticator.count)
         assertEquals(IssuanceState.Idle, viewModel.uiState.value)
     }
 
@@ -272,7 +267,7 @@ class IssuanceViewModelTest {
     @Test
     fun `browser cancellation returns to login without exchanging code`() =
         runTest(dispatcher) {
-            launcher.result = OAuthResult.Cancelled
+            authenticator.result = WebAuthResult.Cancelled
             val viewModel = viewModel()
 
             reachAwaitingPin(viewModel)
@@ -283,7 +278,7 @@ class IssuanceViewModelTest {
 
     @Test
     fun `browser failure retries back to login`() = runTest(dispatcher) {
-        launcher.result = OAuthResult.Failure("Timeout")
+        authenticator.result = WebAuthResult.Failure("Verification failed")
         val viewModel = viewModel()
 
         reachAwaitingPin(viewModel)
@@ -306,7 +301,7 @@ class IssuanceViewModelTest {
 
         service.exchangeError = null
         viewModel.retry()
-        viewModel.login(launchAuthTab)
+        viewModel.login()
         advanceUntilIdle()
 
         assertEquals(IssuanceStep.AwaitingPin, viewModel.step)
@@ -314,19 +309,19 @@ class IssuanceViewModelTest {
 
     @Test
     fun `repeated login taps while browser is open launch it once`() = runTest(dispatcher) {
-        launcher.gate = CompletableDeferred()
+        authenticator.gate = CompletableDeferred()
         val viewModel = viewModel()
         viewModel.start(OFFER_URI)
         advanceUntilIdle()
 
-        viewModel.login(launchAuthTab)
-        viewModel.login(launchAuthTab)
+        viewModel.login()
+        viewModel.login()
         runCurrent()
-        viewModel.login(launchAuthTab)
-        launcher.gate!!.complete(Unit)
+        viewModel.login()
+        authenticator.gate!!.complete(Unit)
         advanceUntilIdle()
 
-        assertEquals(1, launcher.count)
+        assertEquals(1, authenticator.count)
         assertEquals(1, service.exchangeCount)
     }
 

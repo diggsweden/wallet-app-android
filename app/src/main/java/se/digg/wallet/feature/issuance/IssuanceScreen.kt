@@ -40,7 +40,6 @@ import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
-import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 import se.digg.wallet.data.IssuerDisplay
 
 @Composable
@@ -55,7 +54,6 @@ fun IssuanceScreen(
     val uiState by viewModel.uiState.collectAsState()
     val issuer by viewModel.issuerDisplay.collectAsState()
 
-    val launchAuthTab = LocalAuthTabLauncher.current
     LaunchedEffect(Unit) { viewModel.start(credentialOfferUri) }
 
     when (val currentState = uiState) {
@@ -88,7 +86,7 @@ fun IssuanceScreen(
                         Spacer(modifier = Modifier.weight(1f))
                         PrimaryButton(
                             text = stringResource(R.string.generic_login),
-                            onClick = { viewModel.login(launchAuthTab) },
+                            onClick = { viewModel.login() },
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }

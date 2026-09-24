@@ -10,7 +10,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.browser.auth.AuthTabIntent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
@@ -24,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -38,30 +36,20 @@ import se.digg.wallet.core.navigation.IntroKey
 import se.digg.wallet.core.navigation.WalletNavDisplay
 import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.core.navigation.toNavKey
-import se.digg.wallet.core.oauth.OAuthCoordinator
-import se.digg.wallet.core.oauth.ProvideAuthTabLauncher
 import se.digg.wallet.core.permission.requestLocalNetworkAccess
 import se.digg.wallet.core.theme.ThemeOption
 import se.digg.wallet.core.theme.ThemePreference
+import se.digg.wallet.core.webauth.BrowserWebAuthenticator
+import se.digg.wallet.core.webauth.hostWebAuthenticator
 import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
-    lateinit var oAuthCoordinator: OAuthCoordinator
+    lateinit var webAuthenticator: BrowserWebAuthenticator
 
     @Inject
     lateinit var deepLinkHandler: DeepLinkHandler
-
-    private val authLauncher =
-        AuthTabIntent.registerActivityResultLauncher(this) { result ->
-            oAuthCoordinator.onResult(result)
-        }
-
-    private fun launchAuthTab(url: String, redirectScheme: String) {
-        val authTabIntent = AuthTabIntent.Builder().build()
-        authTabIntent.launch(authLauncher, url.toUri(), redirectScheme)
-    }
 
     private var walletNavigator: WalletNavigator? = null
 
@@ -73,6 +61,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestLocalNetworkAccess()
+        hostWebAuthenticator(webAuthenticator)
 
         val initialDeepLinkKey = intent.data?.toNavKey()
 
@@ -88,14 +77,12 @@ class MainActivity : ComponentActivity() {
                 ThemeOption.DARK -> true
             }
 
-            ProvideAuthTabLauncher(launcher = ::launchAuthTab) {
-                WalletTheme(darkTheme = darkTheme) {
-                    Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
-                        AppRoot(
-                            navigator = nav,
-                            initialDeepLinkKey = initialDeepLinkKey,
-                        )
-                    }
+            WalletTheme(darkTheme = darkTheme) {
+                Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
+                    AppRoot(
+                        navigator = nav,
+                        initialDeepLinkKey = initialDeepLinkKey,
+                    )
                 }
             }
         }
@@ -110,7 +97,7 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(intent: Intent) {
         when (val result = deepLinkHandler.handle(intent)) {
             DeepLinkResult.Consumed -> {
-                Timber.d("MainActivity: Deeplink handled by OauthCoordinator")
+                Timber.d("MainActivity: Deeplink handled by BrowserWebAuthenticator")
             }
 
             is DeepLinkResult.Unhandled -> {

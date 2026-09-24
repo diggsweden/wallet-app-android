@@ -35,7 +35,6 @@ import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
@@ -66,11 +65,10 @@ fun PidSetupRoute(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val launchAuthTab = LocalAuthTabLauncher.current
 
     PidSetupScreen(
         uiState = uiState,
-        onFetchId = { viewModel.getCredentialOffer(launchAuthTab) },
+        onFetchId = { viewModel.getCredentialOffer() },
     )
 }
 
