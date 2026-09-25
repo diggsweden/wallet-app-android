@@ -123,8 +123,8 @@ private fun SettingsScreen(
     onAboutClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onThemeClick: () -> Unit,
-    isFromIntro: Boolean = false,
     modifier: Modifier = Modifier,
+    isFromIntro: Boolean = false,
 ) {
     CollapsingTitleScaffold(
         title = stringResource(R.string.settings_title),

@@ -35,6 +35,8 @@ import javax.inject.Inject
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.ProofKey
+import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
@@ -49,9 +51,9 @@ import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseEncryptionModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.IssuerDisplay
+import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.Proof
 import se.digg.wallet.data.SavedCredential
-import se.digg.wallet.data.WuaProvider
 import se.digg.wallet.data.toJwkModel
 
 private const val REDIRECT_SCHEME = "wallet-app"
@@ -61,9 +63,8 @@ private const val CLIENT_ID = "wallet-dev"
 private const val PROOF_ISSUER = "wallet-app"
 
 internal class DefaultIssuanceService @Inject constructor(
-    private val wuaProvider: WuaProvider,
+    private val keyAttestationProvider: KeyAttestationProvider,
     private val openIdNetworkService: OpenIdNetworkService,
-    private val proofSigner: ProofSigner,
     private val clock: Clock,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : IssuanceService {
@@ -168,20 +169,31 @@ internal class DefaultIssuanceService @Inject constructor(
         )
     }
 
-    override suspend fun createProof(pin: String) {
-        proof = null
-        proof = createProof(checkNotNull(authorizedSession) { "Missing authorization" }, pin)
-    }
+    override suspend fun createProof(proofKey: ProofKey, proofSigner: ProofSigner): Proof =
+        createProof(
+            checkNotNull(authorizedSession) { "Missing authorization" },
+            proofKey,
+            proofSigner,
+        )
 
-    internal suspend fun createProof(session: AuthorizedSession, pin: String): Proof {
+    internal suspend fun createProof(
+        session: AuthorizedSession,
+        proofKey: ProofKey,
+        proofSigner: ProofSigner,
+    ): Proof {
         val nonce = session.nonceEndpoint?.let { url ->
             openIdNetworkService.fetchNonce(url = url).nonce
         }
 
-        val headers = mutableMapOf<String, Any>("typ" to "openid4vci-proof+jwt")
-        if (session.requiresKeyAttestation) {
-            headers["key_attestation"] = wuaProvider.fetchWua(nonce = nonce)
-            headers["kid"] = "0"
+        val header = if (session.requiresKeyAttestation) {
+            ProofJwtHeader.withKeyAttestation(
+                keyAttestationProvider.getKeyAttestation(
+                    keys = listOf(proofKey.publicKey),
+                    nonce = nonce,
+                ),
+            )
+        } else {
+            ProofJwtHeader.withJwk(proofKey.publicKey)
         }
 
         val payload = IssuanceProofPayload(
@@ -189,24 +201,23 @@ internal class DefaultIssuanceService @Inject constructor(
             aud = session.credentialIssuerId,
             iss = PROOF_ISSUER,
         )
-        val jwtProof = JwtUtils.signJwtWith(
-            payload = payload,
-            headers = headers,
-            jwk = if (session.requiresKeyAttestation) null else proofSigner.publicKey(pin = pin),
-        ) { data ->
-            proofSigner.sign(pin = pin, data = data)
+        val jwtProof = JwtUtils.signJwtWith(header = header, payload = payload) { data ->
+            proofSigner.sign(keyId = proofKey.id, data = data)
         }
         return Proof(listOf(jwtProof))
     }
 
-    override suspend fun fetchCredential(): IssuedCredential = fetchCredential(
-        checkNotNull(authorizedSession) { "Missing authorization" },
-        checkNotNull(proof) { "Missing proof" },
-    )
+    override suspend fun fetchCredential(proof: Proof, proofKeyId: ProofKeyId): IssuedCredential =
+        fetchCredential(
+            checkNotNull(authorizedSession) { "Missing authorization" },
+            proof,
+            proofKeyId,
+        )
 
     internal suspend fun fetchCredential(
         session: AuthorizedSession,
         proof: Proof,
+        proofKeyId: ProofKeyId,
     ): IssuedCredential {
         val encryption = session.requestEncryption
         val response = if (encryption != null) {
@@ -222,7 +233,7 @@ internal class DefaultIssuanceService @Inject constructor(
         val credentialSdJwt = checkNotNull(response.credentials.firstOrNull()?.credential) {
             "No credential found"
         }
-        val (credential, claims) = parseCredential(credentialSdJwt, session)
+        val (credential, claims) = parseCredential(credentialSdJwt, session, proofKeyId)
         return IssuedCredential(credential, claims)
     }
 
@@ -276,6 +287,7 @@ internal class DefaultIssuanceService @Inject constructor(
     private fun parseCredential(
         credentialSdJwt: String,
         session: AuthorizedSession,
+        proofKeyId: ProofKeyId,
     ): Pair<SavedCredential, List<ClaimUiModel>> {
         val sdJwt: SdJwt<JwtAndClaims> = with(DefaultSdJwtOps) {
             unverifiedIssuanceFrom(credentialSdJwt).getOrThrow()
@@ -288,6 +300,7 @@ internal class DefaultIssuanceService @Inject constructor(
             issuer = session.issuerDisplay,
             type = session.credentialType,
             displayData = CredentialDisplayData(name = session.credentialName),
+            keyId = proofKeyId.value,
         ) to claims
     }
 

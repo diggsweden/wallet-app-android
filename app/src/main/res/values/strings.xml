@@ -7,7 +7,6 @@
     <string name="settings_logout_dialog_description">All your data will be erased from this device, including your documents. This cannot be undone.</string>
     <string name="generic_close">Close</string>
     <string name="generic_next">Next</string>
-    <string name="issuance_approve_button">Approve</string>
     <string name="generic_confirm">Confirm</string>
     <string name="generic_share">Share</string>
     <string name="presentation_share_successful_info">You can now go back to the app or website you came from.</string>

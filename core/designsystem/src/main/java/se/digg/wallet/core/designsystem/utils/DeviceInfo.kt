@@ -51,7 +51,8 @@ private fun getNetworkType(context: Context): NetworkType {
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return NetworkType.UNKNOWN
     val network = connectivityManager.activeNetwork ?: return NetworkType.OFFLINE
-    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return NetworkType.OFFLINE
+    val capabilities =
+        connectivityManager.getNetworkCapabilities(network) ?: return NetworkType.OFFLINE
     return when {
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkType.WIFI
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkType.CELLULAR

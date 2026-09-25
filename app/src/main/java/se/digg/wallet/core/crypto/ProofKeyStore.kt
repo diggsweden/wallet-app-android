@@ -4,6 +4,8 @@
 
 package se.digg.wallet.core.crypto
 
-interface ProofSigner {
-    suspend fun sign(keyId: ProofKeyId, data: ByteArray): String
+interface ProofKeyStore {
+    suspend fun createKey(): ProofKey
+    suspend fun deleteKey(keyId: ProofKeyId)
+    suspend fun authenticate()
 }

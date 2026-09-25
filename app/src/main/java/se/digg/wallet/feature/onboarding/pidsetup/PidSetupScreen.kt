@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,13 +27,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.BaseScreen
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.oauth.LocalAuthTabLauncher
 import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
@@ -66,11 +64,9 @@ fun PidSetupRoute(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val launchAuthTab = LocalAuthTabLauncher.current
-
     PidSetupScreen(
         uiState = uiState,
-        onFetchId = { viewModel.getCredentialOffer(launchAuthTab) },
+        onFetchId = { viewModel.getCredentialOffer() },
     )
 }
 
@@ -83,61 +79,61 @@ private fun PidSetupScreen(uiState: PidSetupUiState, onFetchId: () -> Unit) {
             onPrimaryAction = onFetchId,
         )
 
-        PidSetupUiState.Idle -> Content(
-            uiState = uiState,
-            onFetchId = { onFetchId.invoke() },
-        )
+        PidSetupUiState.Idle -> Content(onFetchId = { onFetchId.invoke() })
 
         PidSetupUiState.Loading -> Loading()
     }
 }
 
 @Composable
-private fun Content(uiState: PidSetupUiState, onFetchId: () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(horizontal = OnboardingDefaults.HorizontalPadding)
-            .padding(bottom = OnboardingDefaults.BottomPadding)
-            .verticalScroll(rememberScrollState()),
+private fun Content(onFetchId: () -> Unit) {
+    BaseScreen(
+        floatingContent = {
+            PrimaryButton(
+                text = stringResource(R.string.onboarding_fetch_id_button),
+                onClick = {
+                    onFetchId.invoke()
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
     ) {
-        OnboardingHeader(
-            pageTitle = stringResource(
-                R.string.onboarding_fetch_id_title,
-            ),
-        )
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = OnboardingDefaults.HorizontalPadding)
+                .padding(bottom = OnboardingDefaults.BottomPadding),
         ) {
-            Image(
-                painter = painterResource(R.drawable.pinphone),
-                contentDescription = null,
-                modifier = Modifier
-                    .width(135.dp)
-                    .height(161.dp),
+            OnboardingHeader(
+                pageTitle = stringResource(
+                    R.string.onboarding_fetch_id_title,
+                ),
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.form_pen),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(92.dp)
+                        .height(92.dp),
+                )
+            }
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.onboarding_fetch_id_description_1),
+                style = WalletTextStyle.BodyMD,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = (stringResource(R.string.onboarding_fetch_id_description_2)),
+                style = WalletTextStyle.BodyMD,
             )
         }
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.onboarding_fetch_id_description_1),
-            style = WalletTextStyle.BodyMD,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = (stringResource(R.string.onboarding_fetch_id_description_2)),
-            style = WalletTextStyle.BodyMD,
-        )
-        Spacer(Modifier.weight(1f))
-        PrimaryButton(
-            text = stringResource(R.string.onboarding_fetch_id_button),
-            onClick = {
-                onFetchId.invoke()
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }
 

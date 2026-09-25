@@ -4,6 +4,8 @@
 
 package se.digg.wallet.data
 
+import com.nimbusds.jose.jwk.ECKey
+
 /**
  * The slice of the user's stored credentials that the issuance and presentation flows need.
  */
@@ -13,7 +15,7 @@ interface CredentialStore {
     suspend fun addCredentials(credentials: List<SavedCredential>)
 }
 
-interface WuaProvider {
+interface KeyAttestationProvider {
     /** Fetches a Wallet Unit Attestation, bound to [nonce] when one is given. */
-    suspend fun fetchWua(nonce: String?): String
+    suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String
 }

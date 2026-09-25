@@ -85,10 +85,29 @@ private fun AppError.Problem.toErrorDetails(): List<ErrorDetail> = buildList {
         ),
     )
     add(ErrorDetail(title = stringResource(R.string.error_detail_title), value = title))
-    detail?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_message), value = it)) }
-    add(ErrorDetail(title = stringResource(R.string.error_detail_status), value = status.toString()))
+    detail?.let {
+        add(
+            ErrorDetail(
+                title = stringResource(R.string.error_detail_message),
+                value = it,
+            ),
+        )
+    }
+    add(
+        ErrorDetail(
+            title = stringResource(R.string.error_detail_status),
+            value = status.toString(),
+        ),
+    )
     type?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_type), value = it)) }
-    instance?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_instance), value = it)) }
+    instance?.let {
+        add(
+            ErrorDetail(
+                title = stringResource(R.string.error_detail_instance),
+                value = it,
+            ),
+        )
+    }
     transactionId?.let {
         add(ErrorDetail(title = stringResource(R.string.error_detail_transaction_id), value = it))
     }

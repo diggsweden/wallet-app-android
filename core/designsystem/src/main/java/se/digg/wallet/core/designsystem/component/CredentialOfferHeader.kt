@@ -23,21 +23,23 @@ import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 
 @Composable
-fun CredentialOfferHeader(logoUrl: String?, issuerName: String?, modifier: Modifier = Modifier) {
+fun CredentialOfferHeader(logoUrl: String?, issuerName: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
-        Box(
-            modifier =
-                Modifier
-                    .wrapContentSize()
-                    .heightIn(max = 200.dp, min = 100.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            AsyncImage(
-                model = logoUrl,
-                contentDescription = null,
-            )
+        logoUrl?.let {
+            Box(
+                modifier =
+                    Modifier
+                        .wrapContentSize()
+                        .heightIn(max = 200.dp, min = 100.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = it,
+                    contentDescription = null,
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
         }
-        Spacer(modifier = Modifier.height(12.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
@@ -48,7 +50,7 @@ fun CredentialOfferHeader(logoUrl: String?, issuerName: String?, modifier: Modif
         Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = issuerName ?: "-",
+            text = issuerName,
             style = WalletTextStyle.BodyMD,
         )
     }

@@ -8,20 +8,19 @@ import android.content.Intent
 import android.net.Uri
 import javax.inject.Inject
 import javax.inject.Singleton
-import se.digg.wallet.core.oauth.OAuthCoordinator
+import se.digg.wallet.core.webauth.BrowserWebAuthenticator
 
 @Singleton
-class DeepLinkHandler @Inject constructor(private val oauthCoordinator: OAuthCoordinator) {
+class DeepLinkHandler @Inject constructor(private val webAuthenticator: BrowserWebAuthenticator) {
 
     fun handle(intent: Intent): DeepLinkResult {
         val uri = intent.data ?: return DeepLinkResult.Consumed
 
-        if (oauthCoordinator.hasOngoingPendingResult()) {
-            oauthCoordinator.onDeepLink(uri)
-            return DeepLinkResult.Consumed
+        return if (webAuthenticator.onDeepLink(uri)) {
+            DeepLinkResult.Consumed
+        } else {
+            DeepLinkResult.Unhandled(uri)
         }
-
-        return DeepLinkResult.Unhandled(uri)
     }
 }
 

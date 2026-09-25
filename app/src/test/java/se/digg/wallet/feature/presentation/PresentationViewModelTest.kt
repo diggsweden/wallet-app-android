@@ -22,6 +22,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import se.digg.wallet.core.crypto.ProofKey
+import se.digg.wallet.core.crypto.ProofKeyId
+import se.digg.wallet.core.crypto.ProofKeyManager
+import se.digg.wallet.core.crypto.ProofKeyManagerFactory
+import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.PresentationItem
 
@@ -35,6 +40,7 @@ private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): P
             jwt = "" to JsonObject(emptyMap()),
             disclosures = emptyList(),
         ),
+        bindingKeyId = ProofKeyId("key-$id"),
     )
 
 private class FakePresentationService : PresentationService {
@@ -42,7 +48,7 @@ private class FakePresentationService : PresentationService {
     var resolveCount = 0
     var result: PresentationResult = PresentationResult.Success
     var presentedItems: List<PresentationItem>? = null
-    var presentedPin: String? = null
+    var presentedSigner: ProofSigner? = null
 
     val request = PresentationRequest(
         responseUri = "https://verifier.example/response",
@@ -68,12 +74,22 @@ private class FakePresentationService : PresentationService {
     override suspend fun present(
         request: PresentationRequest,
         items: List<PresentationItem>,
-        pin: String,
+        proofSigner: ProofSigner,
     ): PresentationResult {
         presentedItems = items
-        presentedPin = pin
+        presentedSigner = proofSigner
         return result
     }
+}
+
+private class FakeProofKeyManager(val pin: String) : ProofKeyManager {
+    override suspend fun sign(keyId: ProofKeyId, data: ByteArray): String = "signature"
+
+    override suspend fun createKey(): ProofKey = error("Presentation never creates keys")
+
+    override suspend fun deleteKey(keyId: ProofKeyId) = Unit
+
+    override suspend fun authenticate() = Unit
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,6 +97,7 @@ class PresentationViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val service = FakePresentationService()
+    private val managerFactory = ProofKeyManagerFactory { pin -> FakeProofKeyManager(pin) }
 
     @Before
     fun setUp() {
@@ -104,7 +121,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `init resolves request and presents claims`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, managerFactory)
 
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -120,7 +137,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `init resolves only once`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, managerFactory)
 
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -133,7 +150,7 @@ class PresentationViewModelTest {
     @Test
     fun `resolve failure sets error state`() = runTest(dispatcher) {
         service.resolveError = IllegalStateException("No credential")
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, managerFactory)
 
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -143,7 +160,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `toggling an optional claim updates only that claim`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, managerFactory)
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
 
@@ -157,9 +174,9 @@ class PresentationViewModelTest {
     }
 
     @Test
-    fun `sendData presents required and checked optional items with the pin`() =
+    fun `sendData presents required and checked optional items with a signer for the pin`() =
         runTest(dispatcher) {
-            val viewModel = PresentationViewModel(service)
+            val viewModel = PresentationViewModel(service, managerFactory)
             viewModel.init("openid4vp://request")
             advanceUntilIdle()
 
@@ -171,14 +188,14 @@ class PresentationViewModelTest {
             advanceUntilIdle()
 
             assertEquals(listOf("pid", "address"), service.presentedItems?.map { it.id })
-            assertEquals("123456", service.presentedPin)
+            assertEquals("123456", (service.presentedSigner as? FakeProofKeyManager)?.pin)
             assertEquals(PresentationUiState.ShareSuccess, viewModel.uiState.value)
         }
 
     @Test
     fun `redirect result emits OpenUrl effect`() = runTest(dispatcher) {
         service.result = PresentationResult.Redirect("https://verifier.example/done")
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, managerFactory)
         val effects = collectEffects(viewModel)
         viewModel.init("openid4vp://request")
         advanceUntilIdle()
@@ -195,7 +212,7 @@ class PresentationViewModelTest {
 
     @Test
     fun `sendData before resolve sets error state`() = runTest(dispatcher) {
-        val viewModel = PresentationViewModel(service)
+        val viewModel = PresentationViewModel(service, managerFactory)
 
         viewModel.sendData("123456")
         advanceUntilIdle()

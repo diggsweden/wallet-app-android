@@ -6,173 +6,201 @@ package se.digg.wallet.feature.issuance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.oauth.AuthorizationLauncher
-import se.digg.wallet.core.oauth.LaunchAuthTab
-import se.digg.wallet.core.oauth.OAuthResult
-import se.digg.wallet.data.ClaimUiModel
+import kotlinx.coroutines.withContext
+import se.digg.wallet.core.crypto.ProofKeyManagerFactory
+import se.digg.wallet.core.di.ApplicationScope
+import se.digg.wallet.core.webauth.WebAuthResult
+import se.digg.wallet.core.webauth.WebAuthenticator
 import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.IssuerDisplay
 import timber.log.Timber
 
-enum class IssuanceRetryStep { FetchOffer, Authorize, CreateProof, FetchCredential, SaveCredential }
-
-sealed interface IssuanceState {
-    data object Loading : IssuanceState
-    data class Error(val retryStep: IssuanceRetryStep) : IssuanceState
-    data class OfferReady(val issuer: IssuerDisplay?) : IssuanceState
-    data object AwaitingPin : IssuanceState
-    data class CredentialIssued(val issuer: IssuerDisplay?, val claims: List<ClaimUiModel>) :
-        IssuanceState
-}
-
-@HiltViewModel
-class IssuanceViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = IssuanceViewModel.Factory::class)
+class IssuanceViewModel @AssistedInject constructor(
+    @Assisted credentialOfferUri: String,
     private val issuanceService: IssuanceService,
-    private val authorizationLauncher: AuthorizationLauncher,
+    private val webAuthenticator: WebAuthenticator,
     private val credentialStore: CredentialStore,
+    private val proofKeyManagerFactory: ProofKeyManagerFactory,
+    @param:ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Loading)
+    private val _uiState = MutableStateFlow<IssuanceState>(
+        IssuanceState.AtStep(IssuanceStep.LoadingCredentialOffer(credentialOfferUri)),
+    )
     val uiState: StateFlow<IssuanceState> = _uiState.asStateFlow()
 
-    private var offerUri: String? = null
-    private var issuerDisplay: IssuerDisplay? = null
-    private var issuedCredential: IssuedCredential? = null
-    private var operation: Job? = null
+    private val _issuerDisplay = MutableStateFlow<IssuerDisplay?>(null)
+    val issuerDisplay: StateFlow<IssuerDisplay?> = _issuerDisplay.asStateFlow()
 
-    fun fetchIssuer(uri: String) {
-        if (operation?.isActive == true) return
-        offerUri = uri
-        issuerDisplay = null
-        issuedCredential = null
-        _uiState.value = IssuanceState.Loading
-        operation = viewModelScope.launch {
-            try {
-                issuerDisplay = issuanceService.fetchOffer(uri)
-                _uiState.value = IssuanceState.OfferReady(issuerDisplay)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                showError("Fetch issuer error", e, IssuanceRetryStep.FetchOffer)
-            }
-        }
-    }
+    private var flowJob: Job? = null
+    private var dismissed = false
 
-    fun authorize(launchAuthTab: LaunchAuthTab) {
-        if (_uiState.value !is IssuanceState.OfferReady) return
-        _uiState.value = IssuanceState.Loading
-        operation = viewModelScope.launch {
-            try {
-                val result = authorizationLauncher.authorize(
-                    url = issuanceService.authorizationUrl(),
-                    redirectScheme = "wallet-app",
-                    launchAuthTab = launchAuthTab,
-                )
-                when (result) {
-                    is OAuthResult.Success -> {
-                        issuanceService.exchangeAuthorizationCode(result.redirectUri)
-                        _uiState.value = IssuanceState.AwaitingPin
-                    }
+    private val atStep: IssuanceStep?
+        get() = (_uiState.value as? IssuanceState.AtStep)?.step
 
-                    OAuthResult.Cancelled -> {
-                        _uiState.value = IssuanceState.OfferReady(issuerDisplay)
-                    }
-
-                    is OAuthResult.Failure -> {
-                        showError(
-                            "Authorize error",
-                            IllegalStateException(result.message),
-                            IssuanceRetryStep.Authorize,
-                        )
-                    }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                showError("Authorize error", e, IssuanceRetryStep.Authorize)
-            }
-        }
-    }
-
-    fun createProof(pin: String) {
-        if (_uiState.value != IssuanceState.AwaitingPin) return
-        _uiState.value = IssuanceState.Loading
-        operation = viewModelScope.launch {
-            try {
-                issuanceService.createProof(pin)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                showError("Create proof error", e, IssuanceRetryStep.CreateProof)
-                return@launch
-            }
-            fetchCredential()
-        }
+    init {
+        resume(from = IssuanceStep.LoadingCredentialOffer(credentialOfferUri))
     }
 
     fun retry() {
-        val retryStep = (_uiState.value as? IssuanceState.Error)?.retryStep ?: return
-        when (retryStep) {
-            IssuanceRetryStep.FetchOffer -> {
-                fetchIssuer(checkNotNull(offerUri))
-            }
+        val failed = _uiState.value as? IssuanceState.Failed ?: return
+        resume(from = failed.at.retryStep)
+    }
 
-            IssuanceRetryStep.Authorize -> {
-                _uiState.value = IssuanceState.OfferReady(issuerDisplay)
-            }
+    fun login() {
+        if (atStep != IssuanceStep.PreparingToAuthorize) return
+        resume(from = IssuanceStep.Authorizing)
+    }
 
-            IssuanceRetryStep.CreateProof -> {
-                _uiState.value = IssuanceState.AwaitingPin
-            }
+    fun enterPin(pin: String) {
+        if (dismissed || atStep != IssuanceStep.AwaitingPin) return
+        resume(from = IssuanceStep.AuthenticatingPin(proofKeyManagerFactory.create(pin)))
+    }
 
-            IssuanceRetryStep.FetchCredential -> {
-                _uiState.value = IssuanceState.Loading
-                operation = viewModelScope.launch { fetchCredential() }
-            }
-
-            IssuanceRetryStep.SaveCredential -> {
-                _uiState.value = IssuanceState.Loading
-                operation = viewModelScope.launch { saveCredential() }
+    /**
+     * Stops the flow and deletes any proof key created for a credential that was never saved.
+     * Runs automatically when the ViewModel is cleared; the cleanup outlives [viewModelScope].
+     */
+    fun dismiss() {
+        if (dismissed) return
+        dismissed = true
+        val job = flowJob
+        applicationScope.launch {
+            job?.cancelAndJoin()
+            val (keyId, store) = _uiState.value.currentStep.pendingKey ?: return@launch
+            try {
+                store.deleteKey(keyId)
+            } catch (e: Exception) {
+                Timber.d(e, "IssuanceViewModel: Failed to delete pending proof key")
             }
         }
     }
 
-    private suspend fun fetchCredential() {
-        try {
-            issuedCredential = issuanceService.fetchCredential()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            showError("Fetch credential error", e, IssuanceRetryStep.FetchCredential)
-            return
-        }
-        saveCredential()
+    override fun onCleared() {
+        dismiss()
     }
 
-    private suspend fun saveCredential() {
-        val issued = checkNotNull(issuedCredential)
-        try {
-            credentialStore.addCredentials(listOf(issued.credential))
-            _uiState.value = IssuanceState.CredentialIssued(
-                issuer = issued.credential.issuer,
-                claims = issued.claims,
+    private fun resume(from: IssuanceStep) {
+        if (dismissed) return
+        _uiState.value = IssuanceState.AtStep(from)
+        flowJob = viewModelScope.launch { run(from) }
+    }
+
+    private suspend fun run(from: IssuanceStep) {
+        var step = from
+        while (true) {
+            _uiState.value = IssuanceState.AtStep(step)
+            currentCoroutineContext().ensureActive()
+
+            val next = try {
+                if (step.isInterruptible) {
+                    perform(step)
+                } else {
+                    // Publish the result before returning, as a cancelled caller would drop it.
+                    withContext(NonCancellable) {
+                        perform(step)?.also { _uiState.value = IssuanceState.AtStep(it) }
+                    }
+                }
+            } catch (e: Exception) {
+                currentCoroutineContext().ensureActive()
+                Timber.d(e, "IssuanceViewModel: ${step::class.simpleName} failed")
+                _uiState.value = IssuanceState.Failed(at = step, cause = e)
+                return
+            }
+            step = next ?: return
+        }
+    }
+
+    /** Performs [step] and returns the step to continue with, or `null` to wait for the user. */
+    private suspend fun perform(step: IssuanceStep): IssuanceStep? = when (step) {
+        IssuanceStep.PreparingToAuthorize,
+        IssuanceStep.AwaitingPin,
+        is IssuanceStep.Issued,
+        -> {
+            null
+        }
+
+        is IssuanceStep.LoadingCredentialOffer -> {
+            _issuerDisplay.value = issuanceService.fetchOffer(step.credentialOfferUri)
+            IssuanceStep.PreparingToAuthorize
+        }
+
+        IssuanceStep.Authorizing -> {
+            val result = webAuthenticator.authenticate(
+                url = issuanceService.authorizationUrl(),
+                callbackScheme = "wallet-app",
             )
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            showError("Save credential error", e, IssuanceRetryStep.SaveCredential)
+            when (result) {
+                is WebAuthResult.Success -> {
+                    issuanceService.exchangeAuthorizationCode(result.callbackUri)
+                    IssuanceStep.AwaitingPin
+                }
+
+                WebAuthResult.Cancelled -> {
+                    IssuanceStep.PreparingToAuthorize
+                }
+
+                is WebAuthResult.Failure -> {
+                    error(result.message)
+                }
+            }
+        }
+
+        is IssuanceStep.AuthenticatingPin -> {
+            step.manager.authenticate()
+            IssuanceStep.CreatingKey(step.manager)
+        }
+
+        is IssuanceStep.CreatingKey -> {
+            IssuanceStep.SigningProof(proofKey = step.manager.createKey(), manager = step.manager)
+        }
+
+        is IssuanceStep.SigningProof -> {
+            val proof = issuanceService.createProof(
+                proofKey = step.proofKey,
+                proofSigner = step.manager,
+            )
+
+            IssuanceStep.FetchingCredential(
+                proofKey = step.proofKey,
+                manager = step.manager,
+                proof = proof,
+            )
+        }
+
+        is IssuanceStep.FetchingCredential -> {
+            IssuanceStep.SavingCredential(
+                issued = issuanceService.fetchCredential(
+                    proof = step.proof,
+                    proofKeyId = step.proofKey.id,
+                ),
+                proofKey = step.proofKey,
+                manager = step.manager,
+            )
+        }
+
+        is IssuanceStep.SavingCredential -> {
+            credentialStore.addCredentials(listOf(step.issued.credential))
+            IssuanceStep.Issued(step.issued)
         }
     }
 
-    private fun showError(message: String, cause: Exception, retryStep: IssuanceRetryStep) {
-        Timber.d(cause, "IssuanceViewModel: $message")
-        _uiState.value = IssuanceState.Error(retryStep)
+    @AssistedFactory
+    interface Factory {
+        fun create(credentialOfferUri: String): IssuanceViewModel
     }
 }

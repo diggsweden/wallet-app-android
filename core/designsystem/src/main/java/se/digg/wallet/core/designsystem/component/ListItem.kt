@@ -89,7 +89,7 @@ private fun WalletListItemPreview() {
                 title = "Title and trailing icon",
                 onClick = {},
                 leadingIconRes = R.drawable.help_24px,
-                trailingIconRes = R.drawable.copy_icon
+                trailingIconRes = R.drawable.copy_icon,
             )
             WalletListItem(
                 title = "Title with description",

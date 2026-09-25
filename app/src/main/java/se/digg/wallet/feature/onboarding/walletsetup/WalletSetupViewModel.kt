@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,7 +22,6 @@ import kotlinx.coroutines.launch
 import se.digg.wallet.core.error.AppError
 import se.digg.wallet.core.error.AppException
 import timber.log.Timber
-import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class WalletSetupViewModel @Inject constructor(
@@ -91,6 +91,7 @@ class WalletSetupViewModel @Inject constructor(
 
     private fun AppError.toUiModel(): ErrorUiModel = when (this) {
         is AppError.Problem -> ErrorUiModel(title = title, message = detail, problem = this)
+
         is AppError.PlainMessage,
         is AppError.Connectivity,
         is AppError.Unexpected,

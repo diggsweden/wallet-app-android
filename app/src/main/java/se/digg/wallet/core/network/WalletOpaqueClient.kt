@@ -63,6 +63,7 @@ class WalletOpaqueClient @Inject constructor(
             devAuthorizationCode = response.devAuthorizationCode ?: "",
             serverJwsPublicKey = response.serverJwsPublicKey?.toECKey(),
             opaqueServerId = response.opaqueServerId ?: "",
+            clientId = response.clientId ?: "",
         )
     }
 

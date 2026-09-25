@@ -149,6 +149,7 @@ class CredentialMatcherTest {
             issuer = null,
             type = type,
             displayData = null,
+            keyId = "binding-key",
         )
     }
 }
