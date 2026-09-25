@@ -24,7 +24,6 @@ data class OpaqueSession(
     val serverPublicKeyJwk: String,
     val opaqueServerId: String,
     val opaqueContext: String,
-    val clientId: String,
 )
 
 class DbConverters {

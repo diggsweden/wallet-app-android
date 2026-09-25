@@ -43,10 +43,13 @@ class HsmProofSigner(
         opaqueClient = makeAuthenticatedClient()
     }
 
-    suspend fun getClient(): OpaqueClient =
-        opaqueClient ?: makeAuthenticatedClient().also { client -> opaqueClient = client }
+    private suspend fun getClient(): OpaqueClient {
+        val client = opaqueClient ?: makeAuthenticatedClient()
+        opaqueClient = null
+        return client
+    }
 
-    suspend fun makeAuthenticatedClient(): OpaqueClient {
+    private suspend fun makeAuthenticatedClient(): OpaqueClient {
         val client = OpaqueClient.resume(
             transport = opaqueTransport,
             serverParameters = serverParameters(),

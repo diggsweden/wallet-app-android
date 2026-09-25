@@ -77,7 +77,6 @@ class UserRepository @Inject constructor(
                 opaqueSession = OpaqueSession(
                     serverPublicKeyJwk = jwk,
                     opaqueServerId = params.opaqueServerId,
-                    clientId = params.clientId,
                     opaqueContext = params.opaqueContext,
                 ),
             )
@@ -92,7 +91,6 @@ class UserRepository @Inject constructor(
         return ServerParameters(
             serverPublicKey = publicKey,
             opaqueServerId = session.opaqueServerId,
-            clientId = session.clientId,
             opaqueContext = session.opaqueContext,
         )
     }

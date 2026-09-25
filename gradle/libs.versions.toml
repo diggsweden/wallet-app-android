@@ -30,7 +30,7 @@ androidBrowser = "1.10.0"
 aboutLibraries = "15.2.0"
 kotlinter = "5.7.0"
 eudiSDJWT = "0.20.1"
-accessMechanism = "0.0.6-SNAPSHOT"
+accessMechanism = "0.0.7-SNAPSHOT"
 
 [libraries]
 # Test
