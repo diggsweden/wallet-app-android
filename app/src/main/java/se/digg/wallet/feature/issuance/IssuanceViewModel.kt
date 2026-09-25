@@ -150,13 +150,24 @@ class IssuanceViewModel @Inject constructor(
         }
 
         is IssuanceStep.SigningProof -> {
-            issuanceService.createProof(proofKey = step.proofKey, proofSigner = step.manager)
-            IssuanceStep.FetchingCredential(proofKey = step.proofKey, manager = step.manager)
+            val proof = issuanceService.createProof(
+                proofKey = step.proofKey,
+                proofSigner = step.manager,
+            )
+
+            IssuanceStep.FetchingCredential(
+                proofKey = step.proofKey,
+                manager = step.manager,
+                proof = proof,
+            )
         }
 
         is IssuanceStep.FetchingCredential -> {
             IssuanceStep.SavingCredential(
-                issued = issuanceService.fetchCredential(),
+                issued = issuanceService.fetchCredential(
+                    proof = step.proof,
+                    proofKeyId = step.proofKey.id,
+                ),
                 proofKey = step.proofKey,
                 manager = step.manager,
             )

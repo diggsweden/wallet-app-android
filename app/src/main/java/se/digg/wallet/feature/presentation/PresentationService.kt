@@ -65,7 +65,6 @@ interface PresentationService {
         request: PresentationRequest,
         items: List<PresentationItem>,
         proofSigner: ProofSigner,
-        proofKeyId: ProofKeyId,
     ): PresentationResult
 }
 
@@ -131,7 +130,6 @@ internal class DefaultPresentationService @Inject constructor(
         request: PresentationRequest,
         items: List<PresentationItem>,
         proofSigner: ProofSigner,
-        proofKeyId: ProofKeyId,
     ): PresentationResult {
         val vpToken = items.associate { item ->
             val keyBinding = signKeyBinding(
@@ -139,7 +137,7 @@ internal class DefaultPresentationService @Inject constructor(
                 nonce = request.nonce,
                 audience = request.clientId,
                 proofSigner = proofSigner,
-                proofKeyId = proofKeyId,
+                proofKeyId = item.bindingKeyId,
             )
             val presentation = item.disclosedSdJwt.serializeWithKeyBinding(kbJwt = keyBinding)
             item.id to listOf(presentation)

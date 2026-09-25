@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtHeader
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.ProofKeyId
 
 @Serializable
 data class KeybindingPayload(
@@ -48,6 +49,7 @@ data class PresentationItem(
     val isRequired: Boolean,
     val claims: List<ClaimUiModel>,
     val disclosedSdJwt: SdJwt<JwtAndClaims>,
+    val bindingKeyId: ProofKeyId,
 )
 
 @Serializable

@@ -36,6 +36,7 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofKey
+import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
@@ -199,15 +200,8 @@ internal class DefaultIssuanceService @Inject constructor(
         return Proof(listOf(jwtProof))
     }
 
-    override suspend fun fetchCredential(): IssuedCredential = fetchCredential(
-        checkNotNull(authorizedSession) { "Missing authorization" },
-        checkNotNull(proof) { "Missing proof" },
-    )
-
-    internal suspend fun fetchCredential(
-        session: AuthorizedSession,
-        proof: Proof,
-    ): IssuedCredential {
+    override suspend fun fetchCredential(proof: Proof, proofKeyId: ProofKeyId): IssuedCredential {
+        val session = checkNotNull(authorizedSession) { "Missing authorization" }
         val encryption = session.requestEncryption
         val response = if (encryption != null) {
             fetchEncryptedCredential(
@@ -222,7 +216,7 @@ internal class DefaultIssuanceService @Inject constructor(
         val credentialSdJwt = checkNotNull(response.credentials.firstOrNull()?.credential) {
             "No credential found"
         }
-        val (credential, claims) = parseCredential(credentialSdJwt, session)
+        val (credential, claims) = parseCredential(credentialSdJwt, session, proofKeyId)
         return IssuedCredential(credential, claims)
     }
 
@@ -276,6 +270,7 @@ internal class DefaultIssuanceService @Inject constructor(
     private fun parseCredential(
         credentialSdJwt: String,
         session: AuthorizedSession,
+        proofKeyId: ProofKeyId,
     ): Pair<SavedCredential, List<ClaimUiModel>> {
         val sdJwt: SdJwt<JwtAndClaims> = with(DefaultSdJwtOps) {
             unverifiedIssuanceFrom(credentialSdJwt).getOrThrow()
@@ -288,7 +283,7 @@ internal class DefaultIssuanceService @Inject constructor(
             issuer = session.issuerDisplay,
             type = session.credentialType,
             displayData = CredentialDisplayData(name = session.credentialName),
-            keyId = "",
+            keyId = proofKeyId.value
         ) to claims
     }
 

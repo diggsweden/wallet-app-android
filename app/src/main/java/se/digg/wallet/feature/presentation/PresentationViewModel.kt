@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.crypto.HsmProofSigner
 import se.digg.wallet.core.crypto.ProofKeyId
+import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.GatewayHttpClient
 import se.digg.wallet.core.network.WalletOpaqueClient
@@ -30,8 +31,7 @@ import timber.log.Timber
 @HiltViewModel
 class PresentationViewModel @Inject constructor(
     private val presentationService: PresentationService,
-    private val userRepository: UserRepository,
-    @GatewayHttpClient private val gatewayHttpClient: HttpClient,
+    private val proofKeyManagerFactory: ProofKeyManagerFactory,
 ) : ViewModel() {
     private var request: PresentationRequest? = null
     private var itemsToDisclose: List<PresentationItem> = emptyList()
@@ -92,19 +92,10 @@ class PresentationViewModel @Inject constructor(
                     "Presentation request not resolved"
                 }
 
-                val proofSigner = HsmProofSigner(
-                    serverParameters = userRepository::getServerParameters,
-                    opaqueTransport = WalletOpaqueClient(
-                        httpClient = gatewayHttpClient
-                    ),
-                    pin = pin
-                )
-
                 val result = presentationService.present(
                     request = request,
                     items = itemsToDisclose,
-                    proofSigner = proofSigner,
-                    proofKeyId = ProofKeyId("") // TODO: Fix
+                    proofSigner = proofKeyManagerFactory.create(pin = pin),
                 )
 
                 when (result) {
