@@ -15,7 +15,9 @@ import io.ktor.http.parameters
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import se.digg.wallet.core.crypto.CryptoSpec
+import se.digg.wallet.core.crypto.JwtHeader
 import se.digg.wallet.core.crypto.JwtUtils
 
 @Serializable
@@ -25,6 +27,13 @@ data class KeybindingPayload(
     @SerialName("sd_hash")
     val sdHash: String,
 )
+
+@Serializable
+data class KeyBindingJwtHeader(
+    override val typ: String = "kb+jwt",
+    override val kid: String? = null,
+    override val jwk: JsonObject? = null,
+) : JwtHeader
 
 data class CredentialQuery(
     val id: String,

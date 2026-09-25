@@ -31,6 +31,7 @@ import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.services.PresentationResult
+import se.digg.wallet.data.KeyBindingJwtHeader
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.data.Proof
@@ -171,9 +172,7 @@ internal class DefaultPresentationService @Inject constructor(
             nonce = nonce,
             sdHash = sdJwtHash(sdJwt),
         )
-        val headers = mapOf<String, Any>("typ" to "kb+jwt")
-
-        return JwtUtils.signJwtWith(payload, headers) { data ->
+        return JwtUtils.signJwtWith(KeyBindingJwtHeader(), payload) { data ->
             proofSigner.sign(keyId = proofKeyId, data = data)
         }
     }

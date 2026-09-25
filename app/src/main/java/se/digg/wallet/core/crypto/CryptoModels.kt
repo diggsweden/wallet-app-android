@@ -25,6 +25,12 @@ data class DefaultJwtClaims(val iat: Int, val nbf: Int, val exp: Int)
 @Serializable
 data class JwtClaims<T>(val defaults: DefaultJwtClaims, val payload: T)
 
+interface JwtHeader {
+    val typ: String?
+    val kid: String?
+    val jwk: JsonObject?
+}
+
 data class CryptoSpec(
     val jwk: JWK,
     val encryptionMethod: EncryptionMethod,

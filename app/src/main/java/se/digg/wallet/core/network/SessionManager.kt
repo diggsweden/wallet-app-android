@@ -46,8 +46,8 @@ class SessionManager(
         val jwt =
             JwtUtils.signJwt(
                 keyPair = key,
-                payload = mapOf("nonce" to nonce),
-                headers = mapOf("kid" to keyId),
+                header = ChallengeJwtHeader(kid = keyId),
+                payload = ChallengePayload(nonce = nonce),
             ).serialize()
         return validateClient.validateChallenge(
             AuthChallengeRequest(signedJwt = jwt),

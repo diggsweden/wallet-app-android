@@ -177,11 +177,15 @@ internal class DefaultIssuanceService @Inject constructor(
             openIdNetworkService.fetchNonce(url = url).nonce
         }
 
-        val headers = mutableMapOf<String, Any>("typ" to "openid4vci-proof+jwt")
-        if (session.requiresKeyAttestation) {
-            headers["key_attestation"] =
-                keyAttestationProvider.getKeyAttestation(keys = emptyList(), nonce = nonce)
-            headers["kid"] = "0"
+        val header = if (session.requiresKeyAttestation) {
+            ProofJwtHeader.withKeyAttestation(
+                keyAttestationProvider.getKeyAttestation(
+                    keys = listOf(proofKey.publicKey),
+                    nonce = nonce,
+                ),
+            )
+        } else {
+            ProofJwtHeader.withJwk(proofKey.publicKey)
         }
 
         val payload = IssuanceProofPayload(
@@ -189,11 +193,7 @@ internal class DefaultIssuanceService @Inject constructor(
             aud = session.credentialIssuerId,
             iss = PROOF_ISSUER,
         )
-        val jwtProof = JwtUtils.signJwtWith(
-            payload = payload,
-            headers = headers,
-            jwk = if (session.requiresKeyAttestation) null else proofKey.publicKey,
-        ) { data ->
+        val jwtProof = JwtUtils.signJwtWith(header = header, payload = payload) { data ->
             proofSigner.sign(keyId = proofKey.id, data = data)
         }
         return Proof(listOf(jwtProof))
