@@ -7,6 +7,7 @@ package se.digg.wallet.feature.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.ktor.client.HttpClient
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,14 +16,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.crypto.HsmProofSigner
+import se.digg.wallet.core.crypto.ProofKeyId
+import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.di.GatewayHttpClient
+import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.PresentationItem
+import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
 import timber.log.Timber
 
 @HiltViewModel
 class PresentationViewModel @Inject constructor(
     private val presentationService: PresentationService,
+    private val userRepository: UserRepository,
+    @GatewayHttpClient private val gatewayHttpClient: HttpClient,
 ) : ViewModel() {
     private var request: PresentationRequest? = null
     private var itemsToDisclose: List<PresentationItem> = emptyList()
@@ -82,11 +91,22 @@ class PresentationViewModel @Inject constructor(
                 val request = checkNotNull(request) {
                     "Presentation request not resolved"
                 }
+
+                val proofSigner = HsmProofSigner(
+                    serverParameters = userRepository::getServerParameters,
+                    opaqueTransport = WalletOpaqueClient(
+                        httpClient = gatewayHttpClient
+                    ),
+                    pin = pin
+                )
+
                 val result = presentationService.present(
                     request = request,
                     items = itemsToDisclose,
-                    pin = pin,
+                    proofSigner = proofSigner,
+                    proofKeyId = ProofKeyId("") // TODO: Fix
                 )
+
                 when (result) {
                     is PresentationResult.Redirect -> {
                         _effects.emit(OpenUrl(result.uri))

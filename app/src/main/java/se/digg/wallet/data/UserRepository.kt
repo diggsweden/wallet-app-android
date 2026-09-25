@@ -10,31 +10,38 @@ import io.ktor.client.HttpClient
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
+import se.digg.wallet.core.crypto.toEcJwkRequests
 import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
+import se.wallet.client.gateway.client.AttestationV0KeyAttestationsClient
 import se.wallet.client.gateway.client.V0AccountsClient
 import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
-import se.wallet.client.gateway.client.WuaClient
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
+import se.wallet.client.gateway.models.KeyAttestationRequest
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
     private val gatewayClient: HttpClient,
     private val sessionManager: SessionManager,
 ) : CredentialStore,
-    WuaProvider {
+    KeyAttestationProvider {
     val user: Flow<User?> = userDao.observe()
     private val accountsClient = V0AccountsClient(gatewayClient)
-    private val wuaClient = WuaClient(gatewayClient)
     private val walletKeysClient = V0AccountsWalletKeysClient(gatewayClient)
+    private val attestationsClient = AttestationV0KeyAttestationsClient(gatewayClient)
 
-    override suspend fun fetchWua(nonce: String?): String =
-        wuaClient.createWua(nonce = nonce).getOrThrow().jwt
+    override suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String =
+        attestationsClient.createKeyAttestation(
+            KeyAttestationRequest(
+                keys = keys.toEcJwkRequests(),
+                nonce = nonce,
+            ),
+        ).getOrThrow().jwt
 
     suspend fun createAccount(request: CreateAccountRequest): String =
         accountsClient.createAccount(createAccountRequest = request).getOrThrow().accountId
@@ -47,6 +54,7 @@ class UserRepository @Inject constructor(
     suspend fun getPid(): SavedCredential? = getCredentials().firstOrNull()
     override suspend fun getCredentials(): List<SavedCredential> =
         userDao.get()?.credentials ?: emptyList()
+
     suspend fun getCredential(id: String): SavedCredential {
         val matchingCredential = getCredentials().firstOrNull { it.id == id }
         checkNotNull(value = matchingCredential) {
@@ -69,20 +77,22 @@ class UserRepository @Inject constructor(
                 opaqueSession = OpaqueSession(
                     serverPublicKeyJwk = jwk,
                     opaqueServerId = params.opaqueServerId,
-                    stateId = params.stateId,
+                    clientId = params.clientId,
                     opaqueContext = params.opaqueContext,
                 ),
             )
         }
     }
 
-    suspend fun getServerParameters(): ServerParameters? {
-        val session = userDao.get()?.opaqueSession ?: return null
+    suspend fun getServerParameters(): ServerParameters {
+        val session = checkNotNull(userDao.get()?.opaqueSession) {
+            "User was null. Should never be null."
+        }
         val publicKey = ECKey.parse(session.serverPublicKeyJwk).toECPublicKey()
         return ServerParameters(
             serverPublicKey = publicKey,
             opaqueServerId = session.opaqueServerId,
-            stateId = session.stateId,
+            clientId = session.clientId,
             opaqueContext = session.opaqueContext,
         )
     }

@@ -35,6 +35,7 @@ import javax.inject.Inject
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
@@ -49,9 +50,9 @@ import se.digg.wallet.data.CredentialRequestModel
 import se.digg.wallet.data.CredentialResponseEncryptionModel
 import se.digg.wallet.data.CredentialResponseModel
 import se.digg.wallet.data.IssuerDisplay
+import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.Proof
 import se.digg.wallet.data.SavedCredential
-import se.digg.wallet.data.WuaProvider
 import se.digg.wallet.data.toJwkModel
 
 private const val REDIRECT_SCHEME = "wallet-app"
@@ -61,9 +62,8 @@ private const val CLIENT_ID = "wallet-dev"
 private const val PROOF_ISSUER = "wallet-app"
 
 internal class DefaultIssuanceService @Inject constructor(
-    private val wuaProvider: WuaProvider,
+    private val keyAttestationProvider: KeyAttestationProvider,
     private val openIdNetworkService: OpenIdNetworkService,
-    private val proofSigner: ProofSigner,
     private val clock: Clock,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : IssuanceService {
@@ -168,19 +168,19 @@ internal class DefaultIssuanceService @Inject constructor(
         )
     }
 
-    override suspend fun createProof(pin: String) {
-        proof = null
-        proof = createProof(checkNotNull(authorizedSession) { "Missing authorization" }, pin)
-    }
+    override suspend fun createProof(proofKey: ProofKey, proofSigner: ProofSigner): Proof {
+        val session = checkNotNull(authorizedSession) {
+            "Missing authorization"
+        }
 
-    internal suspend fun createProof(session: AuthorizedSession, pin: String): Proof {
         val nonce = session.nonceEndpoint?.let { url ->
             openIdNetworkService.fetchNonce(url = url).nonce
         }
 
         val headers = mutableMapOf<String, Any>("typ" to "openid4vci-proof+jwt")
         if (session.requiresKeyAttestation) {
-            headers["key_attestation"] = wuaProvider.fetchWua(nonce = nonce)
+            headers["key_attestation"] =
+                keyAttestationProvider.getKeyAttestation(keys = emptyList(), nonce = nonce)
             headers["kid"] = "0"
         }
 
@@ -192,9 +192,9 @@ internal class DefaultIssuanceService @Inject constructor(
         val jwtProof = JwtUtils.signJwtWith(
             payload = payload,
             headers = headers,
-            jwk = if (session.requiresKeyAttestation) null else proofSigner.publicKey(pin = pin),
+            jwk = if (session.requiresKeyAttestation) null else proofKey.publicKey,
         ) { data ->
-            proofSigner.sign(pin = pin, data = data)
+            proofSigner.sign(keyId = proofKey.id, data = data)
         }
         return Proof(listOf(jwtProof))
     }
@@ -288,6 +288,7 @@ internal class DefaultIssuanceService @Inject constructor(
             issuer = session.issuerDisplay,
             type = session.credentialType,
             displayData = CredentialDisplayData(name = session.credentialName),
+            keyId = "",
         ) to claims
     }
 

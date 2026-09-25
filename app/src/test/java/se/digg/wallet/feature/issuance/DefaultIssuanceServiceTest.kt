@@ -54,9 +54,8 @@ import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.IssuerDisplay
+import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.Proof
-import se.digg.wallet.data.SavedCredential
-import se.digg.wallet.data.WuaProvider
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
 private const val NONCE_ENDPOINT = "https://issuer.example/nonce"
@@ -78,11 +77,11 @@ private class FakeProofSigner(private val key: JWK) : ProofSigner {
     }
 }
 
-private class FakeWuaProvider : WuaProvider {
+private class FakeKeyAttestationProvider : KeyAttestationProvider {
     var callCount = 0
     var nonce: String? = null
 
-    override suspend fun fetchWua(nonce: String?): String {
+    override suspend fun getKeyAttestation(nonce: String?, keys: List<ECKey>): String {
         callCount += 1
         this.nonce = nonce
         return "wua.jwt"
@@ -93,7 +92,7 @@ class DefaultIssuanceServiceTest {
 
     private val hsmKey = ECKeyGenerator(Curve.P_256).keyID("hsm-key").generate()
     private val proofSigner = FakeProofSigner(hsmKey.toPublicJWK())
-    private val wuaProvider = FakeWuaProvider()
+    private val wuaProvider = FakeKeyAttestationProvider()
     private val clock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC)
 
     private val requests = mutableListOf<HttpRequestData>()
@@ -120,7 +119,7 @@ class DefaultIssuanceServiceTest {
     }
 
     private val service = DefaultIssuanceService(
-        wuaProvider = wuaProvider,
+        keyAttestationProvider = wuaProvider,
         openIdNetworkService = OpenIdNetworkService(httpClient),
         proofSigner = proofSigner,
         clock = clock,

@@ -21,14 +21,19 @@ import eu.europa.ec.eudi.openid4vp.asException
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serialize
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serializeWithKeyBinding
 import io.ktor.client.HttpClient
+import java.security.MessageDigest
+import java.util.Base64
 import javax.inject.Inject
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
-import se.digg.wallet.core.crypto.KeyBindingSigner
+import se.digg.wallet.core.crypto.ProofKeyId
+import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.services.PresentationResult
+import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.PresentationItem
+import se.digg.wallet.data.Proof
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.VpTokenResponse
 
@@ -58,14 +63,14 @@ interface PresentationService {
     suspend fun present(
         request: PresentationRequest,
         items: List<PresentationItem>,
-        pin: String,
+        proofSigner: ProofSigner,
+        proofKeyId: ProofKeyId,
     ): PresentationResult
 }
 
 internal class DefaultPresentationService @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
-    private val keyBindingSigner: KeyBindingSigner,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : PresentationService {
 
@@ -124,14 +129,16 @@ internal class DefaultPresentationService @Inject constructor(
     override suspend fun present(
         request: PresentationRequest,
         items: List<PresentationItem>,
-        pin: String,
+        proofSigner: ProofSigner,
+        proofKeyId: ProofKeyId,
     ): PresentationResult {
         val vpToken = items.associate { item ->
-            val keyBinding = keyBindingSigner.sign(
+            val keyBinding = signKeyBinding(
                 sdJwt = item.disclosedSdJwt.serialize(),
                 nonce = request.nonce,
                 audience = request.clientId,
-                pin = pin,
+                proofSigner = proofSigner,
+                proofKeyId = proofKeyId,
             )
             val presentation = item.disclosedSdJwt.serializeWithKeyBinding(kbJwt = keyBinding)
             item.id to listOf(presentation)
@@ -150,6 +157,31 @@ internal class DefaultPresentationService @Inject constructor(
             url = request.responseUri,
             body = body,
         )
+    }
+
+    private suspend fun signKeyBinding(
+        sdJwt: String,
+        nonce: String,
+        audience: String,
+        proofSigner: ProofSigner,
+        proofKeyId: ProofKeyId,
+    ): String {
+        val payload = KeybindingPayload(
+            aud = audience,
+            nonce = nonce,
+            sdHash = sdJwtHash(sdJwt),
+        )
+        val headers = mapOf<String, Any>("typ" to "kb+jwt")
+
+        return JwtUtils.signJwtWith(payload, headers) { data ->
+            proofSigner.sign(keyId = proofKeyId, data = data)
+        }
+    }
+
+    private fun sdJwtHash(sdJwt: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(sdJwt.toByteArray(Charsets.US_ASCII))
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
     }
 
     private suspend fun resolveRequestObject(uri: String): ResolvedRequestObject {

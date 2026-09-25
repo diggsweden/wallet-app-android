@@ -41,6 +41,7 @@ import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.oauth.LocalAuthTabLauncher
+import se.digg.wallet.data.IssuerDisplay
 
 @Composable
 fun IssuanceScreen(
@@ -52,16 +53,19 @@ fun IssuanceScreen(
     viewModel: IssuanceViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val issuer by viewModel.issuerDisplay.collectAsState()
 
     val launchAuthTab = LocalAuthTabLauncher.current
-    LaunchedEffect(Unit) { viewModel.fetchIssuer(credentialOfferUri) }
+    LaunchedEffect(Unit) { viewModel.start(credentialOfferUri) }
 
     when (val currentState = uiState) {
-        is IssuanceState.Error -> {
+        is IssuanceState.Failed -> {
             GenericErrorScreen(onPrimaryAction = { viewModel.retry() })
         }
 
-        else -> {
+        IssuanceState.Idle,
+        is IssuanceState.AtStep,
+        -> {
             Column(
                 Modifier
                     .fillMaxSize()
@@ -75,25 +79,21 @@ fun IssuanceScreen(
                     Spacer(Modifier.height(26.dp))
                 }
 
-                when (currentState) {
-                    IssuanceState.Loading -> {
-                        GenericLoading()
-                    }
-
-                    is IssuanceState.OfferReady -> {
+                when (val step = (currentState as? IssuanceState.AtStep)?.step) {
+                    IssuanceStep.PreparingToAuthorize -> {
                         CredentialOfferHeader(
-                            logoUrl = currentState.issuer?.logo?.uri?.toString(),
-                            issuerName = currentState.issuer?.name,
+                            logoUrl = issuer?.logo?.uri?.toString(),
+                            issuerName = issuer?.name,
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         PrimaryButton(
                             text = stringResource(R.string.generic_login),
-                            onClick = { viewModel.authorize(launchAuthTab) },
+                            onClick = { viewModel.login(launchAuthTab) },
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
 
-                    is IssuanceState.AwaitingPin -> {
+                    IssuanceStep.AwaitingPin -> {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
                             text =
@@ -107,27 +107,50 @@ fun IssuanceScreen(
                             buttonLabel = stringResource(
                                 R.string.onboarding_issuance_ready_to_sign_confirm_button,
                             ),
-                            onSubmit = { pin -> viewModel.createProof(pin) },
+                            onSubmit = { pin -> viewModel.enterPin(pin) },
                         )
                     }
 
-                    is IssuanceState.CredentialIssued -> {
-                        CredentialOfferHeader(
-                            logoUrl = currentState.issuer?.logo?.uri?.toString(),
-                            issuerName = currentState.issuer?.name,
+                    is IssuanceStep.SavingCredential -> {
+                        IssuedCredentialContent(issuer = issuer, issued = step.issued)
+                    }
+
+                    is IssuanceStep.Issued -> {
+                        IssuedCredentialContent(
+                            issuer = issuer,
+                            issued = step.issued,
+                            onFinishClick = onFinishClick,
                         )
-                        Spacer(modifier = Modifier.height(30.dp))
-                        ClaimList(claims = currentState.claims)
-                        Spacer(modifier = Modifier.height(24.dp))
-                        PrimaryButton(
-                            text = stringResource(R.string.issuance_approve_button),
-                            onClick = { onFinishClick.invoke() },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    }
+
+                    else -> {
+                        GenericLoading()
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun IssuedCredentialContent(
+    issuer: IssuerDisplay?,
+    issued: IssuedCredential,
+    onFinishClick: (() -> Unit)? = null,
+) {
+    CredentialOfferHeader(
+        logoUrl = issuer?.logo?.uri?.toString(),
+        issuerName = issuer?.name,
+    )
+    Spacer(modifier = Modifier.height(30.dp))
+    ClaimList(claims = issued.claims)
+    Spacer(modifier = Modifier.height(24.dp))
+    if (onFinishClick != null) {
+        PrimaryButton(
+            text = stringResource(R.string.issuance_approve_button),
+            onClick = onFinishClick,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -137,6 +160,7 @@ fun DeepLinkedIssuanceRoute(
     onFinishClick: () -> Unit,
     credentialOfferUri: String,
     modifier: Modifier = Modifier,
+    viewModel: IssuanceViewModel = hiltViewModel(),
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -148,7 +172,12 @@ fun DeepLinkedIssuanceRoute(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { onBackClick.invoke() }) {
+                    IconButton(
+                        onClick = {
+                            viewModel.dismiss()
+                            onBackClick.invoke()
+                        },
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_left),
                             contentDescription = null,
@@ -166,6 +195,7 @@ fun DeepLinkedIssuanceRoute(
                 onBackClick = { onBackClick.invoke() },
                 onFinishClick = { onFinishClick.invoke() },
                 credentialOfferUri = credentialOfferUri,
+                viewModel = viewModel,
             )
         }
     }

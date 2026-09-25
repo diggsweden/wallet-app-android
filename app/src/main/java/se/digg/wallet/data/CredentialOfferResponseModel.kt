@@ -17,6 +17,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import se.digg.wallet.core.crypto.ProofKeyId
 
 @Serializable
 data class CredentialRequestModel(
@@ -49,6 +50,7 @@ data class SavedCredential(
     val type: String = "",
     val id: String = UUID.randomUUID().toString(),
     val displayData: CredentialDisplayData?,
+    val keyId: String
 )
 
 @Serializable

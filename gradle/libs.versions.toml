@@ -30,6 +30,7 @@ androidBrowser = "1.10.0"
 aboutLibraries = "15.2.0"
 kotlinter = "5.7.0"
 eudiSDJWT = "0.20.1"
+accessMechanism = "0.0.6-SNAPSHOT"
 
 [libraries]
 # Test
@@ -96,7 +97,7 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt"
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
-accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version = "0.0.2-SNAPSHOT" }
+accessMechanism = { group = "se.digg.wallet", name = "access-mechanism", version.ref = "accessMechanism" }
 
 [bundles]
 images = ["coil-compose", "coil-network"]
