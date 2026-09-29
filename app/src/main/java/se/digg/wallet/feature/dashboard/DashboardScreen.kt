@@ -60,7 +60,7 @@ fun DashboardRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DashboardScreen(
+internal fun DashboardScreen(
     credentialDetails: DashboardUiModel,
     onCredentialClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
