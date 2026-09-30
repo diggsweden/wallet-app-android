@@ -8,7 +8,6 @@
     <string name="settings_logout_dialog_description">All din data raderas från den här enheten, inklusive dina dokument. Detta går inte att ångra.</string>
     <string name="generic_close">Stäng</string>
     <string name="generic_next">Nästa</string>
-    <string name="issuance_approve_button">Godkänn</string>
     <string name="generic_confirm">Bekräfta</string>
     <string name="generic_share">Dela</string>
     <string name="presentation_share_successful_info">Du kan nu gå tillbaka till appen eller hemsidan som du kom ifrån.</string>

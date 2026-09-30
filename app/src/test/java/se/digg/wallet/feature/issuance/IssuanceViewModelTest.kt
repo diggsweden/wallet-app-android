@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -101,7 +102,7 @@ private class FakeIssuanceService : IssuanceService {
         return Proof(listOf("proof.jwt"))
     }
 
-    override suspend fun fetchCredential(): IssuedCredential {
+    override suspend fun fetchCredential(proof: Proof, proofKeyId: ProofKeyId): IssuedCredential {
         fetchCredentialCount++
         fetchGate?.await()
         fetchCredentialError?.let { throw it }
@@ -124,6 +125,7 @@ private class FakeWebAuthenticator : WebAuthenticator {
 
 private class FakeCredentialStore : CredentialStore {
     var error: Exception? = null
+    var gate: CompletableDeferred<Unit>? = null
     var count = 0
     val stored = mutableListOf<SavedCredential>()
 
@@ -131,6 +133,7 @@ private class FakeCredentialStore : CredentialStore {
 
     override suspend fun addCredentials(credentials: List<SavedCredential>) {
         count++
+        gate?.await()
         error?.let { throw it }
         stored += credentials
     }
@@ -140,6 +143,7 @@ private class FakeProofKeyManager(val pin: String) : ProofKeyManager {
     var authenticateError: Exception? = null
     var authenticateCount = 0
     var createKeyCount = 0
+    var createKeyGate: CompletableDeferred<Unit>? = null
     val deletedKeys = mutableListOf<ProofKeyId>()
 
     override suspend fun authenticate() {
@@ -149,6 +153,7 @@ private class FakeProofKeyManager(val pin: String) : ProofKeyManager {
 
     override suspend fun createKey(): ProofKey {
         createKeyCount++
+        createKeyGate?.await()
         return proofKey
     }
 
@@ -168,10 +173,12 @@ class IssuanceViewModelTest {
     private val store = FakeCredentialStore()
 
     private var authenticateError: Exception? = null
+    private var createKeyGate: CompletableDeferred<Unit>? = null
     private val managers = mutableListOf<FakeProofKeyManager>()
     private val managerFactory = ProofKeyManagerFactory { pin ->
         FakeProofKeyManager(pin).also { manager ->
             manager.authenticateError = authenticateError
+            manager.createKeyGate = createKeyGate
             managers += manager
         }
     }
@@ -186,7 +193,14 @@ class IssuanceViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = IssuanceViewModel(service, authenticator, store, managerFactory)
+    private fun viewModel() = IssuanceViewModel(
+        OFFER_URI,
+        service,
+        authenticator,
+        store,
+        managerFactory,
+        applicationScope = CoroutineScope(dispatcher),
+    )
 
     private val IssuanceViewModel.step: IssuanceStep?
         get() = (uiState.value as? IssuanceState.AtStep)?.step
@@ -195,17 +209,15 @@ class IssuanceViewModelTest {
         get() = (uiState.value as? IssuanceState.Failed)?.at
 
     private fun TestScope.reachAwaitingPin(viewModel: IssuanceViewModel) {
-        viewModel.start(OFFER_URI)
         advanceUntilIdle()
         viewModel.login()
         advanceUntilIdle()
     }
 
     @Test
-    fun `start loads the offer and waits for login`() = runTest(dispatcher) {
+    fun `loads the offer and waits for login`() = runTest(dispatcher) {
         val viewModel = viewModel()
 
-        viewModel.start(OFFER_URI)
         assertEquals(IssuanceStep.LoadingCredentialOffer(OFFER_URI), viewModel.step)
         advanceUntilIdle()
 
@@ -214,23 +226,9 @@ class IssuanceViewModelTest {
     }
 
     @Test
-    fun `start again does not reload the offer`() = runTest(dispatcher) {
-        val viewModel = viewModel()
-
-        viewModel.start(OFFER_URI)
-        advanceUntilIdle()
-        viewModel.start(OFFER_URI)
-        advanceUntilIdle()
-
-        assertEquals(1, service.fetchOfferCount)
-    }
-
-    @Test
     fun `offer failure can be retried`() = runTest(dispatcher) {
         service.fetchOfferError = IllegalStateException("offline")
         val viewModel = viewModel()
-
-        viewModel.start(OFFER_URI)
         advanceUntilIdle()
 
         assertEquals(IssuanceStep.LoadingCredentialOffer(OFFER_URI), viewModel.failedAt)
@@ -251,7 +249,7 @@ class IssuanceViewModelTest {
         advanceUntilIdle()
 
         assertEquals(0, authenticator.count)
-        assertEquals(IssuanceState.Idle, viewModel.uiState.value)
+        assertEquals(IssuanceStep.PreparingToAuthorize, viewModel.step)
     }
 
     @Test
@@ -311,7 +309,6 @@ class IssuanceViewModelTest {
     fun `repeated login taps while browser is open launch it once`() = runTest(dispatcher) {
         authenticator.gate = CompletableDeferred()
         val viewModel = viewModel()
-        viewModel.start(OFFER_URI)
         advanceUntilIdle()
 
         viewModel.login()
@@ -347,7 +344,6 @@ class IssuanceViewModelTest {
     @Test
     fun `enterPin before authorization does nothing`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        viewModel.start(OFFER_URI)
         advanceUntilIdle()
 
         viewModel.enterPin(PIN)
@@ -506,5 +502,70 @@ class IssuanceViewModelTest {
 
         assertTrue(managers.isEmpty())
         assertNull(viewModel.failedAt)
+    }
+
+    @Test
+    fun `dismissing twice deletes the pending key once`() = runTest(dispatcher) {
+        service.fetchCredentialError = IllegalStateException("issuer down")
+        val viewModel = viewModel()
+        reachAwaitingPin(viewModel)
+        viewModel.enterPin(PIN)
+        advanceUntilIdle()
+
+        viewModel.dismiss()
+        viewModel.dismiss()
+        advanceUntilIdle()
+
+        assertEquals(listOf(proofKey.id), managers.single().deletedKeys)
+    }
+
+    @Test
+    fun `actions after dismiss do not restart the flow`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        reachAwaitingPin(viewModel)
+
+        viewModel.dismiss()
+        viewModel.enterPin(PIN)
+        advanceUntilIdle()
+
+        assertTrue(managers.isEmpty())
+        assertEquals(IssuanceStep.AwaitingPin, viewModel.step)
+    }
+
+    @Test
+    fun `dismiss while creating a key lets it finish and deletes it`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        createKeyGate = gate
+        val viewModel = viewModel()
+        reachAwaitingPin(viewModel)
+        viewModel.enterPin(PIN)
+        runCurrent()
+        assertTrue(viewModel.step is IssuanceStep.CreatingKey)
+
+        viewModel.dismiss()
+        runCurrent()
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(listOf(proofKey.id), managers.single().deletedKeys)
+    }
+
+    @Test
+    fun `dismiss while saving lets it finish and keeps the key`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        store.gate = gate
+        val viewModel = viewModel()
+        reachAwaitingPin(viewModel)
+        viewModel.enterPin(PIN)
+        runCurrent()
+        assertTrue(viewModel.step is IssuanceStep.SavingCredential)
+
+        viewModel.dismiss()
+        runCurrent()
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(1, store.stored.size)
+        assertTrue(managers.single().deletedKeys.isEmpty())
     }
 }

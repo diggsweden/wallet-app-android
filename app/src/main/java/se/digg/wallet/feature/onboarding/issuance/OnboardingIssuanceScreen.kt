@@ -6,24 +6,20 @@ package se.digg.wallet.feature.onboarding.issuance
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
-import se.digg.wallet.feature.issuance.IssuanceScreen
-import se.digg.wallet.feature.onboarding.OnboardingViewModel
+import se.digg.wallet.feature.issuance.IssuanceRoute
 
 @Composable
 fun OnboardingIssuanceRoute(
-    pageNumber: Int,
-    onBack: () -> Unit,
+    credentialOfferUri: String,
     onFinish: () -> Unit,
-    sharedViewModel: OnboardingViewModel = hiltViewModel(),
+    onDismissibleChange: (Boolean) -> Unit,
 ) {
-    val credentialOfferUri = sharedViewModel.getCredentialOfferUrl()
-
-    IssuanceScreen(
-        onBackClick = {},
-        onFinishClick = { onFinish.invoke() },
+    IssuanceRoute(
+        credentialOfferUri = credentialOfferUri,
+        onComplete = onFinish,
+        onDismissibleChange = onDismissibleChange,
         headerContent = {
             OnboardingHeader(
                 pageTitle = stringResource(
@@ -31,6 +27,5 @@ fun OnboardingIssuanceRoute(
                 ),
             )
         },
-        credentialOfferUri = credentialOfferUri,
     )
 }

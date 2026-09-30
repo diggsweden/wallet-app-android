@@ -34,19 +34,19 @@ sealed interface IssuanceStep {
 }
 
 sealed interface IssuanceState {
-    data object Idle : IssuanceState
     data class AtStep(val step: IssuanceStep) : IssuanceState
     data class Failed(val at: IssuanceStep, val cause: Throwable) : IssuanceState
 }
 
-val IssuanceState.currentStep: IssuanceStep?
+val IssuanceState.currentStep: IssuanceStep
     get() = when (this) {
-        IssuanceState.Idle -> null
         is IssuanceState.AtStep -> step
         is IssuanceState.Failed -> at
     }
 
-/** The step to resume from when [this] step failed. */
+internal val IssuanceState.isDismissible: Boolean
+    get() = (this as? IssuanceState.AtStep)?.step !is IssuanceStep.Issued
+
 internal val IssuanceStep.retryStep: IssuanceStep
     get() = when (this) {
         IssuanceStep.Authorizing -> IssuanceStep.PreparingToAuthorize
@@ -65,7 +65,6 @@ internal val IssuanceStep.retryStep: IssuanceStep
         -> this
     }
 
-/** A created proof key that is orphaned if the flow is abandoned at [this] step. */
 internal val IssuanceStep.pendingKey: Pair<ProofKeyId, ProofKeyStore>?
     get() = when (this) {
         is IssuanceStep.SigningProof -> proofKey.id to manager
@@ -82,4 +81,21 @@ internal val IssuanceStep.pendingKey: Pair<ProofKeyId, ProofKeyStore>?
         is IssuanceStep.CreatingKey,
         is IssuanceStep.Issued,
         -> null
+    }
+
+internal val IssuanceStep.isInterruptible: Boolean
+    get() = when (this) {
+        is IssuanceStep.CreatingKey,
+        is IssuanceStep.SavingCredential,
+        -> false
+
+        is IssuanceStep.LoadingCredentialOffer,
+        IssuanceStep.PreparingToAuthorize,
+        IssuanceStep.Authorizing,
+        IssuanceStep.AwaitingPin,
+        is IssuanceStep.AuthenticatingPin,
+        is IssuanceStep.SigningProof,
+        is IssuanceStep.FetchingCredential,
+        is IssuanceStep.Issued,
+        -> true
     }

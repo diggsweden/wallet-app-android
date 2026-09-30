@@ -6,8 +6,11 @@ package se.digg.wallet.feature.issuance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
@@ -19,32 +22,37 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
+import se.digg.wallet.core.di.ApplicationScope
 import se.digg.wallet.core.webauth.WebAuthResult
 import se.digg.wallet.core.webauth.WebAuthenticator
 import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.IssuerDisplay
 import timber.log.Timber
 
-@HiltViewModel
-class IssuanceViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = IssuanceViewModel.Factory::class)
+class IssuanceViewModel @AssistedInject constructor(
+    @Assisted credentialOfferUri: String,
     private val issuanceService: IssuanceService,
     private val webAuthenticator: WebAuthenticator,
     private val credentialStore: CredentialStore,
     private val proofKeyManagerFactory: ProofKeyManagerFactory,
+    @param:ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<IssuanceState>(IssuanceState.Idle)
+    private val _uiState = MutableStateFlow<IssuanceState>(
+        IssuanceState.AtStep(IssuanceStep.LoadingCredentialOffer(credentialOfferUri)),
+    )
     val uiState: StateFlow<IssuanceState> = _uiState.asStateFlow()
 
     private val _issuerDisplay = MutableStateFlow<IssuerDisplay?>(null)
     val issuerDisplay: StateFlow<IssuerDisplay?> = _issuerDisplay.asStateFlow()
 
     private var flowJob: Job? = null
+    private var dismissed = false
 
     private val atStep: IssuanceStep?
         get() = (_uiState.value as? IssuanceState.AtStep)?.step
 
-    fun start(credentialOfferUri: String) {
-        if (_uiState.value != IssuanceState.Idle) return
+    init {
         resume(from = IssuanceStep.LoadingCredentialOffer(credentialOfferUri))
     }
 
@@ -59,30 +67,35 @@ class IssuanceViewModel @Inject constructor(
     }
 
     fun enterPin(pin: String) {
-        if (atStep != IssuanceStep.AwaitingPin) return
+        if (dismissed || atStep != IssuanceStep.AwaitingPin) return
         resume(from = IssuanceStep.AuthenticatingPin(proofKeyManagerFactory.create(pin)))
     }
 
     /**
      * Stops the flow and deletes any proof key created for a credential that was never saved.
-     * The cleanup outlives [viewModelScope], so callers may navigate away immediately.
+     * Runs automatically when the ViewModel is cleared; the cleanup outlives [viewModelScope].
      */
     fun dismiss() {
+        if (dismissed) return
+        dismissed = true
         val job = flowJob
-        viewModelScope.launch {
-            withContext(NonCancellable) {
-                job?.cancelAndJoin()
-                val (keyId, store) = _uiState.value.currentStep?.pendingKey ?: return@withContext
-                try {
-                    store.deleteKey(keyId)
-                } catch (e: Exception) {
-                    Timber.d(e, "IssuanceViewModel: Failed to delete pending proof key")
-                }
+        applicationScope.launch {
+            job?.cancelAndJoin()
+            val (keyId, store) = _uiState.value.currentStep.pendingKey ?: return@launch
+            try {
+                store.deleteKey(keyId)
+            } catch (e: Exception) {
+                Timber.d(e, "IssuanceViewModel: Failed to delete pending proof key")
             }
         }
     }
 
+    override fun onCleared() {
+        dismiss()
+    }
+
     private fun resume(from: IssuanceStep) {
+        if (dismissed) return
         _uiState.value = IssuanceState.AtStep(from)
         flowJob = viewModelScope.launch { run(from) }
     }
@@ -94,7 +107,14 @@ class IssuanceViewModel @Inject constructor(
             currentCoroutineContext().ensureActive()
 
             val next = try {
-                perform(step)
+                if (step.isInterruptible) {
+                    perform(step)
+                } else {
+                    // Publish the result before returning, as a cancelled caller would drop it.
+                    withContext(NonCancellable) {
+                        perform(step)?.also { _uiState.value = IssuanceState.AtStep(it) }
+                    }
+                }
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 Timber.d(e, "IssuanceViewModel: ${step::class.simpleName} failed")
@@ -177,5 +197,10 @@ class IssuanceViewModel @Inject constructor(
             credentialStore.addCredentials(listOf(step.issued.credential))
             IssuanceStep.Issued(step.issued)
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(credentialOfferUri: String): IssuanceViewModel
     }
 }
