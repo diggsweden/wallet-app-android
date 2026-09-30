@@ -1,0 +1,57 @@
+Printing with useUnmergedTree = 'false'
+Node at (l=0.0, t=0.0, r=1236.0, b=2745.0)px
+ |-Node at (l=0.0, t=0.0, r=1236.0, b=2745.0)px
+   IsContainer = 'true'
+   Shape = 'RectangleShape'
+    |-Node at (l=0.0, t=0.0, r=1236.0, b=2745.0)px
+      IsContainer = 'true'
+      Shape = 'RectangleShape'
+       |-Node at (l=0.0, t=192.0, r=1236.0, b=1704.0)px
+       | IsTraversalGroup = 'true'
+       | Shape = 'androidx.compose.foundation.VerticalScrollableClipShape'
+       | VerticalScrollAxisRange = 'ScrollAxisRange(value=0.0, maxValue=0.0, reverseScrolling=false)'
+       | Actions = [ScrollBy, ScrollByOffset]
+       |  |-Node at (l=463.0, t=192.0, r=774.0, b=300.0)px
+       |  | Text = '[Wallet]'
+       |  | Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+       |  |-Node at (l=215.0, t=336.0, r=1021.0, b=408.0)px
+       |  | Text = '[Sweden’s digital identity wallet]'
+       |  | Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+       |  |-Node at (l=90.0, t=516.0, r=1146.0, b=903.0)px
+       |  | Focused = 'false'
+       |  | Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+       |  | Text = '[My ID document, Updated: 01 Jan 2026]'
+       |  | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+       |  | MergeDescendants = 'true'
+       |  |-Node at (l=90.0, t=993.0, r=480.0, b=1074.0)px
+       |  | Text = '[Documents]'
+       |  | Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+       |  |-Node at (l=90.0, t=1134.0, r=1146.0, b=1365.0)px
+       |  | Focused = 'false'
+       |  | Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+       |  | Text = '[Körkort]'
+       |  | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+       |  | MergeDescendants = 'true'
+       |  |-Node at (l=90.0, t=1425.0, r=1146.0, b=1656.0)px
+       |    Focused = 'false'
+       |    Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+       |    Text = '[Handling]'
+       |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+       |    MergeDescendants = 'true'
+       |-Node at (l=0.0, t=0.0, r=1236.0, b=192.0)px
+       | IsTraversalGroup = 'true'
+       |  |-Node at (l=0.0, t=0.0, r=1236.0, b=192.0)px
+       |    Shape = 'RectangleShape'
+       |     |-Node at (l=48.0, t=96.0, r=48.0, b=96.0)px
+       |     |-Node at (l=1092.0, t=36.0, r=1212.0, b=156.0)px
+       |       Focused = 'false'
+       |       Role = 'Button'
+       |       Shape = 'RoundedCornerShape(topStart = CornerSize(size = 50.0%), topEnd = CornerSize(size = 50.0%), bottomEnd = CornerSize(size = 50.0%), bottomStart = CornerSize(size = 50.0%))'
+       |       Actions = [OnClick, RequestFocus]
+       |       MergeDescendants = 'true'
+       |-Node at (l=1020.0, t=2529.0, r=1188.0, b=2697.0)px
+         Focused = 'false'
+         Role = 'Button'
+         Shape = 'RoundedCornerShape(topStart = CornerSize(size = 16.0.dp), topEnd = CornerSize(size = 16.0.dp), bottomEnd = CornerSize(size = 16.0.dp), bottomStart = CornerSize(size = 16.0.dp))'
+         Actions = [OnClick, RequestFocus]
+         MergeDescendants = 'true'

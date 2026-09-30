@@ -26,7 +26,7 @@ object A11ySnapshot {
 
     fun assertMatches(rule: ComposeContentTestRule, screenId: String) {
         rule.waitForIdle()
-        val actual = rule.onRoot().printToString(maxDepth = Int.MAX_VALUE).trimEnd() + "\n"
+        val actual = normalize(rule.onRoot().printToString(maxDepth = Int.MAX_VALUE))
         writeScreenshot(rule, screenId)
 
         val baseline = File(snapshotDir, "$screenId.semantics.txt")
@@ -47,6 +47,15 @@ object A11ySnapshot {
             )
         }
     }
+
+    /**
+     * printToString() output is not stable as-is: node ids keep counting across tests in one JVM,
+     * and some shapes print their identity hash (e.g. `VerticalScrollableClipShape@2dead9bc`).
+     */
+    private fun normalize(tree: String): String = tree
+        .replace(Regex("""Node #\d+ """), "Node ")
+        .replace(Regex("""@[0-9a-f]{5,}\b"""), "")
+        .trimEnd() + "\n"
 
     private fun writeScreenshot(rule: ComposeContentTestRule, screenId: String) {
         val file = File(snapshotDir, "$screenId.png")
@@ -78,9 +87,14 @@ object A11ySnapshot {
                     i++
                     j++
                 }
-                j < b.size && (i == a.size || lcs[i][j + 1] >= lcs[i + 1][j]) ->
+
+                j < b.size && (i == a.size || lcs[i][j + 1] >= lcs[i + 1][j]) -> {
                     out.appendLine("+ ${b[j++]}")
-                else -> out.appendLine("- ${a[i++]}")
+                }
+
+                else -> {
+                    out.appendLine("- ${a[i++]}")
+                }
             }
         }
         return out.toString()

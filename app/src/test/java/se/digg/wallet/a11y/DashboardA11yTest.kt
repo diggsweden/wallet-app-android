@@ -18,10 +18,11 @@ import se.digg.wallet.data.SavedCredential
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.dashboard.DashboardUiModel
 
-// Pixel 9 portrait, matching @PreviewsWallet. Pinned SDK because Robolectric may lag compileSdk.
+// Pixel 9 portrait, matching @PreviewsWallet. SDK 34 because Robolectric needs Java 21 for 35+
+// and unit tests run on the app's Java 17 toolchain.
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [36], qualifiers = "w412dp-h915dp-xxhdpi")
+@Config(sdk = [34], qualifiers = "w412dp-h915dp-xxhdpi")
 class DashboardA11yTest {
     @get:Rule
     val rule = createComposeRule()
@@ -62,7 +63,8 @@ class DashboardA11yTest {
     private fun credential(id: String, name: String?) = SavedCredential(
         compactSerialized = "",
         claimDisplayNames = emptyMap(),
-        issuedAt = Date(1_767_268_800_000L) // 2026-01-01 12:00 UTC,
+        // 2026-01-01 12:00 UTC
+        issuedAt = Date(1_767_268_800_000L),
         issuer = null,
         id = id,
         displayData = CredentialDisplayData(name),
