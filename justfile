@@ -190,6 +190,16 @@ test:
     ./gradlew test
     just_success "Tests passed"
 
+# ▪ Run a11y snapshot tests and generate the review report
+[group('test')]
+a11y-review:
+    #!/usr/bin/env bash
+    source "{{colors}}"
+    just_header "Running a11y snapshot tests" "./gradlew :app:testDemoDebugUnitTest --tests 'se.digg.wallet.a11y.*'"
+    ./gradlew :app:testDemoDebugUnitTest --tests 'se.digg.wallet.a11y.*'
+    ./scripts/a11y-review.py
+    just_success "Open app/build/reports/a11y-review/index.html"
+
 # ==================================================================================== #
 # BUILD - Build project
 # ==================================================================================== #

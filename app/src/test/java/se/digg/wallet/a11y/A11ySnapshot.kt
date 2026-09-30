@@ -24,12 +24,42 @@ object A11ySnapshot {
     private val snapshotDir =
         File(System.getProperty("a11y.snapshotDir") ?: error("a11y.snapshotDir not set"))
 
-    fun assertMatches(rule: ComposeContentTestRule, screenId: String) {
+    /**
+     * How a screen was rendered. The test sets the matching Robolectric qualifiers (`+land`,
+     * `+night`); this decides file names and what is compared.
+     */
+    enum class Variant(val suffix: String) {
+        DEFAULT(""),
+
+        /** Own baseline: layout, bounds and reading order can all change with orientation. */
+        LANDSCAPE(".land"),
+
+        /** Screenshot only; its tree must equal the default baseline (colours aren't semantics). */
+        DARK(".dark"),
+    }
+
+    /**
+     * [description] names the screen and state for human reviewers (report headings, screenshot
+     * alt text); it is written to `<screenId>.meta.json` but not compared.
+     */
+    fun assertMatches(
+        rule: ComposeContentTestRule,
+        screenId: String,
+        description: String,
+        variant: Variant = Variant.DEFAULT,
+    ) {
         rule.waitForIdle()
         val actual = normalize(rule.onRoot().printToString(maxDepth = Int.MAX_VALUE))
-        writeScreenshot(rule, screenId)
+        val key = screenId + variant.suffix
+        writeScreenshot(rule, key)
+        if (variant == Variant.DEFAULT) writeMeta(rule, screenId, description)
 
-        val baseline = File(snapshotDir, "$screenId.semantics.txt")
+        if (variant == Variant.DARK) {
+            assertDarkTreeUnchanged(screenId, actual)
+            return
+        }
+
+        val baseline = File(snapshotDir, "$key.semantics.txt")
         if (update || !baseline.exists()) {
             baseline.parentFile?.mkdirs()
             baseline.writeText(actual)
@@ -48,6 +78,19 @@ object A11ySnapshot {
         }
     }
 
+    /** Skipped when updating, since the default baseline may be rewritten later in the same run. */
+    private fun assertDarkTreeUnchanged(screenId: String, actual: String) {
+        val baseline = File(snapshotDir, "$screenId.semantics.txt")
+        if (update || !baseline.exists()) return
+        val expected = baseline.readText()
+        if (expected != actual) {
+            fail(
+                "Dark mode changed the semantics tree of '$screenId' " +
+                    "(expected it to equal the light baseline).\n" + lineDiff(expected, actual),
+            )
+        }
+    }
+
     /**
      * printToString() output is not stable as-is: node ids keep counting across tests in one JVM,
      * and some shapes print their identity hash (e.g. `VerticalScrollableClipShape@2dead9bc`).
@@ -62,6 +105,21 @@ object A11ySnapshot {
         file.parentFile?.mkdirs()
         val bitmap = rule.onRoot().captureToImage().asAndroidBitmap()
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    /** Density lets the review report convert node bounds (px) to dp for touch-target hints. */
+    private fun writeMeta(rule: ComposeContentTestRule, screenId: String, description: String) {
+        val escaped = description.replace("\\", "\\\\").replace("\"", "\\\"")
+        File(snapshotDir, "$screenId.meta.json").writeText(
+            """
+            |{
+            |  "id": "$screenId",
+            |  "description": "$escaped",
+            |  "density": ${rule.density.density}
+            |}
+            |
+            """.trimMargin(),
+        )
     }
 
     /** Minimal unified-style diff: good enough to read which nodes moved or changed. */
