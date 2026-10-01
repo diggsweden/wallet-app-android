@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 import ch.acanda.gradle.fabrikt.FabriktGenerateTask
+import com.github.skydoves.navgraph.gradle.RenderBackend
 import com.google.devtools.ksp.gradle.KspAATask
 import java.util.Properties
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
@@ -41,6 +42,7 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.aboutlibrariesAndroid)
+    alias(libs.plugins.navgraph)
 }
 
 kotlin {
@@ -164,6 +166,18 @@ androidComponents {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+navgraph {
+    variant.set("demoDebug")
+    // Layoutlib only: the Robolectric backends inject a render test into the unit-test source set,
+    // which would then boot Robolectric on every `./gradlew test`.
+    renderBackend.set(RenderBackend.LAYOUTLIB)
+    galleryRenderBackend.set(RenderBackend.LAYOUTLIB)
+}
+
+ksp {
+    arg("navgraph.annotatedOnly", "true")
 }
 
 dependencies {

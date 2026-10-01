@@ -16,9 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.github.skydoves.navgraph.annotations.NavDestination
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
+import se.digg.wallet.core.navigation.IssuanceDeepLinkKey
 
+@NavDestination(route = IssuanceDeepLinkKey::class)
 @Composable
 fun DeepLinkedIssuanceRoute(
     onBackClick: () -> Unit,

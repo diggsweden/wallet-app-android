@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.BaseScreen
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
@@ -34,6 +35,7 @@ import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.IssuanceDeepLinkKey
 import se.digg.wallet.data.IssuerDisplay
 
 @Composable
@@ -206,6 +208,7 @@ private fun StepButton(step: IssuanceStep, onLogin: () -> Unit, onComplete: (() 
     }
 }
 
+@NavPreview(route = IssuanceDeepLinkKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun IssuancePreparingToAuthorizePreview() {
@@ -221,6 +224,7 @@ private fun IssuancePreparingToAuthorizePreview() {
     }
 }
 
+@NavPreview(route = IssuanceDeepLinkKey::class)
 @Composable
 @PreviewsWallet
 private fun IssuanceAwaitingPinPreview() {

@@ -26,13 +26,17 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
+import com.github.skydoves.navgraph.annotations.NavEdge
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import se.digg.wallet.core.deeplink.DeepLinkHandler
 import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.locale.LocaleOverride
+import se.digg.wallet.core.navigation.DashboardKey
 import se.digg.wallet.core.navigation.IntroKey
+import se.digg.wallet.core.navigation.IssuanceDeepLinkKey
+import se.digg.wallet.core.navigation.PresentationKey
 import se.digg.wallet.core.navigation.WalletNavDisplay
 import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.core.navigation.toNavKey
@@ -108,6 +112,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@NavEdge(from = DashboardKey::class, to = IssuanceDeepLinkKey::class, label = "deep link")
+@NavEdge(from = DashboardKey::class, to = PresentationKey::class, label = "deep link")
 @Composable
 fun AppRoot(
     navigator: WalletNavigator,

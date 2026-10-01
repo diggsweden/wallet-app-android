@@ -6,6 +6,7 @@ package se.digg.wallet.core.navigation
 
 import android.net.Uri
 import androidx.navigation3.runtime.NavKey
+import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,6 +33,7 @@ data object LicensesKey : NavKey
 @Serializable
 data class CredentialDetailsKey(val id: String) : NavKey
 
+@NavGraphRoot
 @Serializable
 data object IntroKey : NavKey
 

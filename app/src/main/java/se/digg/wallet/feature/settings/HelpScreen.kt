@@ -11,14 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletListItem
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.HelpKey
 
 private const val DEVELOPER_PORTAL_URL = "https://diggsweden.github.io/wallet-utvecklarportal/"
 
+@NavDestination(route = HelpKey::class)
 @Composable
 fun HelpRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
     HelpScreen(onBackClick = onBack, modifier = modifier)
@@ -46,6 +50,7 @@ private fun openDeveloperPortal(context: Context) {
     customTabs.launchUrl(context, DEVELOPER_PORTAL_URL.toUri())
 }
 
+@NavPreview(route = HelpKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun HelpScreenPreview() {

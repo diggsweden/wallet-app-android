@@ -32,6 +32,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavEdge
+import com.github.skydoves.navgraph.annotations.NavPreview
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
@@ -41,7 +44,19 @@ import se.digg.wallet.core.designsystem.theme.Error
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.getDeviceInfo
+import se.digg.wallet.core.navigation.AboutKey
+import se.digg.wallet.core.navigation.HelpKey
+import se.digg.wallet.core.navigation.IntroKey
+import se.digg.wallet.core.navigation.LanguageKey
+import se.digg.wallet.core.navigation.SettingsKey
+import se.digg.wallet.core.navigation.ThemeKey
 
+@NavEdge(to = AboutKey::class, label = "about")
+@NavEdge(to = LanguageKey::class, label = "language")
+@NavEdge(to = ThemeKey::class, label = "theme")
+@NavEdge(to = HelpKey::class, label = "help")
+@NavEdge(to = IntroKey::class, label = "logout")
+@NavDestination(route = SettingsKey::class)
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
@@ -264,6 +279,7 @@ private fun SettingsContent(onLogoutClick: () -> Unit) {
     }
 }
 
+@NavPreview(route = SettingsKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun SettingsScreenPreview() {

@@ -16,13 +16,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletRadioRow
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.locale.LocaleOverride
+import se.digg.wallet.core.navigation.LanguageKey
 
+@NavDestination(route = LanguageKey::class)
 @Composable
 fun LanguageRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
     LanguageScreen(onBackClick = onBack, modifier = modifier)
@@ -82,6 +86,7 @@ private fun applyAppLanguageOption(context: Context, option: AppLanguageOption) 
     (context as? Activity)?.recreate()
 }
 
+@NavPreview(route = LanguageKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun LanguageScreenPreview() {

@@ -33,6 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
@@ -44,7 +46,9 @@ import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.PresentationKey
 
+@NavDestination(route = PresentationKey::class)
 @Composable
 fun PresentationRoute(
     onBack: () -> Unit,
@@ -247,6 +251,7 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
     }
 }
 
+@NavPreview(route = PresentationKey::class, primary = true)
 @PreviewsWallet
 @Composable
 private fun PresentationPreview() {

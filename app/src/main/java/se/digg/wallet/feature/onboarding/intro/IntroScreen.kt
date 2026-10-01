@@ -23,6 +23,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavEdge
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AppVersionText
@@ -31,7 +34,13 @@ import se.digg.wallet.core.designsystem.component.WalletTitle
 import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.IntroKey
+import se.digg.wallet.core.navigation.OnboardingKey
+import se.digg.wallet.core.navigation.SettingsKey
 
+@NavEdge(to = OnboardingKey::class, label = "continue")
+@NavEdge(to = SettingsKey::class, label = "settings")
+@NavDestination(route = IntroKey::class)
 @Composable
 fun IntroRoute(onContinue: () -> Unit, onSettingsClick: () -> Unit, modifier: Modifier = Modifier) {
     IntroScreen(
@@ -105,6 +114,7 @@ private fun IntroScreen(
     }
 }
 
+@NavPreview(route = IntroKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun IntroScreenPreview() {

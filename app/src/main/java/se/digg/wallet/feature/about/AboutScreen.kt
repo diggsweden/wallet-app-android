@@ -25,6 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavEdge
+import com.github.skydoves.navgraph.annotations.NavPreview
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
@@ -34,9 +37,13 @@ import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.getDeviceInfo
+import se.digg.wallet.core.navigation.AboutKey
+import se.digg.wallet.core.navigation.LicensesKey
 
 private const val CLIPBOARD_LABEL = "app version"
 
+@NavEdge(to = LicensesKey::class, label = "licenses")
+@NavDestination(route = AboutKey::class)
 @Composable
 fun AboutRoute(onBack: () -> Unit, onLicensesClick: () -> Unit, modifier: Modifier = Modifier) {
     AboutScreen(onBackClick = onBack, onLicensesClick = onLicensesClick, modifier = modifier)
@@ -116,6 +123,7 @@ private fun AboutHeader() {
     }
 }
 
+@NavPreview(route = AboutKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun AboutScreenPreview() {

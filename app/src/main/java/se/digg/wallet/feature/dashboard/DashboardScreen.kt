@@ -29,6 +29,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavEdge
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.DocumentCard
@@ -39,8 +42,14 @@ import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.CredentialDetailsKey
+import se.digg.wallet.core.navigation.DashboardKey
+import se.digg.wallet.core.navigation.SettingsKey
 import se.digg.wallet.data.SavedCredential
 
+@NavEdge(to = CredentialDetailsKey::class, label = "credential")
+@NavEdge(to = SettingsKey::class, label = "settings")
+@NavDestination(route = DashboardKey::class)
 @Composable
 fun DashboardRoute(
     onCredentialClick: (String) -> Unit,
@@ -173,6 +182,7 @@ private fun CredentialsSection(
     }
 }
 
+@NavPreview(route = DashboardKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun DashboardScreenPreview() {

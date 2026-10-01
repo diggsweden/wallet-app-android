@@ -40,17 +40,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavEdge
+import com.github.skydoves.navgraph.annotations.NavPreview
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.DashboardKey
+import se.digg.wallet.core.navigation.OnboardingKey
 import se.digg.wallet.feature.onboarding.issuance.OnboardingIssuanceRoute
 import se.digg.wallet.feature.onboarding.pidsetup.PidSetupRoute
 import se.digg.wallet.feature.onboarding.pin.PinSetupRoute
 import se.digg.wallet.feature.onboarding.walletsetup.WalletSetupRoute
 
+@NavEdge(to = DashboardKey::class, label = "finish")
+@NavDestination(route = OnboardingKey::class)
 @Composable
 fun OnboardingRoute(
     onBack: () -> Unit,
@@ -218,6 +225,7 @@ fun OnboardingStepContent(
     }
 }
 
+@NavPreview(route = OnboardingKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun EnrollmentPreview() {

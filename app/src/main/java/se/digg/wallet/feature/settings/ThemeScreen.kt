@@ -12,14 +12,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavPreview
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletRadioRow
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.ThemeKey
 import se.digg.wallet.core.theme.ThemeOption
 import se.digg.wallet.core.theme.ThemePreference
 
+@NavDestination(route = ThemeKey::class)
 @Composable
 fun ThemeRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
     ThemeScreen(onBackClick = onBack, modifier = modifier)
@@ -59,6 +63,7 @@ private fun ThemeScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) 
     }
 }
 
+@NavPreview(route = ThemeKey::class, primary = true)
 @Composable
 @PreviewsWallet
 private fun ThemeScreenPreview() {

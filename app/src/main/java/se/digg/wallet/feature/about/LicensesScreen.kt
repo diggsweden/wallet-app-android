@@ -16,11 +16,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.github.skydoves.navgraph.annotations.NavDestination
+import com.github.skydoves.navgraph.annotations.NavPreview
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
+import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.navigation.LicensesKey
 
+@NavDestination(route = LicensesKey::class)
 @Composable
 fun LicensesRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
     LicensesScreen(onBackClick = onBack, modifier = modifier)
@@ -49,7 +55,18 @@ private fun LicensesScreen(onBackClick: () -> Unit, modifier: Modifier = Modifie
     ) { innerPadding ->
         LibrariesContainer(
             libraries = libraries,
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
         )
+    }
+}
+
+@NavPreview(route = LicensesKey::class, primary = true)
+@Composable
+@PreviewsWallet
+private fun LicensesScreenPreview() {
+    WalletPreview {
+        LicensesScreen(onBackClick = {})
     }
 }
