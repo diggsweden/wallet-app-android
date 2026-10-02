@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.data.UserRepository
 
@@ -18,7 +19,7 @@ class SettingsViewModel @Inject constructor(private val userRepository: UserRepo
     ViewModel() {
 
     private val _events = MutableSharedFlow<SettingsUiEvent>()
-    val events: SharedFlow<SettingsUiEvent> = _events
+    val events: SharedFlow<SettingsUiEvent> = _events.asSharedFlow()
 
     fun onLogout() {
         viewModelScope.launch {

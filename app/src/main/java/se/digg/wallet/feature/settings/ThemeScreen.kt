@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.settings
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
@@ -38,25 +39,20 @@ private fun ThemeScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) 
         Column(modifier = Modifier.selectableGroup()) {
             ThemeOption.entries.forEach { option ->
                 WalletRadioRow(
-                    title = when (option) {
-                        ThemeOption.SYSTEM -> {
-                            stringResource(R.string.settings_appearance_option_system)
-                        }
-
-                        ThemeOption.LIGHT -> {
-                            stringResource(R.string.settings_appearance_option_light)
-                        }
-
-                        ThemeOption.DARK -> {
-                            stringResource(R.string.settings_appearance_option_dark)
-                        }
-                    },
+                    title = stringResource(option.labelRes()),
                     selected = option == selectedOption,
                     onClick = { ThemePreference.set(context, option) },
                 )
             }
         }
     }
+}
+
+@StringRes
+private fun ThemeOption.labelRes(): Int = when (this) {
+    ThemeOption.SYSTEM -> R.string.settings_appearance_option_system
+    ThemeOption.LIGHT -> R.string.settings_appearance_option_light
+    ThemeOption.DARK -> R.string.settings_appearance_option_dark
 }
 
 @Composable

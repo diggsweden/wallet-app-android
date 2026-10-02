@@ -66,7 +66,7 @@ fun SettingsRoute(
 
     SettingsScreen(
         onBackClick = onBack,
-        onLogoutClick = { viewModel.onLogout() },
+        onLogoutClick = viewModel::onLogout,
         onFeedbackClick = { openFeedbackEmail(context) },
         onAppInfoClick = { context.openAppSettings() },
         onHelpClick = onHelp,

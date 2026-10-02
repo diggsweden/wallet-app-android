@@ -25,6 +25,7 @@
     <string name="device_info_network_unknown">Unknown</string>
     <string name="generic_error">Error</string>
     <string name="generic_home">To the home page</string>
+    <string name="generic_navigate_back">Navigate back</string>
     <string name="generic_no">No</string>
     <string name="generic_retry">Retry</string>
     <string name="generic_yes">Yes</string>

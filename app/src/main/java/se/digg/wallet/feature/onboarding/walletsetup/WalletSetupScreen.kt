@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.onboarding.walletsetup
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,45 +79,23 @@ private val timestampFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatSty
 
 @Composable
 private fun AppError.Problem.toErrorDetails(): List<ErrorDetail> = buildList {
-    add(
-        ErrorDetail(
-            title = stringResource(R.string.error_detail_timestamp),
-            value = timestamp.format(timestampFormatter),
-        ),
-    )
-    add(ErrorDetail(title = stringResource(R.string.error_detail_title), value = title))
-    detail?.let {
-        add(
-            ErrorDetail(
-                title = stringResource(R.string.error_detail_message),
-                value = it,
-            ),
-        )
-    }
-    add(
-        ErrorDetail(
-            title = stringResource(R.string.error_detail_status),
-            value = status.toString(),
-        ),
-    )
-    type?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_type), value = it)) }
-    instance?.let {
-        add(
-            ErrorDetail(
-                title = stringResource(R.string.error_detail_instance),
-                value = it,
-            ),
-        )
-    }
-    transactionId?.let {
-        add(ErrorDetail(title = stringResource(R.string.error_detail_transaction_id), value = it))
-    }
+    add(errorDetail(R.string.error_detail_timestamp, timestamp.format(timestampFormatter)))
+    add(errorDetail(R.string.error_detail_title, title))
+    detail?.let { add(errorDetail(R.string.error_detail_message, it)) }
+    add(errorDetail(R.string.error_detail_status, status.toString()))
+    type?.let { add(errorDetail(R.string.error_detail_type, it)) }
+    instance?.let { add(errorDetail(R.string.error_detail_instance, it)) }
+    transactionId?.let { add(errorDetail(R.string.error_detail_transaction_id, it)) }
     invalidParameters.forEach { parameter ->
         val title = parameter.property ?: stringResource(R.string.error_detail_invalid_parameter)
         val value = listOfNotNull(parameter.reason, parameter.value).joinToString(separator = " · ")
         add(ErrorDetail(title = title, value = value.ifBlank { "-" }))
     }
 }
+
+@Composable
+private fun errorDetail(@StringRes title: Int, value: String): ErrorDetail =
+    ErrorDetail(title = stringResource(title), value = value)
 
 @Composable
 private fun StepInProgressScreen(step: SetupStep, modifier: Modifier = Modifier) {

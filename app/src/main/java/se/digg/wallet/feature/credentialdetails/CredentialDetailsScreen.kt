@@ -10,20 +10,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import se.digg.wallet.core.designsystem.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
+import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -36,7 +33,7 @@ fun CredentialDetailsRoute(
     modifier: Modifier = Modifier,
     viewModel: CredentialDetailsViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.toUiModel(credentialId) }
 
     CredentialDetailsScreen(
@@ -56,16 +53,7 @@ private fun CredentialDetailsScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            WalletTopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { onBackClick.invoke() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = null,
-                        )
-                    }
-                },
-            )
+            WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
         },
     ) { innerPadding ->
         Column(

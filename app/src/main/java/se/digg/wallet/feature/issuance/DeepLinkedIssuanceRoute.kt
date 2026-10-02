@@ -6,8 +6,6 @@ package se.digg.wallet.feature.issuance
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -18,9 +16,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 
 @Composable
@@ -43,12 +41,7 @@ fun DeepLinkedIssuanceRoute(
                 },
                 navigationIcon = {
                     if (backVisible) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                painter = painterResource(R.drawable.arrow_left),
-                                contentDescription = null,
-                            )
-                        }
+                        WalletBackButton(onClick = onBackClick)
                     }
                 },
             )

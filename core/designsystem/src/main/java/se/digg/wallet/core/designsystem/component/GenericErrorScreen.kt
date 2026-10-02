@@ -109,58 +109,104 @@ fun GenericErrorScreen(
                 contentDescription = null,
             )
             Spacer(modifier = Modifier.height(23.dp))
-            Text(
-                modifier = Modifier.width(300.dp),
-                textAlign = TextAlign.Start,
-                text = errorTitle ?: stringResource(R.string.generic_error_screen_title),
-                style = WalletTextStyle.H1,
-                color = textColor,
+            ErrorMessage(title = errorTitle, message = errorMessage, textColor = textColor)
+            ErrorLinks(
+                supportLabel = supportLabel,
+                onSupportClick = onSupportClick,
+                detailsLabel = detailsButtonLabel,
+                onDetailsClick = if (errorDetails.isNotEmpty()) {
+                    { showDetails = true }
+                } else {
+                    null
+                },
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                modifier = Modifier.width(300.dp),
-                textAlign = TextAlign.Start,
-                text = errorMessage
-                    ?: stringResource(R.string.generic_error_screen_message),
-                style = WalletTextStyle.BodyMD,
-                color = textColor,
-            )
-            if (onSupportClick != null) {
-                Spacer(modifier = Modifier.height(7.dp))
-                TextWithLink(
-                    modifier = Modifier.width(300.dp),
-                    text = supportLabel ?: stringResource(R.string.error_contact_support),
-                    onClick = onSupportClick,
-                )
-            }
-            if (errorDetails.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(7.dp))
-                TextWithLink(
-                    modifier = Modifier.width(300.dp),
-                    text = detailsButtonLabel ?: stringResource(R.string.error_details_button),
-                    onClick = { showDetails = true },
-                )
-            }
             Spacer(modifier = Modifier.height(50.dp))
-            if (onPrimaryAction != null) {
-                PrimaryButton(
-                    text = primaryActionLabel ?: stringResource(R.string.generic_retry),
-                    onClick = onPrimaryAction,
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-            if (onSecondaryAction != null) {
-                SecondaryButton(
-                    text = secondaryActionLabel ?: stringResource(R.string.generic_home),
-                    onClick = onSecondaryAction,
-                )
-            }
+            ErrorActions(
+                primaryActionLabel = primaryActionLabel,
+                onPrimaryAction = onPrimaryAction,
+                secondaryActionLabel = secondaryActionLabel,
+                onSecondaryAction = onSecondaryAction,
+            )
         }
     }
 
     if (showDetails) {
         ModalBottomSheet(onDismissRequest = { showDetails = false }) {
             ErrorDetailsSheetContent(errorDetails)
+        }
+    }
+}
+
+private val errorContentWidth = 300.dp
+
+@Composable
+private fun ErrorMessage(title: String?, message: String?, textColor: Color) {
+    Column {
+        Text(
+            modifier = Modifier.width(errorContentWidth),
+            textAlign = TextAlign.Start,
+            text = title ?: stringResource(R.string.generic_error_screen_title),
+            style = WalletTextStyle.H1,
+            color = textColor,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            modifier = Modifier.width(errorContentWidth),
+            textAlign = TextAlign.Start,
+            text = message ?: stringResource(R.string.generic_error_screen_message),
+            style = WalletTextStyle.BodyMD,
+            color = textColor,
+        )
+    }
+}
+
+@Composable
+private fun ErrorLinks(
+    supportLabel: String?,
+    onSupportClick: (() -> Unit)?,
+    detailsLabel: String?,
+    onDetailsClick: (() -> Unit)?,
+) {
+    Column {
+        if (onSupportClick != null) {
+            Spacer(modifier = Modifier.height(7.dp))
+            TextWithLink(
+                modifier = Modifier.width(errorContentWidth),
+                text = supportLabel ?: stringResource(R.string.error_contact_support),
+                onClick = onSupportClick,
+            )
+        }
+        if (onDetailsClick != null) {
+            Spacer(modifier = Modifier.height(7.dp))
+            TextWithLink(
+                modifier = Modifier.width(errorContentWidth),
+                text = detailsLabel ?: stringResource(R.string.error_details_button),
+                onClick = onDetailsClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorActions(
+    primaryActionLabel: String?,
+    onPrimaryAction: (() -> Unit)?,
+    secondaryActionLabel: String?,
+    onSecondaryAction: (() -> Unit)?,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (onPrimaryAction != null) {
+            PrimaryButton(
+                text = primaryActionLabel ?: stringResource(R.string.generic_retry),
+                onClick = onPrimaryAction,
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+        if (onSecondaryAction != null) {
+            SecondaryButton(
+                text = secondaryActionLabel ?: stringResource(R.string.generic_home),
+                onClick = onSecondaryAction,
+            )
         }
     }
 }
@@ -173,18 +219,7 @@ private const val COPIED_LABEL_DURATION_MS = 1_500L
 private fun ErrorDetailsSheetContent(details: List<ErrorDetail>, modifier: Modifier = Modifier) {
     val labelColor = if (isWalletInDarkTheme()) Brown50 else Brown70
     val valueColor = if (isWalletInDarkTheme()) Brown30 else Brown100
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    var copied by remember { mutableStateOf(false) }
     val deviceDetails = rememberDeviceErrorDetails()
-    val allDetails = details + deviceDetails
-
-    LaunchedEffect(copied) {
-        if (copied) {
-            delay(COPIED_LABEL_DURATION_MS)
-            copied = false
-        }
-    }
 
     Column(
         modifier = modifier
@@ -203,35 +238,7 @@ private fun ErrorDetailsSheetContent(details: List<ErrorDetail>, modifier: Modif
                 style = WalletTextStyle.H3,
                 color = valueColor,
             )
-            AssistChip(
-                onClick = {
-                    scope.launch {
-                        val text =
-                            allDetails.joinToString(separator = "\n") { "${it.title}: ${it.value}" }
-                        clipboard.setClipEntry(
-                            ClipEntry(ClipData.newPlainText(ERROR_DETAILS_CLIPBOARD_LABEL, text)),
-                        )
-                    }
-                    copied = true
-                },
-                label = {
-                    Text(
-                        text = if (copied) {
-                            stringResource(R.string.error_details_copied)
-                        } else {
-                            stringResource(R.string.error_details_copy)
-                        },
-                        style = WalletTextStyle.BodySM,
-                    )
-                },
-                leadingIcon = {
-                    Image(
-                        painter = painterResource(R.drawable.copy_icon),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
-                },
-            )
+            CopyDetailsChip(details = details + deviceDetails)
         }
         Spacer(modifier = Modifier.height(16.dp))
         ErrorDetailRows(details = details, labelColor = labelColor, valueColor = valueColor)
@@ -244,6 +251,50 @@ private fun ErrorDetailsSheetContent(details: List<ErrorDetail>, modifier: Modif
         Spacer(modifier = Modifier.height(16.dp))
         ErrorDetailRows(details = deviceDetails, labelColor = labelColor, valueColor = valueColor)
     }
+}
+
+/** Copies every detail row to the clipboard and briefly shows "Copied" as confirmation. */
+@Composable
+private fun CopyDetailsChip(details: List<ErrorDetail>) {
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    var copied by remember { mutableStateOf(false) }
+
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(COPIED_LABEL_DURATION_MS)
+            copied = false
+        }
+    }
+
+    AssistChip(
+        onClick = {
+            scope.launch {
+                val text = details.joinToString(separator = "\n") { "${it.title}: ${it.value}" }
+                clipboard.setClipEntry(
+                    ClipEntry(ClipData.newPlainText(ERROR_DETAILS_CLIPBOARD_LABEL, text)),
+                )
+            }
+            copied = true
+        },
+        label = {
+            Text(
+                text = if (copied) {
+                    stringResource(R.string.error_details_copied)
+                } else {
+                    stringResource(R.string.error_details_copy)
+                },
+                style = WalletTextStyle.BodySM,
+            )
+        },
+        leadingIcon = {
+            Image(
+                painter = painterResource(R.drawable.copy_icon),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+            )
+        },
+    )
 }
 
 @Composable
