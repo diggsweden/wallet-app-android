@@ -15,6 +15,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import se.digg.wallet.feature.about.AboutRoute
 import se.digg.wallet.feature.about.LicensesRoute
+import se.digg.wallet.feature.appsetup.AppSetupRoute
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsRoute
 import se.digg.wallet.feature.dashboard.DashboardRoute
 import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
@@ -46,6 +47,12 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
             slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
         },
         entryProvider = entryProvider {
+            entry<AppSetupKey> {
+                AppSetupRoute(
+                    onNavigateToIntro = { navigator.resetToOnboarding() },
+                    onNavigateToDashboard = { navigator.resetToDashboard() },
+                )
+            }
             entry<IntroKey> {
                 IntroRoute(
                     onContinue = { navigator.navigate(OnboardingKey) },

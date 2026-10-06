@@ -29,6 +29,7 @@ class MainActivityViewModel @Inject constructor(private val userRepository: User
 
     init {
         viewModelScope.launch {
+            /*
             val onboarded = userRepository.isOnboarded()
             if (onboarded) {
                 goToDashboard()
@@ -36,6 +37,7 @@ class MainActivityViewModel @Inject constructor(private val userRepository: User
                 userRepository.wipeAll()
                 goToOnboarding()
             }
+             */
         }
     }
 

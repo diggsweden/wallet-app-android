@@ -15,7 +15,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [User::class],
-    version = 6,
+    version = 7,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3, spec = AppDatabase.Migration2To3::class),
@@ -64,6 +64,15 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 db.execSQL("DROP TABLE `user`")
                 db.execSQL("ALTER TABLE `user_new` RENAME TO `user`")
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `user` ADD COLUMN `isReset` INTEGER NOT NULL DEFAULT 1",
+                )
+                db.execSQL("ALTER TABLE `user` ADD COLUMN `backendResetAt` INTEGER")
             }
         }
     }

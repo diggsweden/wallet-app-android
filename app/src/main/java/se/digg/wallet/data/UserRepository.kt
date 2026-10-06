@@ -65,7 +65,11 @@ class UserRepository @Inject constructor(
 
     suspend fun getAccountId(): String? = userDao.get()?.accountId
 
+    suspend fun isReset(): Boolean? = userDao.get()?.isReset
+
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
+
+    suspend fun setIsReset(isReset: Boolean) = updateUser { it.copy(isReset = isReset) }
 
     override suspend fun addCredentials(credentials: List<SavedCredential>) =
         updateUser { it.copy(credentials = it.credentials + credentials) }

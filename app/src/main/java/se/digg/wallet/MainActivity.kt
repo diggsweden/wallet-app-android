@@ -32,7 +32,7 @@ import se.digg.wallet.core.deeplink.DeepLinkHandler
 import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.locale.LocaleOverride
-import se.digg.wallet.core.navigation.IntroKey
+import se.digg.wallet.core.navigation.AppSetupKey
 import se.digg.wallet.core.navigation.WalletNavDisplay
 import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.core.navigation.toNavKey
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
         val initialDeepLinkKey = intent.data?.toNavKey()
 
         setContent {
-            val backStack = rememberNavBackStack(IntroKey)
+            val backStack = rememberNavBackStack(AppSetupKey)
             val nav = remember { WalletNavigator(backStack) }
             SideEffect { walletNavigator = nav }
 
@@ -123,7 +123,7 @@ fun AppRoot(
         prevFlowName = app.flow.name
         when (app.flow) {
             AppFlow.Onboarding -> {
-                navigator.resetToOnboarding()
+                // navigator.resetToOnboarding()
             }
 
             AppFlow.Dashboard -> {
