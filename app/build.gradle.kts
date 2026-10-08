@@ -116,6 +116,22 @@ android {
         create("demo") {
             dimension = "version"
             applicationIdSuffix = ".demo"
+            buildConfigField("String", "API_KEY", "\"${getSecret("TEST_API_KEY")}\"")
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"client-gateway.provider.pub.testplattformen.wallet.digg.se\"",
+            )
+            buildConfigField(
+                "String",
+                "PID_ISSUER_URL",
+                "\"wallet.sandbox.digg.se/pid-issuer\"",
+            )
+        }
+        /*
+        create("demo") {
+            dimension = "version"
+            applicationIdSuffix = ".demo"
             buildConfigField("String", "API_KEY", "\"${getSecret("SANDBOX_API_KEY")}\"")
             buildConfigField(
                 "String",
@@ -128,6 +144,7 @@ android {
                 "\"wallet.sandbox.digg.se/pid-issuer\"",
             )
         }
+         */
         create("local") {
             dimension = "version"
             applicationIdSuffix = ".local"

@@ -69,6 +69,57 @@ private val problemJsonContentType = ContentType("application", "problem+json")
 object NetworkModule {
     @Provides
     @Singleton
+    @UnsafeHttpClient
+    @SuppressLint("TrustAllX509TrustManager", "CustomX509TrustManager")
+    fun provideUnsafeHttpClient(): HttpClient {
+        check(BuildConfig.DEBUG) { "UnsafeHttpClient must not be used in release builds" }
+
+        val trustManager = object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) =
+                Unit
+
+            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) =
+                Unit
+
+            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+        }
+
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, arrayOf(trustManager), SecureRandom())
+        }
+
+        val unsafeOkHttp = OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
+
+        return HttpClient(OkHttp) {
+            engine {
+                preconfigured = unsafeOkHttp
+            }
+            install(ContentNegotiation) {
+                json(networkJson)
+                json(networkJson, contentType = problemJsonContentType)
+            }
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 20_000
+                connectTimeoutMillis = 20_000
+            }
+
+            if (BuildConfig.DEBUG) {
+                install(Logging) {
+                    logger = Logger.ANDROID
+                    level = LogLevel.HEADERS
+                }
+            }
+
+            install(dpopPlugin)
+        }
+    }
+
+    @Provides
+    @Singleton
     @BaseHttpClient
     fun provideHttpClient(deviceInfo: DeviceInfo): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
@@ -109,7 +160,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideSessionManager(
-        @BaseHttpClient base: HttpClient,
+        @UnsafeHttpClient base: HttpClient,
         userDao: UserDao,
     ): SessionManager {
         val client = base.config {

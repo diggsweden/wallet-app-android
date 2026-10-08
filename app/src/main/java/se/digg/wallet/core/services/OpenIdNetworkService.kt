@@ -16,6 +16,7 @@ import io.ktor.http.isSuccess
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.di.UnsafeHttpClient
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.authorizeWith
 import se.digg.wallet.data.CredentialRequestModel
@@ -24,7 +25,7 @@ import se.digg.wallet.data.response.NonceResponseModel
 import se.digg.wallet.data.response.PresentationResponseModel
 
 class OpenIdNetworkService @Inject constructor(
-    @param:BaseHttpClient private val httpClient: HttpClient,
+    @param:UnsafeHttpClient private val httpClient: HttpClient,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 

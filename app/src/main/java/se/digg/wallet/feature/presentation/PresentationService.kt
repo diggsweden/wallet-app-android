@@ -26,6 +26,7 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.KeyBindingSigner
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.di.UnsafeHttpClient
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.PresentationItem
@@ -66,7 +67,7 @@ internal class DefaultPresentationService @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
     private val keyBindingSigner: KeyBindingSigner,
-    @param:BaseHttpClient private val httpClient: HttpClient,
+    @param:UnsafeHttpClient private val httpClient: HttpClient,
 ) : PresentationService {
 
     private val walletConfig = OpenId4VPConfig(

@@ -37,6 +37,7 @@ import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.di.UnsafeHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
@@ -65,7 +66,7 @@ internal class DefaultIssuanceService @Inject constructor(
     private val openIdNetworkService: OpenIdNetworkService,
     private val proofSigner: ProofSigner,
     private val clock: Clock,
-    @param:BaseHttpClient private val httpClient: HttpClient,
+    @param:UnsafeHttpClient private val httpClient: HttpClient,
 ) : IssuanceService {
 
     private val dpopProofBuilder = DpopProofBuilder(clock = clock)
