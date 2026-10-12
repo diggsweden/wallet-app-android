@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_scanner_hint">Rikta kameran mot en QR-kod</string>
+    <string name="qr_scanner_unsupported_code">Den här QR-koden kan inte användas i plånboken</string>
+    <string name="qr_scanner_permission_title">Åtkomst till kameran krävs</string>
+    <string name="qr_scanner_permission_description">Tillåt åtkomst till kameran i appens inställningar för att skanna QR-koder.</string>
+    <string name="qr_scanner_permission_button">Öppna inställningar</string>
+    <string name="qr_scanner_torch">Ficklampa</string>
+</resources>
