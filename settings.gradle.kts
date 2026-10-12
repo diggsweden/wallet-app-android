@@ -35,3 +35,5 @@ dependencyResolutionManagement {
 rootProject.name = "Wallet"
 include(":app")
 include(":core:designsystem")
+include(":core:camera")
+include(":core:common")
