@@ -4,25 +4,28 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-"""Generate a static accessibility review report from the a11y snapshot baselines.
+"""Generate a static accessibility review report from the a11y emulator captures.
 
-Reads the files the Robolectric a11y tests write to app/src/test/a11y-snapshots:
+Reads what the instrumented a11y tests write and scripts/a11y/capture.sh pulls to
+app/build/a11y-snapshots, per screen <id> and variant (<id>, <id>.dark, <id>.land):
 
-  <id>.semantics.txt, <id>.png, <id>.meta.json   portrait, light theme
-  <id>.dark.png                                  portrait, dark theme (same tree, checked by test)
-  <id>.land.semantics.txt, <id>.land.png         landscape
+  <key>.semantics.txt   merged Compose semantics tree
+  <key>.png             screenshot of the Compose root
+  <key>.meta.json       description, density, window offset on screen
+  <key>.atf.json        Accessibility Test Framework (ATF) results
 
 and writes an HTML report with, per screen: screenshots with numbered markers, a plain-language
-outline of what TalkBack gets (same numbers), automated hints and a reviewer checklist. The raw
-semantics tree stays available in a collapsed section.
+outline of what TalkBack gets (same numbers), ATF results linked to those numbers, a few extra
+hints for what ATF doesn't cover, and a reviewer checklist. The raw semantics tree stays available
+in a collapsed section.
 
-Hints are candidates for a person to verify, not pass/fail results. Standard library only;
-if Pillow is installed, text contrast is also estimated from the screenshots.
+Hints are candidates for a person to verify, not pass/fail results. Standard library only.
 
-Usage: scripts/a11y-review.py [--snapshots DIR] [--out DIR]
+Usage: scripts/a11y/review.py [--snapshots DIR] [--out DIR]
 """
 
 import argparse
+import difflib
 import html
 import json
 import re
@@ -30,19 +33,19 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-try:
-    from PIL import Image
-except ImportError:
-    Image = None
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_SNAPSHOTS = REPO_ROOT / "app/src/test/a11y-snapshots"
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_SNAPSHOTS = REPO_ROOT / "app/build/a11y-snapshots"
 DEFAULT_OUT = REPO_ROOT / "app/build/reports/a11y-review"
 MANIFEST = REPO_ROOT / "app/src/main/AndroidManifest.xml"
+VERSIONS = REPO_ROOT / "gradle/libs.versions.toml"
 
-MIN_TARGET_DP = 48
-MIN_CONTRAST = 4.5
-MIN_CONTRAST_LARGE = 3.0
+VARIANTS = {"": "Portrait, light", ".dark": "Portrait, dark", ".land": "Landscape"}
+ATF_TYPES = ("ERROR", "WARNING", "INFO")
+# An ATF element is linked to a numbered node when one box lies (almost) inside the other and
+# they are of similar size. ATF reports the touch area, which Compose pads to 48 dp around a
+# smaller visual node: a 40 dp icon button gives an overlap of only 0.69.
+MIN_CONTAINMENT = 0.9
+MIN_OVERLAP = 0.5
 
 CHECKLIST = [
     "Every interactive element (button, switch, checkbox, clickable card) has a meaningful "
@@ -290,37 +293,6 @@ def flatten(entries):
             yield from flatten(e.children)
 
 
-def estimate_contrast(png, node):
-    """Rough text contrast: most common colour as background vs. the most distant common colour.
-
-    Anti-aliasing and images make this an estimate, which is why it only produces hints.
-    """
-    if Image is None or not png.exists() or node.width < 2 or node.height < 2:
-        return None
-    with Image.open(png) as im:
-        # Scrolled out of view, fully or partly: the screenshot doesn't show it, so no estimate.
-        if node.left < 0 or node.top < 0 or node.right > im.width or node.bottom > im.height:
-            return None
-        crop = im.convert("RGB").crop((int(node.left), int(node.top),
-                                       int(node.right), int(node.bottom)))
-    colors = crop.getcolors(crop.width * crop.height)
-    total = sum(count for count, _ in colors)
-    common = [c for count, c in colors if count >= total * 0.005]
-    background = max(colors)[1]
-    return max((contrast(background, c) for c in common), default=None)
-
-
-def contrast(a, b):
-    def luminance(rgb):
-        def channel(v):
-            v /= 255
-            return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
-        r, g, b = (channel(v) for v in rgb)
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b
-    high, low = sorted((luminance(a), luminance(b)), reverse=True)
-    return (high + 0.05) / (low + 0.05)
-
-
 def unreached(nodes, entries):
     """Meaningful nodes TalkBack never lands on: they'd otherwise vanish from the outline."""
     placed = {e.node.index for e in flatten(entries)}
@@ -328,26 +300,18 @@ def unreached(nodes, entries):
             and not n.is_group]
 
 
-def hints_for(root, nodes, spoken, entries, density):
+def hints_for(root, nodes, spoken, entries):
+    """Checks ATF has no equivalent for. Names, touch targets, labels and contrast are left to
+    ATF, which measures them on the device."""
     hints = []
     for n in unreached(nodes, entries):
         label = f"“{n.name}”" if n.name else f"at {describe_position(n, root)}"
         hints.append(f"{n.role_label} {label} is in the tree but TalkBack does not land on it.")
     for n in spoken:
         label = f"“{n.name}”" if n.name else f"at {describe_position(n, root)}"
-        size_dp = (n.width / density, n.height / density)
-        if n.is_interactive and not n.name:
-            hints.append(f"{n.role_label} {label} has no name (no text or content description). "
-                         "TalkBack will announce only its role.")
         if n.is_interactive and not n.prop("Role") and not n.is_text_field:
             hints.append(f"Clickable element {label} has no role, so TalkBack cannot say what "
                          "kind of control it is (for example “button”).")
-        if n.is_interactive and min(size_dp) < MIN_TARGET_DP:
-            hints.append(f"{n.role_label} {label} is {size_dp[0]:.0f}×{size_dp[1]:.0f} dp, under "
-                         f"{MIN_TARGET_DP} dp. The touch area may still be larger than the visible "
-                         "bounds (Material adds padding), so check on a device.")
-        if n.is_text_field and not n.prop("ContentDescription") and not n.prop("Text"):
-            hints.append(f"Text field {label} has no label.")
     if not any(n.is_heading for n in nodes):
         hints.append("No element is marked as a heading, so TalkBack heading navigation finds "
                      "nothing.")
@@ -357,22 +321,8 @@ def hints_for(root, nodes, spoken, entries, density):
     return hints
 
 
-def contrast_hints(spoken, pngs):
-    hints = []
-    for n in spoken:
-        if not n.prop("Text"):
-            continue
-        for theme, png in pngs.items():
-            ratio = estimate_contrast(png, n)
-            if ratio is not None and ratio < MIN_CONTRAST:
-                hints.append(f"Estimated text contrast of “{n.name}” in {theme} theme is "
-                             f"{ratio:.1f}:1. WCAG 1.4.3 needs {MIN_CONTRAST}:1, or "
-                             f"{MIN_CONTRAST_LARGE}:1 for large text. Measure it to confirm.")
-    return hints
-
-
 def describe_position(node, root):
-    cx, cy = node.left + node.width / 2, node.top + node.height / 2
+    cx, cy = node.left - root.left + node.width / 2, node.top - root.top + node.height / 2
     horizontal = "left" if cx < root.width / 3 else "right" if cx > root.width * 2 / 3 else "centre"
     vertical = "top" if cy < root.height / 3 else "bottom" if cy > root.height * 2 / 3 else "middle"
     return f"{vertical} {horizontal}"
@@ -382,7 +332,7 @@ def esc(value):
     return html.escape(str(value), quote=True)
 
 
-def describe_node(n, density, pngs):
+def describe_node(n, density):
     """One outline line: what TalkBack gets for this element, in words."""
     scroll = n.scroll_axis
     if scroll and not n.name:
@@ -409,26 +359,17 @@ def describe_node(n, density, pngs):
         parts.append(f"pane title “{esc(n.prop('PaneTitle'))}”")
     if n.prop("Error"):
         parts.append(f'<span class="bad">error “{esc(n.prop("Error"))}”</span>')
-    if n.prop("Text"):
-        ratios = []
-        for theme, png in pngs.items():
-            ratio = estimate_contrast(png, n)
-            if ratio is not None:
-                cls = ' class="bad"' if ratio < MIN_CONTRAST else ""
-                ratios.append(f"<span{cls}>{ratio:.1f}:1 {theme}</span>")
-        if ratios:
-            parts.append("contrast ≈ " + " / ".join(ratios))
     parts += [f"other: {esc(k)} = {esc(v)}" for k, v in n.other_props.items()]
     return " · ".join(parts)
 
 
-def render_outline(entries, density, pngs):
+def render_outline(entries, density):
     """Nested list in estimated TalkBack order; groups contain their (sorted) contents."""
     items = []
     for e in entries:
         badge = f'<span class="num">{e.node.number}</span> ' if e.node.number else ""
-        nested = f"<ul>{render_outline(e.children, density, pngs)}</ul>" if e.children else ""
-        items.append(f"<li>{badge}{describe_node(e.node, density, pngs)}{nested}</li>")
+        nested = f"<ul>{render_outline(e.children, density)}</ul>" if e.children else ""
+        items.append(f"<li>{badge}{describe_node(e.node, density)}{nested}</li>")
     return "".join(items)
 
 
@@ -438,19 +379,19 @@ def render_screenshot(png, root, spoken, alt, assets_dir, markers=True):
     shutil.copyfile(png, assets_dir / png.name)
     spans = "".join(
         # Top-left corner of the element, so the marker doesn't cover its text.
-        f'<span class="marker" style="left:{n.left / root.width * 100:.2f}%;'
-        f'top:{n.top / root.height * 100:.2f}%">{n.number}</span>'
-        for n in spoken if markers and n.top < root.height and n.left < root.width
+        f'<span class="marker" style="left:{(n.left - root.left) / root.width * 100:.2f}%;'
+        f'top:{(n.top - root.top) / root.height * 100:.2f}%">{n.number}</span>'
+        for n in spoken if markers and n.top < root.bottom and n.left < root.right
     )
     return (f'<a class="shot" href="assets/{esc(png.name)}"><img src="assets/{esc(png.name)}" '
             f'alt="{esc(alt)}"><span aria-hidden="true">{spans}</span></a>')
 
 
-def render_view(tree_text, root, nodes, entries, density, pngs, shots_html, layout):
-    scrolls = any(n.scroll_axis and n.scroll_axis[1] for n in nodes)
-    missed = unreached(nodes, entries)
+def render_view(capture, density, shots_html, layout):
+    scrolls = any(n.scroll_axis and n.scroll_axis[1] for n in capture.nodes)
+    missed = unreached(capture.nodes, capture.entries)
     not_reached = ("<h5>Not reached by TalkBack</h5><ul class='outline'>"
-                   + "".join(f"<li>{describe_node(n, density, pngs)}</li>" for n in missed)
+                   + "".join(f"<li>{describe_node(n, density)}</li>" for n in missed)
                    + "</ul>") if missed else ""
     scroll_note = ("<p class='note'>This screen scrolls: the screenshot shows only the visible "
                    "part. Elements beyond it are in the outline but have no marker.</p>"
@@ -464,58 +405,191 @@ def render_view(tree_text, root, nodes, entries, density, pngs, shots_html, layo
       Compose's own ordering rules: top to bottom, left to right, and a group is finished before
       moving on. They match the markers. Confirm on a device. Pure layout is left out.</p>
       {scroll_note}
-      <ul class="outline">{render_outline(entries, density, pngs)}</ul>
+      <ul class="outline">{render_outline(capture.entries, density)}</ul>
       {not_reached}
       <details>
         <summary>Raw semantics tree (for specialists)</summary>
-        <pre>{esc(tree_text)}</pre>
+        <pre>{esc(capture.text)}</pre>
       </details>
     </div>
   </div>"""
 
 
-def render_screen(screen_id, snapshots, assets_dir, portrait_locked):
-    meta_path = snapshots / f"{screen_id}.meta.json"
-    meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
-    description = meta.get("description", screen_id)
-    density = float(meta.get("density", 3.0))
+@dataclass
+class Capture:
+    """Everything captured for one screen in one variant."""
+    text: str
+    root: Node | None
+    nodes: list
+    spoken: list
+    entries: list
+    meta: dict
+    atf: dict | None
+    png: Path
 
-    tree_text = (snapshots / f"{screen_id}.semantics.txt").read_text(encoding="utf-8")
-    root, nodes, spoken, entries = parse_tree(tree_text)
-    if root is None:
+    @property
+    def window_offset(self):
+        return tuple(self.meta.get("windowOffset", (0, 0)))
+
+
+def load_json(path):
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def load_capture(snapshots, key):
+    tree = snapshots / f"{key}.semantics.txt"
+    if not tree.exists():
+        return None
+    text = tree.read_text(encoding="utf-8")
+    root, nodes, spoken, entries = parse_tree(text)
+    return Capture(text, root, nodes, spoken, entries,
+                   load_json(snapshots / f"{key}.meta.json") or {},
+                   load_json(snapshots / f"{key}.atf.json"), snapshots / f"{key}.png")
+
+
+def overlap(a, b):
+    """(containment, intersection over union) of two (left, top, right, bottom) boxes, where
+    containment is how much of the smaller box lies inside the other."""
+    width = min(a[2], b[2]) - max(a[0], b[0])
+    height = min(a[3], b[3]) - max(a[1], b[1])
+    area_a = (a[2] - a[0]) * (a[3] - a[1])
+    area_b = (b[2] - b[0]) * (b[3] - b[1])
+    if width <= 0 or height <= 0 or area_a <= 0 or area_b <= 0:
+        return 0.0, 0.0
+    inter = width * height
+    return inter / min(area_a, area_b), inter / (area_a + area_b - inter)
+
+
+def atf_box(result, capture):
+    """ATF bounds are in screen coordinates; the semantics tree is in window coordinates."""
+    bounds = result.get("bounds")
+    if not bounds:
+        return None
+    dx, dy = capture.window_offset
+    return bounds[0] - dx, bounds[1] - dy, bounds[2] - dx, bounds[3] - dy
+
+
+def atf_node(box, capture):
+    """The numbered node an ATF result is about: (node, True) when the bounds match, or
+    (node, False) for the smallest numbered node it lies inside, such as text merged into a
+    card. (None, False) when neither."""
+    if box is None:
+        return None, False
+    scored = [(overlap(box, (n.left, n.top, n.right, n.bottom)), n) for n in capture.spoken]
+    (containment, iou), node = max(scored, key=lambda s: s[0], default=((0.0, 0.0), None))
+    if containment >= MIN_CONTAINMENT and iou >= MIN_OVERLAP:
+        return node, True
+    area = (box[2] - box[0]) * (box[3] - box[1])
+    containers = [n for (c, _), n in scored
+                  if c >= MIN_CONTAINMENT and n.width * n.height >= area]
+    if containers:
+        return min(containers, key=lambda n: n.width * n.height), False
+    return None, False
+
+
+def atf_element(result, box, capture):
+    name = result.get("text") or result.get("contentDescription")
+    if name:
+        return f"“{name}”"
+    kind = (result.get("className") or "element").rsplit(".", 1)[-1]
+    if box is None or capture.root is None:
+        return kind
+    probe = Node(0, *box)
+    return f"{kind} at {describe_position(probe, capture.root)}"
+
+
+def render_atf(capture):
+    atf = capture.atf
+    if atf is None:
+        return "<p class='note'>No ATF results were captured for this view.</p>"
+    order = {t: i for i, t in enumerate(ATF_TYPES)}
+    results = sorted(atf.get("results", []),
+                     key=lambda r: (order.get(r["type"], len(order)), r["check"]))
+    warn = ""
+    if atf.get("elementCount", 0) < len(capture.nodes) / 2:
+        warn = (f"<p class='note warn'>ATF saw {atf.get('elementCount', 0)} elements but the "
+                f"semantics tree has {len(capture.nodes)} nodes, so it probably did not evaluate "
+                "the Compose content. Don't read few results as few problems.</p>")
+    if not atf.get("screenshot"):
+        warn += ("<p class='note warn'>No screenshot reached ATF, so its contrast checks did not "
+                 "run.</p>")
+    rows = []
+    for r in results:
+        box = atf_box(r, capture)
+        node, exact = atf_node(box, capture)
+        number = ""
+        if node and exact:
+            number = f'<span class="num">{node.number}</span> '
+        elif node:
+            number = f'<span class="muted">in</span> <span class="num">{node.number}</span> '
+
+        help_link = (f' <a href="{esc(r["helpUrl"])}">More</a>' if r.get("helpUrl") else "")
+        rows.append(
+            f'<tr><td><span class="atf {esc(r["type"].lower())}">{esc(r["type"])}</span></td>'
+            f'<td>{number}{esc(atf_element(r, box, capture))}</td>'
+            f'<td><code>{esc(r["check"])}</code></td>'
+            f'<td>{esc(r["message"])}{help_link}</td></tr>')
+    counts = ", ".join(f"{sum(r['type'] == t for r in results)} {t.lower()}" for t in ATF_TYPES)
+    summary = (f"<p class='note'>{counts}. {len(atf.get('checks', []))} checks ran; "
+               f"{atf.get('notRun', 0)} “not applicable” results are left out.</p>")
+    table = ("<div class='table'><table class='atf-results'><thead><tr><th>Type</th>"
+             "<th>Element</th><th>Check</th><th>Message</th></tr></thead><tbody>"
+             + "".join(rows) + "</tbody></table></div>") if rows else "<p>No results.</p>"
+    return warn + summary + table
+
+
+def render_screen(screen_id, snapshots, assets_dir, portrait_locked):
+    captures = {suffix: load_capture(snapshots, screen_id + suffix) for suffix in VARIANTS}
+    main, dark, land = captures[""], captures[".dark"], captures[".land"]
+    meta = main.meta if main else {}
+    description = meta.get("description", screen_id)
+    if main is None or main.root is None:
         return f'<article class="screen"><h2>{esc(description)}</h2><p>The tree is empty: ' \
                f'nothing is exposed to accessibility services.</p></article>'
+    density = float(meta.get("density", 3.0))
 
-    light, dark = snapshots / f"{screen_id}.png", snapshots / f"{screen_id}.dark.png"
-    pngs = {"light": light} | ({"dark": dark} if dark.exists() else {})
-    hints = hints_for(root, nodes, spoken, entries, density) + contrast_hints(spoken, pngs)
+    hints = hints_for(main.root, main.nodes, main.spoken, main.entries)
+    tree_diff = ""
+    if dark and dark.text != main.text:
+        diff = list(difflib.unified_diff(main.text.splitlines(), dark.text.splitlines(),
+                                         "light", "dark", lineterm=""))
+        changed = sum(1 for line in diff[2:] if line[:1] in "+-")
+        hints.append(f"Dark mode changes the semantics tree ({changed} lines differ), so TalkBack "
+                     "users get something different in dark mode. Colours alone should not do "
+                     "that. The diff is under the dark ATF results.")
+        tree_diff = ("<details><summary>Semantics tree, light vs dark</summary>"
+                     f"<pre>{esc(chr(10).join(diff))}</pre></details>")
 
-    shots = render_screenshot(light, root, spoken, f"Screenshot, light theme: {description}",
-                              assets_dir)
-    if dark.exists():
-        shots += render_screenshot(dark, root, spoken, f"Screenshot, dark theme: {description}",
-                                   assets_dir, markers=False)
-    views = [f"<h3>Portrait{' · light and dark' if dark.exists() else ''}</h3>"
-             + render_view(tree_text, root, nodes, entries, density, pngs, shots, "portrait")]
+    shots = render_screenshot(main.png, main.root, main.spoken,
+                              f"Screenshot, light theme: {description}", assets_dir)
+    if dark and dark.png.exists():
+        shots += render_screenshot(dark.png, dark.root, dark.spoken,
+                                   f"Screenshot, dark theme: {description}", assets_dir,
+                                   markers=False)
+    views = [f"<h3>Portrait{' · light and dark' if dark else ''}</h3>"
+             + render_view(main, density, shots, "portrait")]
 
-    land_tree = snapshots / f"{screen_id}.land.semantics.txt"
-    if land_tree.exists():
-        land_text = land_tree.read_text(encoding="utf-8")
-        l_root, l_nodes, l_spoken, l_entries = parse_tree(land_text)
-        land_png = snapshots / f"{screen_id}.land.png"
-        hints += [f"Landscape: {h}" for h in hints_for(l_root, l_nodes, l_spoken, l_entries, density)
+    if land and land.root is not None:
+        hints += [f"Landscape: {h}"
+                  for h in hints_for(land.root, land.nodes, land.spoken, land.entries)
                   if h not in hints]
         lock = ("<p class='note warn'>The app is locked to portrait "
                 "(<code>android:screenOrientation=\"portrait\"</code>), so users cannot see this "
                 "today. WCAG 1.3.4 asks that orientation is not restricted unless essential.</p>"
                 if portrait_locked else "")
         views.append("<h3>Landscape</h3>" + lock + render_view(
-            land_text, l_root, l_nodes, l_entries, density, {"light": land_png},
-            render_screenshot(land_png, l_root, l_spoken, f"Screenshot, landscape: {description}",
-                              assets_dir), "landscape"))
+            land, density,
+            render_screenshot(land.png, land.root, land.spoken,
+                              f"Screenshot, landscape: {description}", assets_dir),
+            "landscape"))
 
-    headings = [n.name for n in nodes if n.is_heading]
-    pane_titles = [n.prop("PaneTitle") for n in nodes if "PaneTitle" in n.props]
+    atf_sections = "".join(
+        f"<h4>{esc(VARIANTS[suffix])}</h4>" + render_atf(capture)
+        + (tree_diff if suffix == ".dark" else "")
+        for suffix, capture in captures.items() if capture is not None)
+
+    headings = [n.name for n in main.nodes if n.is_heading]
+    pane_titles = [n.prop("PaneTitle") for n in main.nodes if "PaneTitle" in n.props]
     title = ", ".join(pane_titles or headings) or "(none found)"
     hint_items = "".join(f"<li>{esc(h)}</li>" for h in hints) or "<li>None.</li>"
     checklist = "".join(f'<li><label><input type="checkbox"> {esc(item)}</label></li>'
@@ -528,9 +602,15 @@ def render_screen(screen_id, snapshots, assets_dir, portrait_locked):
     <div><dt>Accessibility title</dt><dd>{esc(title)}</dd></div>
     <div><dt>Density</dt><dd>{density:g}×</dd></div>
   </dl>
-  <h3>Automated hints (to verify)</h3>
-  <ul class="hints">{hint_items}</ul>
   {"".join(views)}
+  <h3>Accessibility Test Framework results</h3>
+  <p class="note">Google's ATF, the same checks as Accessibility Scanner, run on the emulator. A
+  number links a result to the outline and markers above. Errors are likely real problems;
+  warnings and info need a person to judge.</p>
+  {atf_sections}
+  <h3>Other hints (to verify)</h3>
+  <p class="note">Checks ATF does not do, made from the semantics tree.</p>
+  <ul class="hints">{hint_items}</ul>
   <h3>Reviewer checklist</h3>
   <ul class="checklist">{checklist}</ul>
 </article>"""
@@ -574,6 +654,15 @@ PAGE = """<!doctype html>
   .outline li {{ margin: 0.35rem 0; }}
   .outline ul {{ border-left: 2px solid var(--line); }}
   .bad {{ color: #cf222e; font-weight: 600; }}
+  .table {{ overflow-x: auto; }}
+  .atf-results {{ border-collapse: collapse; width: 100%; font-size: 0.9rem; }}
+  .atf-results th, .atf-results td {{ border-bottom: 1px solid var(--line); padding: 0.35rem 0.5rem;
+    text-align: left; vertical-align: top; }}
+  .atf {{ display: inline-block; padding: 0 0.4rem; border-radius: 4px; font-size: 0.75rem;
+    font-weight: 700; }}
+  .atf.error {{ background: #ffebe9; color: #a40e26; }}
+  .atf.warning {{ background: #fff8c5; color: #7d4e00; }}
+  .atf.info {{ background: #ddf4ff; color: #0550ae; }}
   .muted, .note {{ color: var(--muted); }}
   .note {{ font-size: 0.85rem; }}
   .warn {{ background: #fff1e5; border-left: 4px solid #bc4c00; padding: 0.4rem 0.6rem;
@@ -593,10 +682,11 @@ PAGE = """<!doctype html>
 <body>
 <header>
   <h1>Accessibility review – Wallet Android</h1>
-  <p>Generated by <code>scripts/a11y-review.py</code> from the committed baselines in
-  <code>app/src/test/a11y-snapshots/</code>. For each screen: screenshots (light, dark and
-  landscape where captured), a plain-language outline of what TalkBack gets, automated hints and a
-  checklist. Hints are candidates for a person to confirm, not failures. {contrast_note}</p>
+  <p>Generated by <code>scripts/a11y/review.py</code> from the emulator captures in
+  <code>app/build/a11y-snapshots/</code> (<code>just a11y-review</code>). For each screen:
+  results from the Accessibility Test Framework {atf_version}, screenshots (light, dark and
+  landscape where captured), a plain-language outline of what TalkBack gets, a few extra hints and
+  a checklist. Hints are candidates for a person to confirm, not failures.</p>
   <p class="note">The outline leaves out only rendering details that TalkBack users never notice
   (shape, focus state, text-layout and selection actions). Any other property is listed as
   “other”, and the full raw tree is under each outline.</p>
@@ -617,22 +707,24 @@ def main():
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
 
+    variant_suffixes = tuple(f"{s}.semantics.txt" for s in VARIANTS if s)
     screen_ids = sorted(p.name.removesuffix(".semantics.txt")
                         for p in args.snapshots.glob("*.semantics.txt")
-                        if not p.name.endswith(".land.semantics.txt"))
+                        if not p.name.endswith(variant_suffixes))
     if not screen_ids:
-        parser.error(f"no *.semantics.txt files in {args.snapshots}")
+        parser.error(f"no *.semantics.txt files in {args.snapshots}; run `just a11y-review`")
 
     portrait_locked = MANIFEST.exists() and 'screenOrientation="portrait"' in MANIFEST.read_text()
     assets = args.out / "assets"
     assets.mkdir(parents=True, exist_ok=True)
     sections = [render_screen(s, args.snapshots, assets, portrait_locked) for s in screen_ids]
     toc = "".join(f'<li><a href="#{esc(s)}">{esc(s)}</a></li>' for s in screen_ids)
-    contrast_note = ("Text contrast is estimated from the screenshots, so measure borderline "
-                     "cases." if Image else "Install Pillow to also estimate text contrast.")
+    atf = re.search(r'^accessibilityTestFramework = "([^"]+)"', VERSIONS.read_text(), re.M) \
+        if VERSIONS.exists() else None
+    atf_version = esc(atf.group(1)) if atf else ""
     out_file = args.out / "index.html"
     out_file.write_text(PAGE.format(toc=toc, screens="\n".join(sections),
-                                    contrast_note=contrast_note), encoding="utf-8")
+                                    atf_version=atf_version), encoding="utf-8")
     print(f"Wrote {out_file} ({len(screen_ids)} screens)")
 
 

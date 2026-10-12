@@ -5,7 +5,9 @@ ktlint = "1.8.0"
 coreKtx = "1.19.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
-robolectric = "4.17"
+accessibilityTestFramework = "4.1.1"
+# The Guava version ATF declares; ATF's API exposes Guava types (see app/build.gradle.kts).
+atfGuava = "31.0.1-android"
 coroutinesTest = "1.11.0"
 espressoCore = "3.7.0"
 ktlintCompose = "0.6.6"
@@ -36,7 +38,8 @@ eudiSDJWT = "0.20.1"
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
-robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+accessibility-test-framework = { group = "com.google.android.apps.common.testing.accessibility.framework", name = "accessibility-test-framework", version.ref = "accessibilityTestFramework" }
+atf-guava = { group = "com.google.guava", name = "guava", version.ref = "atfGuava" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }

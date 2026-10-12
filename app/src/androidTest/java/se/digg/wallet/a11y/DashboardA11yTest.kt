@@ -4,54 +4,42 @@
 
 package se.digg.wallet.a11y
 
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import java.util.Date
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import org.robolectric.annotation.GraphicsMode
-import se.digg.wallet.a11y.A11ySnapshot.Variant
+import se.digg.wallet.a11y.A11yCapture.Variant
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.data.CredentialDisplayData
 import se.digg.wallet.data.SavedCredential
 import se.digg.wallet.feature.dashboard.DashboardScreen
 import se.digg.wallet.feature.dashboard.DashboardUiModel
 
-// Pixel 9 portrait, matching @PreviewsWallet. SDK 34 because Robolectric needs Java 21 for 35+
-// and unit tests run on the app's Java 17 toolchain. Variants add `+land` / `+night` on top.
-@RunWith(RobolectricTestRunner::class)
-@GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w412dp-h915dp-xxhdpi")
+/** Run through `just a11y-review`, which prepares the emulator and builds the report. */
 class DashboardA11yTest {
     @get:Rule
-    val rule = createComposeRule()
+    val rule = createEmptyComposeRule()
 
     @Test
     fun dashboardEmpty() = snapshot(EMPTY, Variant.DEFAULT)
 
     @Test
-    @Config(qualifiers = "+land")
     fun dashboardEmptyLandscape() = snapshot(EMPTY, Variant.LANDSCAPE)
 
     @Test
-    @Config(qualifiers = "+night")
     fun dashboardEmptyDark() = snapshot(EMPTY, Variant.DARK)
 
     @Test
     fun dashboardPopulated() = snapshot(POPULATED, Variant.DEFAULT)
 
     @Test
-    @Config(qualifiers = "+land")
     fun dashboardPopulatedLandscape() = snapshot(POPULATED, Variant.LANDSCAPE)
 
     @Test
-    @Config(qualifiers = "+night")
     fun dashboardPopulatedDark() = snapshot(POPULATED, Variant.DARK)
 
-    private fun snapshot(state: ScreenState, variant: Variant) {
-        rule.setContent {
+    private fun snapshot(state: ScreenState, variant: Variant) =
+        A11yCapture.render(rule, state.id, state.description, variant) {
             WalletPreview {
                 DashboardScreen(
                     credentialDetails = state.model,
@@ -60,8 +48,6 @@ class DashboardA11yTest {
                 )
             }
         }
-        A11ySnapshot.assertMatches(rule, state.id, state.description, variant)
-    }
 
     private class ScreenState(val id: String, val description: String, val model: DashboardUiModel)
 
@@ -84,7 +70,7 @@ class DashboardA11yTest {
             ),
         )
 
-        // Fixed id/date so baselines are deterministic.
+        // Fixed id/date so captures are comparable between runs.
         fun credential(id: String, name: String?) = SavedCredential(
             compactSerialized = "",
             claimDisplayNames = emptyMap(),

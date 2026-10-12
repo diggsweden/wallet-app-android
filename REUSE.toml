@@ -26,7 +26,6 @@ path = [
     "**/*.xml",
     "**/*.ttf",
     "**/*.png",
-    "**/*.semantics.txt",
     ".editorconfig",
     "secrets.properties.example",
 ]

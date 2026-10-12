@@ -107,23 +107,6 @@ android {
         compose = true
         buildConfig = true
     }
-    testOptions {
-        unitTests {
-            // Robolectric needs merged resources to render Compose screens host-side.
-            isIncludeAndroidResources = true
-            all {
-                // -Pa11y.update=true rewrites the committed a11y baselines instead of comparing.
-                it.systemProperty(
-                    "a11y.update",
-                    project.findProperty("a11y.update")?.toString() ?: "false",
-                )
-                it.systemProperty(
-                    "a11y.snapshotDir",
-                    file("src/test/a11y-snapshots").absolutePath,
-                )
-            }
-        }
-    }
     lint {
         abortOnError = false
         disable.add("UnusedMaterial3ScaffoldPaddingParameter")
@@ -200,13 +183,14 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.mock)
-    testImplementation(platform(libs.androidx.compose.bom))
-    testImplementation(libs.androidx.ui.test.junit4)
-    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.accessibility.test.framework)
+    // ATF returns Guava collections but declares Guava as runtime-only, so it is missing when
+    // compiling against ATF. compileOnly leaves the runtime version to normal resolution.
+    androidTestCompileOnly(libs.atf.guava)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.leakcanary)

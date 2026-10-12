@@ -190,15 +190,27 @@ test:
     ./gradlew test
     just_success "Tests passed"
 
-# ▪ Run a11y snapshot tests and generate the review report
+# ▪ Capture screens on an emulator (semantics, screenshots, ATF) and generate the review report
 [group('test')]
 a11y-review:
     #!/usr/bin/env bash
+    set -euo pipefail
     source "{{colors}}"
-    just_header "Running a11y snapshot tests" "./gradlew :app:testDemoDebugUnitTest --tests 'se.digg.wallet.a11y.*'"
-    ./gradlew :app:testDemoDebugUnitTest --tests 'se.digg.wallet.a11y.*'
-    ./scripts/a11y-review.py
+    just_header "Capturing a11y snapshots on emulator" "scripts/a11y/capture.sh"
+    scripts/a11y/emulator.sh boot
+    scripts/a11y/capture.sh
+    scripts/a11y/review.py
     just_success "Open app/build/reports/a11y-review/index.html"
+
+# Generate the a11y review report from the last capture
+[group('test')]
+a11y-report:
+    @scripts/a11y/review.py
+
+# Stop emulators started for the a11y review
+[group('test')]
+a11y-emulator-stop:
+    @scripts/a11y/emulator.sh stop
 
 # ==================================================================================== #
 # BUILD - Build project
