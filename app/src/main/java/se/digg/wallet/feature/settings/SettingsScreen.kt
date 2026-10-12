@@ -7,8 +7,6 @@ package se.digg.wallet.feature.settings
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +32,7 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
+import se.digg.wallet.core.common.extensions.openAppSettings
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletListItem
@@ -69,7 +68,7 @@ fun SettingsRoute(
         onBackClick = onBack,
         onLogoutClick = { viewModel.onLogout() },
         onFeedbackClick = { openFeedbackEmail(context) },
-        onAppInfoClick = { openOsAppSettings(context) },
+        onAppInfoClick = { context.openAppSettings() },
         onHelpClick = onHelp,
         onAboutClick = onAbout,
         onLanguageClick = onLanguage,
@@ -103,14 +102,6 @@ private fun openFeedbackEmail(context: Context) {
     } catch (_: ActivityNotFoundException) {
         // No email app installed; nothing to fall back to.
     }
-}
-
-private fun openOsAppSettings(context: Context) {
-    val intent = Intent(
-        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-        Uri.fromParts("package", context.packageName, null),
-    )
-    context.startActivity(intent)
 }
 
 @Composable
