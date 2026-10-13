@@ -65,7 +65,7 @@ android {
         targetSdk = 37
         versionCode = project.findProperty("versionCode")?.toString()?.toInt() ?: getVersionCode()
         versionName = project.findProperty("versionName")?.toString() ?: "0.0.1"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "se.digg.wallet.HiltTestRunner"
     }
 
     // Signing configuration for CI/CD - reads from environment variables
@@ -201,6 +201,8 @@ dependencies {
     implementation(libs.accessMechanism)
 
     ksp(libs.hilt.compiler)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
 
     ksp(libs.room.compiler)
     androidTestImplementation(libs.room.testing)
