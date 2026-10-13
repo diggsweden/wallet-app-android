@@ -79,6 +79,8 @@
     <string name="error_detail_invalid_parameter">Ogiltig parameter</string>
     <string name="onboarding_issuance_ready_to_sign_confirm_button">Begär personuppgifter</string>
     <string name="onboarding_issuance_ready_to_sign_description">Skriv in din PIN-kod för att begära hämtning av dina personuppgifter.</string>
+    <string name="qr_scanner_title">Qr Skanner</string>
+    <string name="navigate_back">Tillbaka</string>
     <string name="app_setup_reset_title">Din plånbok har återställts</string>
     <string name="app_setup_reset_description">Appen är under utveckling. En uppdatering gjorde att din plånbok behövde återställas.</string>
     <string name="app_setup_reset_removed_title">Borttaget från den här enheten</string>

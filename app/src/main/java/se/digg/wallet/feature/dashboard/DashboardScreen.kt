@@ -44,7 +44,6 @@ import se.digg.wallet.data.SavedCredential
 fun DashboardRoute(
     onCredentialClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onScanQrCodeClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
@@ -54,7 +53,6 @@ fun DashboardRoute(
         credentialDetails = credentialDetails,
         onCredentialClick = onCredentialClick,
         onSettingsClick = onSettingsClick,
-        onScanQrCodeClick = onScanQrCodeClick,
         modifier = modifier,
     )
 }
@@ -64,7 +62,6 @@ private fun DashboardScreen(
     credentialDetails: DashboardUiModel,
     onCredentialClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onScanQrCodeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -185,7 +182,6 @@ private fun DashboardScreenPreview() {
             ),
             onCredentialClick = {},
             onSettingsClick = {},
-            onScanQrCodeClick = {},
         )
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.flow.collectLatest
@@ -57,12 +58,12 @@ private fun QrScannerScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             WalletTopAppBar(
-                title = { Text(text = ("Qr Scanner")) },
+                title = { Text(text = (stringResource(id = R.string.qr_scanner_title))) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.arrow_left),
-                            contentDescription = null,
+                            contentDescription = stringResource(id = R.string.navigate_back),
                         )
                     }
                 },

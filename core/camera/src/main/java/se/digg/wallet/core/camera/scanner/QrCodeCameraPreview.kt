@@ -90,6 +90,5 @@ private fun qrCodeAnalyzer(
     val value = result.getValue(barcodeScanner)
         ?.filter { it.boundingBox?.let(scanArea::containsCenterOf) == true }
         ?.firstNotNullOfOrNull { it.rawValue }
-    // Also called with null, so the scan state can tell when a code has left the viewfinder
     onScanResult(value)
 }

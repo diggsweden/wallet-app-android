@@ -78,7 +78,6 @@ fun WalletNavDisplay(
                 DashboardRoute(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
                     onSettingsClick = { navigator.navigate(SettingsKey()) },
-                    onScanQrCodeClick = { navigator.navigate(QrScannerKey) },
                 )
             }
             entry<QrScannerKey> {
