@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +30,7 @@ class AppSetupViewModel @Inject constructor(private val userRepository: UserRepo
     val effects: Flow<AppSetupUiEffect> = _effects.receiveAsFlow()
 
     init {
-        checkIfReset()
+        setup()
     }
 
     fun onResetAcknowledged() {
@@ -38,64 +39,59 @@ class AppSetupViewModel @Inject constructor(private val userRepository: UserRepo
         }
     }
 
-    private fun checkIfReset() {
+    fun onRetry() {
+        setup()
+    }
+
+    private fun setup() {
         _uiState.value = AppSetupUiState.Loading
         viewModelScope.launch {
             try {
-                when (isUserReset()) {
-                    null -> {
-                        _effects.send(AppSetupUiEffect.NavigateToIntro)
-                    }
-
-                    true -> {
-                        clearUserData()
-                        _uiState.value = AppSetupUiState.Reset
-                    }
-
-                    false -> {
-                        checkIfOnboarded()
-                    }
-                }
+                resetOrNavigate()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                Timber.d("AppSetupViewModel - Reset check error: ${e.message}")
+                Timber.d("AppSetupViewModel - Setup error: ${e.message}")
                 _uiState.value = AppSetupUiState.Error(message = e.message)
             }
         }
     }
 
-    private suspend fun isUserReset(): Boolean? = userRepository.isReset()
+    private suspend fun resetOrNavigate() {
+        val user = userRepository.getUser() ?: return goToIntro()
 
-    private suspend fun clearUserData() = userRepository.wipeAll()
-
-    private fun checkIfOnboarded() {
-        _uiState.value = AppSetupUiState.Loading
-        viewModelScope.launch {
-            try {
-                if (userRepository.isOnboarded()) {
-                    checkShouldReset()
-                } else {
-                    _effects.send(AppSetupUiEffect.NavigateToIntro)
-                }
-            } catch (e: Exception) {
-                Timber.d("AppSetupViewModel - Onboarded check error: ${e.message}")
-                _uiState.value = AppSetupUiState.Error(message = e.message)
-            }
+        if (user.isReset) {
+            return resetUser()
         }
+
+        if (!user.isOnboarded) {
+            return goToIntro()
+        }
+
+        if (checkForBackendReset(localGeneration = user.backendGeneration)) {
+            return resetUser()
+        }
+
+        goToDashboard()
     }
 
-    private suspend fun checkShouldReset() {
-        try {
-            val backendGeneration = userRepository.getClientConfig().cacheGeneration
-            val localGeneration = userRepository.getBackendGeneration()
-            if (localGeneration != null && backendGeneration > localGeneration) {
-                clearUserData()
-                _uiState.value = AppSetupUiState.Reset
-            } else {
-                _effects.send(AppSetupUiEffect.NavigateToDashboard)
-            }
-        } catch (e: Exception) {
-            Timber.d("AppSetupViewModel - Setup request error: ${e.message}")
-            _uiState.value = AppSetupUiState.Error(message = e.message)
+    private suspend fun goToIntro() = _effects.send(AppSetupUiEffect.NavigateToIntro)
+
+    private suspend fun goToDashboard() = _effects.send(AppSetupUiEffect.NavigateToDashboard)
+
+    private suspend fun resetUser() {
+        userRepository.wipeAll()
+        _uiState.value = AppSetupUiState.Reset
+    }
+
+    private suspend fun checkForBackendReset(localGeneration: Int?): Boolean {
+        val backendGeneration = userRepository.getClientConfig().cacheGeneration
+
+        if (localGeneration == null) {
+            userRepository.setBackendGeneration(backendGeneration)
+            return false
         }
+
+        return backendGeneration > localGeneration
     }
 }

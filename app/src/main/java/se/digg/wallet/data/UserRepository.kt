@@ -56,8 +56,8 @@ class UserRepository @Inject constructor(
     suspend fun getClientConfig(): ClientConfigResponse =
         clientConfigsClient.getClientConfig().getOrThrow()
 
-    suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
-    suspend fun getPid(): SavedCredential? = getCredentials().firstOrNull()
+    suspend fun getUser() = userDao.get()
+
     override suspend fun getCredentials(): List<SavedCredential> =
         userDao.get()?.credentials ?: emptyList()
 
@@ -69,15 +69,7 @@ class UserRepository @Inject constructor(
         return matchingCredential
     }
 
-    suspend fun getAccountId(): String? = userDao.get()?.accountId
-
-    suspend fun isReset(): Boolean? = userDao.get()?.isReset
-
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
-
-    suspend fun setIsReset(isReset: Boolean) = updateUser { it.copy(isReset = isReset) }
-
-    suspend fun getBackendGeneration(): Int? = userDao.get()?.backendGeneration
 
     suspend fun setBackendGeneration(backendGeneration: Int) =
         updateUser { it.copy(backendGeneration = backendGeneration) }

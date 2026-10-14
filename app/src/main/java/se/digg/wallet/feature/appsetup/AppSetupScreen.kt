@@ -83,6 +83,7 @@ fun AppSetupRoute(
     AppSetupScreen(
         uiState = uiState,
         onAcknowledgeReset = { viewModel.onResetAcknowledged() },
+        onRetry = { viewModel.onRetry() },
         modifier = modifier,
     )
 }
@@ -91,14 +92,13 @@ fun AppSetupRoute(
 fun AppSetupScreen(
     uiState: AppSetupUiState,
     onAcknowledgeReset: () -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (uiState) {
         AppSetupUiState.Loading -> AppSetupLoading(modifier = modifier)
 
-        is AppSetupUiState.Error -> AppSetupError(message = uiState.message, modifier = modifier)
-
-        AppSetupUiState.Retry -> AppSetupRetry(modifier = modifier)
+        is AppSetupUiState.Error -> AppSetupError(onRetry = onRetry, modifier = modifier)
 
         AppSetupUiState.Reset -> AppSetupReset(
             onAcknowledge = onAcknowledgeReset,
@@ -113,12 +113,8 @@ private fun AppSetupLoading(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AppSetupError(message: String?, modifier: Modifier = Modifier) {
-    GenericErrorScreen()
-}
-
-@Composable
-private fun AppSetupRetry(modifier: Modifier = Modifier) {
+private fun AppSetupError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    GenericErrorScreen(modifier = modifier, onPrimaryAction = onRetry)
 }
 
 @Composable
@@ -275,6 +271,6 @@ private fun ResetInfoCard(
 @PreviewsWallet
 private fun AppSetupResetPreview() {
     WalletPreview {
-        AppSetupScreen(uiState = AppSetupUiState.Reset, onAcknowledgeReset = {})
+        AppSetupScreen(uiState = AppSetupUiState.Reset, onAcknowledgeReset = {}, onRetry = {})
     }
 }

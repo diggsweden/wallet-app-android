@@ -7,7 +7,6 @@ package se.digg.wallet.feature.appsetup
 sealed interface AppSetupUiState {
     object Loading : AppSetupUiState
     data class Error(val message: String?) : AppSetupUiState
-    object Retry : AppSetupUiState
     object Reset : AppSetupUiState
 }
 
