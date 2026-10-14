@@ -6,4 +6,21 @@
     <string name="qr_scanner_permission_description">Allow camera access in the app settings to scan QR codes.</string>
     <string name="qr_scanner_permission_button">Open settings</string>
     <string name="qr_scanner_torch">Flashlight</string>
+    <string name="qr_scanner_help">Help</string>
+    <string name="qr_scanner_help_close">Close</string>
+    <string name="qr_scanner_help_title">Scan a QR code</string>
+    <string name="qr_scanner_help_description">With the camera you can identify yourself, share information and add documents to the wallet.</string>
+    <string name="qr_scanner_help_scannable_title">What can I scan?</string>
+    <string name="qr_scanner_help_identify_title">Identify yourself and share information</string>
+    <string name="qr_scanner_help_identify_detail">When a service wants to know who you are or needs information from your documents.</string>
+    <string name="qr_scanner_help_add_document_title">Add a document</string>
+    <string name="qr_scanner_help_add_document_detail">When you receive a new document to save in the wallet.</string>
+    <string name="qr_scanner_help_consent_title">You are always in control</string>
+    <string name="qr_scanner_help_consent_detail">Before anything is shared, you see who is asking and which information it concerns. Nothing is sent until you approve with your PIN code.</string>
+    <string name="qr_scanner_help_tips_title">If it doesn\'t work</string>
+    <string name="qr_scanner_help_tip_frame">Get the whole code in the frame.</string>
+    <string name="qr_scanner_help_tip_light">Make sure there is enough light.</string>
+    <string name="qr_scanner_help_tip_steady">Hold the phone still for a moment.</string>
+    <string name="qr_scanner_help_tip_supported">Only codes from services that support the ID wallet work.</string>
+    <string name="qr_scanner_help_tip_same_device">Is the code on this phone? Tap the link instead.</string>
 </resources>

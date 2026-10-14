@@ -35,7 +35,7 @@ internal fun TorchButton(
     ) {
         Icon(
             painter = painterResource(
-                id = if (checked) R.drawable.torch_on_24px else R.drawable.torch_off_24px,
+                id = if (checked) R.drawable.torch_on else R.drawable.torch_off,
             ),
             contentDescription = stringResource(id = R.string.qr_scanner_torch),
         )
