@@ -72,7 +72,7 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "ALTER TABLE `user` ADD COLUMN `isReset` INTEGER NOT NULL DEFAULT 1",
                 )
-                db.execSQL("ALTER TABLE `user` ADD COLUMN `backendResetAt` INTEGER")
+                db.execSQL("ALTER TABLE `user` ADD COLUMN `backendGeneration` INTEGER")
             }
         }
     }

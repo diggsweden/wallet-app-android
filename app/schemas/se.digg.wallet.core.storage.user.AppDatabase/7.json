@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "bda02872ec9778b62c1867f5104d0782",
+    "identityHash": "cb457702bb88de3fda5213cd18e328a6",
     "entities": [
       {
         "tableName": "user",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `accountId` TEXT, `credentials` TEXT NOT NULL, `opaqueSession` TEXT, `isReset` INTEGER NOT NULL, `backendResetAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `accountId` TEXT, `credentials` TEXT NOT NULL, `opaqueSession` TEXT, `isReset` INTEGER NOT NULL, `backendGeneration` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -37,8 +37,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "backendResetAt",
-            "columnName": "backendResetAt",
+            "fieldPath": "backendGeneration",
+            "columnName": "backendGeneration",
             "affinity": "INTEGER"
           }
         ],
@@ -52,7 +52,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bda02872ec9778b62c1867f5104d0782')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cb457702bb88de3fda5213cd18e328a6')"
     ]
   }
 }

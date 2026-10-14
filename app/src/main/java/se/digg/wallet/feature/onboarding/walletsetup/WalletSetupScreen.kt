@@ -132,6 +132,7 @@ private fun StepInProgressScreen(step: SetupStep, modifier: Modifier = Modifier)
 
 private fun SetupStep.displayName(): Int = when (this) {
     SetupStep.CREATE_ACCOUNT -> R.string.wallet_setup_step_create_account
+    SetupStep.FETCH_CLIENT_CONFIG -> R.string.wallet_setup_step_fetch_client_config
     SetupStep.INIT_HSM -> R.string.wallet_setup_step_init_hsm
     SetupStep.REGISTER_PIN -> R.string.wallet_setup_step_register_pin
     SetupStep.AUTHENTICATE -> R.string.wallet_setup_step_authenticate

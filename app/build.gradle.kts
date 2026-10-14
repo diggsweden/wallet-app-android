@@ -250,6 +250,7 @@ fabrikt {
         typeOverrides {
             uuid = String
             date = String
+            datetime = String
         }
         client {
             generate = enabled

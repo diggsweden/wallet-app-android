@@ -64,6 +64,7 @@
     <string name="error_device_key_duplicate_title">Konto finns redan</string>
     <string name="error_device_key_duplicate_message">Den här enheten är redan registrerad till ett konto.</string>
     <string name="wallet_setup_step_create_account">Skapar konto</string>
+    <string name="wallet_setup_step_fetch_client_config">Hämtar konfiguration</string>
     <string name="wallet_setup_step_init_hsm">Upprättar säker anslutning</string>
     <string name="wallet_setup_step_register_pin">Registrerar PIN</string>
     <string name="wallet_setup_step_authenticate">Autentiserar</string>

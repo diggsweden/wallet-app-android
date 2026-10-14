@@ -8,9 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -87,12 +85,14 @@ class AppSetupViewModel @Inject constructor(private val userRepository: UserRepo
 
     private suspend fun checkShouldReset() {
         try {
-            delay(10.seconds)
-            // no
-            _effects.send(AppSetupUiEffect.NavigateToDashboard)
-            // yes
-            // clearUserData()
-            // reset db and navigate to reset state
+            val backendGeneration = userRepository.getClientConfig().cacheGeneration
+            val localGeneration = userRepository.getBackendGeneration()
+            if (localGeneration != null && backendGeneration > localGeneration) {
+                clearUserData()
+                _uiState.value = AppSetupUiState.Reset
+            } else {
+                _effects.send(AppSetupUiEffect.NavigateToDashboard)
+            }
         } catch (e: Exception) {
             Timber.d("AppSetupViewModel - Setup request error: ${e.message}")
             _uiState.value = AppSetupUiState.Error(message = e.message)

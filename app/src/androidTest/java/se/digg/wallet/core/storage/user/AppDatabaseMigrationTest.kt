@@ -80,7 +80,7 @@ class AppDatabaseMigrationTest {
      * Validates the v6 → v7 migration:
      * - existing user data is preserved
      * - isReset is added and set to true for existing users
-     * - backendResetAt is added and null
+     * - backendGeneration is added and null
      */
     @Test
     fun migrate6To7_userPreserved_markedAsReset() {
@@ -119,8 +119,8 @@ class AppDatabaseMigrationTest {
                 cursor.getInt(cursor.getColumnIndexOrThrow("isReset")),
             )
             assertTrue(
-                "backendResetAt should be null",
-                cursor.isNull(cursor.getColumnIndexOrThrow("backendResetAt")),
+                "backendGeneration should be null",
+                cursor.isNull(cursor.getColumnIndexOrThrow("backendGeneration")),
             )
         }
     }

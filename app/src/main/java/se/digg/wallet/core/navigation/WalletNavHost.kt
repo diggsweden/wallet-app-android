@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -28,7 +29,11 @@ import se.digg.wallet.feature.settings.SettingsRoute
 import se.digg.wallet.feature.settings.ThemeRoute
 
 @Composable
-fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) {
+fun WalletNavDisplay(
+    navigator: WalletNavigator,
+    initialDeepLinkKey: NavKey?,
+    modifier: Modifier = Modifier,
+) {
     NavDisplay(
         backStack = navigator.backStack,
         modifier = modifier,
@@ -50,7 +55,10 @@ fun WalletNavDisplay(navigator: WalletNavigator, modifier: Modifier = Modifier) 
             entry<AppSetupKey> {
                 AppSetupRoute(
                     onNavigateToIntro = { navigator.resetToOnboarding() },
-                    onNavigateToDashboard = { navigator.resetToDashboard() },
+                    onNavigateToDashboard = {
+                        navigator.resetToDashboard()
+                        initialDeepLinkKey?.let { navigator.navigate(it) }
+                    },
                 )
             }
             entry<IntroKey> {

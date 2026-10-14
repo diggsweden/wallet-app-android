@@ -80,6 +80,7 @@ class WalletSetupViewModel @Inject constructor(
     private suspend fun executeStep(step: SetupStep) {
         when (step) {
             SetupStep.CREATE_ACCOUNT -> walletSetupService.createAccount()
+            SetupStep.FETCH_CLIENT_CONFIG -> walletSetupService.fetchClientConfig()
             SetupStep.INIT_HSM -> walletSetupService.initHsm()
             SetupStep.REGISTER_PIN -> walletSetupService.registerPin(pin)
             SetupStep.AUTHENTICATE -> walletSetupService.authenticate(pin)

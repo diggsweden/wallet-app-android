@@ -66,6 +66,7 @@
     <string name="error_device_key_duplicate_title">Account already exists</string>
     <string name="error_device_key_duplicate_message">This device is already registered to an account.</string>
     <string name="wallet_setup_step_create_account">Create account</string>
+    <string name="wallet_setup_step_fetch_client_config">Fetching configuration</string>
     <string name="wallet_setup_step_init_hsm">" Establishing a secure connection"</string>
     <string name="wallet_setup_step_register_pin">Register PIN</string>
     <string name="wallet_setup_step_authenticate">Authenticate</string>

@@ -7,7 +7,6 @@ package se.digg.wallet.core.storage.user
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
-import java.util.Date
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import se.digg.wallet.data.SavedCredential
@@ -19,7 +18,7 @@ data class User(
     val credentials: List<SavedCredential>,
     val opaqueSession: OpaqueSession? = null,
     val isReset: Boolean = false,
-    val backendResetAt: Date? = null,
+    val backendGeneration: Int? = null,
 )
 
 @Serializable
@@ -51,10 +50,4 @@ class DbConverters {
     @TypeConverter
     fun stringToOpaqueSession(value: String?): OpaqueSession? =
         value?.let { runCatching { Json.decodeFromString<OpaqueSession>(it) }.getOrNull() }
-
-    @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? = date?.time
-
-    @TypeConverter
-    fun timestampToDate(value: Long?): Date? = value?.let { Date(it) }
 }
