@@ -44,6 +44,7 @@ internal fun QrCodeCameraPreview(
     var previewSize by remember { mutableStateOf(IntSize.Zero) }
 
     DisposableEffect(cameraController, lifecycleOwner, viewfinderSizePx) {
+        var scanCallback: ((String?) -> Unit)? = { currentOnScanResult(it) }
         val mainExecutor = context.mainExecutor
         val barcodeScanner = BarcodeScanning.getClient(
             BarcodeScannerOptions.Builder()
@@ -58,12 +59,13 @@ internal fun QrCodeCameraPreview(
                 barcodeScanner = barcodeScanner,
                 executor = mainExecutor,
                 currentScanArea = { scanArea(previewSize, viewfinderSizePx) },
-                onScanResult = { currentOnScanResult(it) },
+                onScanResult = { scanCallback?.invoke(it) },
             ),
         )
         cameraController.bindToLifecycle(lifecycleOwner)
 
         onDispose {
+            scanCallback = null
             cameraController.clearImageAnalysisAnalyzer()
             cameraController.unbind()
             barcodeScanner.close()

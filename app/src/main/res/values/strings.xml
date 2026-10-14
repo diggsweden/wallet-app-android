@@ -81,7 +81,7 @@
     <string name="error_detail_invalid_parameter">Invalid parameter</string>
     <string name="onboarding_issuance_ready_to_sign_confirm_button">Request personal data</string>
     <string name="onboarding_issuance_ready_to_sign_description">Enter your PIN code to request the retrieval of your personal data.</string>
-    <string name="qr_scanner_title">Qr Scanner</string>
+    <string name="qr_scanner_title">Scan QR code</string>
     <string name="navigate_back">Back</string>
     <string name="app_setup_reset_title">Your wallet has been reset</string>
     <string name="app_setup_reset_description">The app is under development. An update required your wallet to be reset.</string>
