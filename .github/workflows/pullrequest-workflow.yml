@@ -16,14 +16,15 @@ concurrency:
 
 jobs:
   pr-checks:
-    uses: diggsweden/reusable-ci/.github/workflows/pullrequest-orchestrator.yml@68338adeadf2e60b7d865f7e24fc195b6ff8334f # v2.8.3
+    uses: diggsweden/reusable-ci/.github/workflows/pullrequest-orchestrator.yml@997d7dc2238b40c79798fda309d8061b0707a3e5 # v3.0.0
     permissions:
       contents: read
       packages: read
       security-events: write
-    secrets: inherit
+    secrets:
+      CODE_SCANNING_TOKEN: ${{ secrets.CODE_SCANNING_TOKEN }}
     with:
-      reusable-ci-ref: 68338adeadf2e60b7d865f7e24fc195b6ff8334f
+      reusable-ci-ref: 997d7dc2238b40c79798fda309d8061b0707a3e5
       project-type: gradle
       # Use devbase-check linting (replaces megalint, commitlint, licenselint)
       linters.devbasecheck: true
@@ -35,7 +36,8 @@ jobs:
   test:
     needs: [pr-checks]
     if: always()
-    secrets: inherit
+    secrets:
+      SECRETS_PROPERTIES_BASE64: ${{ secrets.SECRETS_PROPERTIES_BASE64 }}
     permissions:
       contents: read
       packages: read

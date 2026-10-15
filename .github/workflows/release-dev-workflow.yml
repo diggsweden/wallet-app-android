@@ -13,12 +13,17 @@ permissions:
 jobs:
   # Build Android app with signing
   build:
-    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-android.yml@68338adeadf2e60b7d865f7e24fc195b6ff8334f # v2.8.3
+    uses: diggsweden/reusable-ci/.github/workflows/build-gradle-android.yml@997d7dc2238b40c79798fda309d8061b0707a3e5 # v3.0.0
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      SECRETS_PROPERTIES_BASE64: ${{ secrets.SECRETS_PROPERTIES_BASE64 }}
     with:
-      reusable-ci-ref: 68338adeadf2e60b7d865f7e24fc195b6ff8334f
+      reusable-ci-ref: 997d7dc2238b40c79798fda309d8061b0707a3e5
       java-version: "21"
       build-module: app
       product-flavor: demo
@@ -31,13 +36,14 @@ jobs:
   # Publish to Google Play internal track
   publish-google-play:
     needs: build
-    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@68338adeadf2e60b7d865f7e24fc195b6ff8334f # v2.8.3
+    uses: diggsweden/reusable-ci/.github/workflows/publish-google-play.yml@997d7dc2238b40c79798fda309d8061b0707a3e5 # v3.0.0
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
     with:
-      reusable-ci-ref: 68338adeadf2e60b7d865f7e24fc195b6ff8334f
-      aab-artifact-name: "dev - wallet-app-android - demo - AAB release"
+      reusable-ci-ref: 997d7dc2238b40c79798fda309d8061b0707a3e5
+      aab-artifact-name: ${{ needs.build.outputs.aab-name }}
       package-name: "se.digg.wallet.demo"
       track: "internal"
       status: "completed"
