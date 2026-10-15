@@ -17,6 +17,7 @@ import javax.inject.Inject
 
 interface WalletSetupService {
     suspend fun createAccount()
+    suspend fun fetchClientConfig()
     suspend fun initHsm()
     suspend fun registerPin(pin: String)
     suspend fun authenticate(pin: String)
@@ -45,6 +46,11 @@ internal class DefaultWalletSetupService @Inject constructor(
             ),
         )
         userRepository.setAccountId(accountId)
+    }
+
+    override suspend fun fetchClientConfig() {
+        val clientConfig = userRepository.getClientConfig()
+        userRepository.setBackendGeneration(clientConfig.cacheGeneration)
     }
 
     override suspend fun initHsm() {

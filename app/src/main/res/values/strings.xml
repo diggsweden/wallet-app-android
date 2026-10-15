@@ -7,7 +7,6 @@
     <string name="settings_logout_dialog_description">All your data will be erased from this device, including your documents. This cannot be undone.</string>
     <string name="generic_close">Close</string>
     <string name="generic_next">Next</string>
-    <string name="issuance_approve_button">Approve</string>
     <string name="generic_confirm">Confirm</string>
     <string name="generic_share">Share</string>
     <string name="presentation_share_successful_info">You can now go back to the app or website you came from.</string>
@@ -67,6 +66,7 @@
     <string name="error_device_key_duplicate_title">Account already exists</string>
     <string name="error_device_key_duplicate_message">This device is already registered to an account.</string>
     <string name="wallet_setup_step_create_account">Create account</string>
+    <string name="wallet_setup_step_fetch_client_config">Fetching configuration</string>
     <string name="wallet_setup_step_init_hsm">" Establishing a secure connection"</string>
     <string name="wallet_setup_step_register_pin">Register PIN</string>
     <string name="wallet_setup_step_authenticate">Authenticate</string>
@@ -81,4 +81,10 @@
     <string name="error_detail_invalid_parameter">Invalid parameter</string>
     <string name="onboarding_issuance_ready_to_sign_confirm_button">Request personal data</string>
     <string name="onboarding_issuance_ready_to_sign_description">Enter your PIN code to request the retrieval of your personal data.</string>
+    <string name="app_setup_reset_title">Your wallet has been reset</string>
+    <string name="app_setup_reset_description">The app is under development. An update required your wallet to be reset.</string>
+    <string name="app_setup_reset_removed_title">Removed from this device</string>
+    <string name="app_setup_reset_removed_description">Your information and documents have been deleted.</string>
+    <string name="app_setup_reset_register_again">You need to register the wallet again.</string>
+    <string name="app_setup_reset_button">I understand</string>
 </resources>

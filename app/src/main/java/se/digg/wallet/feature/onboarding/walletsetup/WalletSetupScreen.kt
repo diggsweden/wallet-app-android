@@ -85,10 +85,29 @@ private fun AppError.Problem.toErrorDetails(): List<ErrorDetail> = buildList {
         ),
     )
     add(ErrorDetail(title = stringResource(R.string.error_detail_title), value = title))
-    detail?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_message), value = it)) }
-    add(ErrorDetail(title = stringResource(R.string.error_detail_status), value = status.toString()))
+    detail?.let {
+        add(
+            ErrorDetail(
+                title = stringResource(R.string.error_detail_message),
+                value = it,
+            ),
+        )
+    }
+    add(
+        ErrorDetail(
+            title = stringResource(R.string.error_detail_status),
+            value = status.toString(),
+        ),
+    )
     type?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_type), value = it)) }
-    instance?.let { add(ErrorDetail(title = stringResource(R.string.error_detail_instance), value = it)) }
+    instance?.let {
+        add(
+            ErrorDetail(
+                title = stringResource(R.string.error_detail_instance),
+                value = it,
+            ),
+        )
+    }
     transactionId?.let {
         add(ErrorDetail(title = stringResource(R.string.error_detail_transaction_id), value = it))
     }
@@ -113,6 +132,7 @@ private fun StepInProgressScreen(step: SetupStep, modifier: Modifier = Modifier)
 
 private fun SetupStep.displayName(): Int = when (this) {
     SetupStep.CREATE_ACCOUNT -> R.string.wallet_setup_step_create_account
+    SetupStep.FETCH_CLIENT_CONFIG -> R.string.wallet_setup_step_fetch_client_config
     SetupStep.INIT_HSM -> R.string.wallet_setup_step_init_hsm
     SetupStep.REGISTER_PIN -> R.string.wallet_setup_step_register_pin
     SetupStep.AUTHENTICATE -> R.string.wallet_setup_step_authenticate

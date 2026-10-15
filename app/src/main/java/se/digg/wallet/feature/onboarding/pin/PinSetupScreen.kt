@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
@@ -28,21 +27,19 @@ import se.digg.wallet.feature.onboarding.ui.OnboardingDefaults
 
 @Composable
 fun PinSetupRoute(
-    onPinEntered: (String) -> Unit,
-    onPinVerified: (String) -> Unit = {},
+    onPinEnter: (String) -> Unit,
+    onPinVerify: (String) -> Unit = {},
     onBack: () -> Unit = {},
     verifyPin: Boolean = false,
 ) {
     PinSetupScreen(
         verifyPin = verifyPin,
-        onSubmit = { pin -> if (verifyPin) onPinVerified(pin) else onPinEntered(pin) },
+        onSubmit = { pin -> if (verifyPin) onPinVerify(pin) else onPinEnter(pin) },
     )
 }
 
 @Composable
-private fun PinSetupScreen(
-    verifyPin: Boolean, onSubmit: (String) -> Unit,
-) {
+private fun PinSetupScreen(verifyPin: Boolean, onSubmit: (String) -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -59,9 +56,13 @@ private fun PinSetupScreen(
         )
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = if (verifyPin) stringResource(R.string.onboarding_pin_verify_description) else stringResource(
-                R.string.onboarding_pin_description_1,
-            ),
+            text = if (verifyPin) {
+                stringResource(R.string.onboarding_pin_verify_description)
+            } else {
+                stringResource(
+                    R.string.onboarding_pin_description_1,
+                )
+            },
             style = WalletTextStyle.BodyLG,
         )
         Spacer(Modifier.height(16.dp))

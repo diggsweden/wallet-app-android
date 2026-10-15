@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "cb457702bb88de3fda5213cd18e328a6",
+    "entities": [
+      {
+        "tableName": "user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `accountId` TEXT, `credentials` TEXT NOT NULL, `opaqueSession` TEXT, `isReset` INTEGER NOT NULL, `backendGeneration` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accountId",
+            "columnName": "accountId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "credentials",
+            "columnName": "credentials",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opaqueSession",
+            "columnName": "opaqueSession",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isReset",
+            "columnName": "isReset",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backendGeneration",
+            "columnName": "backendGeneration",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cb457702bb88de3fda5213cd18e328a6')"
+    ]
+  }
+}

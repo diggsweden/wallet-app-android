@@ -12,6 +12,7 @@ data class OnboardingUiState(
             OnboardingStep.VERIFY_PIN,
         ),
     val capturedPin: String = "",
+    val credentialOfferUri: String = "",
 )
 
 sealed interface OnboardingUiEvent {

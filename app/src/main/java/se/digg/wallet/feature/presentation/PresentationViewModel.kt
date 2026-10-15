@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
@@ -23,6 +24,7 @@ import timber.log.Timber
 @HiltViewModel
 class PresentationViewModel @Inject constructor(
     private val presentationService: PresentationService,
+    private val proofKeyManagerFactory: ProofKeyManagerFactory,
 ) : ViewModel() {
     private var request: PresentationRequest? = null
     private var itemsToDisclose: List<PresentationItem> = emptyList()
@@ -82,11 +84,13 @@ class PresentationViewModel @Inject constructor(
                 val request = checkNotNull(request) {
                     "Presentation request not resolved"
                 }
+
                 val result = presentationService.present(
                     request = request,
                     items = itemsToDisclose,
-                    pin = pin,
+                    proofSigner = proofKeyManagerFactory.create(pin = pin),
                 )
+
                 when (result) {
                     is PresentationResult.Redirect -> {
                         _effects.emit(OpenUrl(result.uri))

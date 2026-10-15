@@ -346,7 +346,10 @@ private fun GenericErrorScreenWithDetailsPreview() {
             errorDetails = listOf(
                 ErrorDetail(title = "Status", value = "409"),
                 ErrorDetail(title = "Type", value = "/problem-details/device-key-duplicate"),
-                ErrorDetail(title = "Transaction ID", value = "b66dca70-0908-4b07-a1af-29d0c18b89b6"),
+                ErrorDetail(
+                    title = "Transaction ID",
+                    value = "b66dca70-0908-4b07-a1af-29d0c18b89b6",
+                ),
             ),
         )
     }

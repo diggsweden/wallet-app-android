@@ -11,21 +11,31 @@ import se.wallet.client.gateway.models.ProblemResponse
 private val problemJson = Json { ignoreUnknownKeys = true }
 
 fun NetworkError.toAppError(): AppError = when (this) {
-    is NetworkError.Http -> body
-        ?.let {
-            runCatching {
-                problemJson.decodeFromString(
-                    ProblemResponse.serializer(),
-                    it,
-                )
-            }.getOrNull()
-        }
-        ?.toAppError()
-        ?: AppError.PlainMessage(status = statusCode, message = body ?: statusDescription)
+    is NetworkError.Http -> {
+        body
+            ?.let {
+                runCatching {
+                    problemJson.decodeFromString(
+                        ProblemResponse.serializer(),
+                        it,
+                    )
+                }.getOrNull()
+            }
+            ?.toAppError()
+            ?: AppError.PlainMessage(status = statusCode, message = body ?: statusDescription)
+    }
 
-    is NetworkError.Network -> AppError.Connectivity(cause)
-    is NetworkError.Serialization -> AppError.Unexpected(cause)
-    is NetworkError.Unknown -> AppError.Unexpected(cause)
+    is NetworkError.Network -> {
+        AppError.Connectivity(cause)
+    }
+
+    is NetworkError.Serialization -> {
+        AppError.Unexpected(cause)
+    }
+
+    is NetworkError.Unknown -> {
+        AppError.Unexpected(cause)
+    }
 }
 
 private fun ProblemResponse.toAppError() = AppError.Problem(

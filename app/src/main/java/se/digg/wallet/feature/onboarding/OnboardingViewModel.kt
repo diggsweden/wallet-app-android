@@ -27,8 +27,6 @@ class OnboardingViewModel @Inject constructor(private val userRepository: UserRe
     private val _events = MutableSharedFlow<OnboardingUiEvent>()
     val events: SharedFlow<OnboardingUiEvent> = _events
 
-    private var credentialOffer: String = ""
-
     fun onAction(action: OnboardingAction) {
         when (action) {
             is OnboardingAction.Next -> {
@@ -53,7 +51,7 @@ class OnboardingViewModel @Inject constructor(private val userRepository: UserRe
 
             is OnboardingAction.CredentialOfferFetched -> {
                 ifCurrent(action.fromStep) {
-                    credentialOffer = action.url
+                    _uiState.update { it.copy(credentialOfferUri = action.url) }
                     goNext(action.fromStep)
                 }
             }
@@ -76,8 +74,6 @@ class OnboardingViewModel @Inject constructor(private val userRepository: UserRe
             }
         }
     }
-
-    fun getCredentialOfferUrl(): String = credentialOffer
 
     private inline fun ifCurrent(fromStep: OnboardingStep, block: () -> Unit) {
         if (_uiState.value.currentStep == fromStep) block()

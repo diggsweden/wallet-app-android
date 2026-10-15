@@ -25,7 +25,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "app-db",
-        ).addMigrations(AppDatabase.MIGRATION_4_5)
+        ).addMigrations(AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_6_7)
         .build()
 
     @Provides

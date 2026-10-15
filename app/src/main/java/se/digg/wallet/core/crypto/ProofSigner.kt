@@ -4,10 +4,6 @@
 
 package se.digg.wallet.core.crypto
 
-import com.nimbusds.jose.jwk.JWK
-
 interface ProofSigner {
-    suspend fun publicKey(pin: String): JWK
-
-    suspend fun sign(pin: String, data: ByteArray): String
+    suspend fun sign(keyId: ProofKeyId, data: ByteArray): String
 }

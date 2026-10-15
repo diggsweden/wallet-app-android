@@ -27,9 +27,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.di.BaseHttpClient
-import se.digg.wallet.core.oauth.AuthorizationLauncher
-import se.digg.wallet.core.oauth.LaunchAuthTab
-import se.digg.wallet.core.oauth.OAuthResult
+import se.digg.wallet.core.webauth.WebAuthResult
+import se.digg.wallet.core.webauth.WebAuthenticator
 import se.digg.wallet.data.CredentialsOfferRequestModel
 import se.digg.wallet.data.CredentialsOfferResponseModel
 import se.digg.wallet.data.UserRepository
@@ -40,7 +39,7 @@ private const val PID_CREDENTIAL_ID = "eu.europa.ec.eudi.pid_vc_sd_jwt"
 @HiltViewModel
 class PidSetupViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authorizationLauncher: AuthorizationLauncher,
+    private val webAuthenticator: WebAuthenticator,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : ViewModel() {
 
@@ -55,11 +54,11 @@ class PidSetupViewModel @Inject constructor(
             .map { user -> user?.credentials?.firstOrNull() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    fun getCredentialOffer(launchAuthTab: LaunchAuthTab) {
+    fun getCredentialOffer() {
         viewModelScope.launch {
             try {
                 val credentialOffer =
-                    generateCredentialOffer() ?: generateOfferInBrowser(launchAuthTab)
+                    generateCredentialOffer() ?: generateOfferInBrowser() ?: return@launch
 
                 _effects.emit(
                     PidSetupUiEffect.OnCredentialOfferFetched(credentialOffer = credentialOffer),
@@ -86,32 +85,28 @@ class PidSetupViewModel @Inject constructor(
         null
     }
 
-    private suspend fun generateOfferInBrowser(launchAuthTab: LaunchAuthTab): String = when (
-        val oAuthCallback =
-            authorizationLauncher.authorize(
+    private suspend fun generateOfferInBrowser(): String? = when (
+        val result =
+            webAuthenticator.authenticate(
                 url = "https://${BuildConfig.PID_ISSUER_URL}",
-                redirectScheme = "openid-credential-offer",
-                launchAuthTab = launchAuthTab,
+                callbackScheme = "openid-credential-offer",
             )
     ) {
-        OAuthResult.Cancelled -> {
-            Timber.d("OAuth cancelled")
-            _uiState.value = PidSetupUiState.Idle
-            throw IllegalStateException("OAuth session cancelled")
+        WebAuthResult.Cancelled -> {
+            Timber.d("Web authentication cancelled")
+            null
         }
 
-        is OAuthResult.Failure -> {
-            Timber.d("OAuth failed: ${oAuthCallback.message}")
-            _uiState.value = PidSetupUiState.Idle
-            throw IllegalStateException("OAuth session failed")
+        is WebAuthResult.Failure -> {
+            throw IllegalStateException("Web authentication failed: ${result.message}")
         }
 
-        is OAuthResult.Success -> {
-            Timber.d("OAuth Success: ${oAuthCallback.redirectUri}")
-            if (Url(oAuthCallback.redirectUri).parameters["credential_offer"] == null) {
+        is WebAuthResult.Success -> {
+            Timber.d("Web authentication succeeded")
+            if (Url(result.callbackUri).parameters["credential_offer"] == null) {
                 throw IllegalStateException("credential offer query parameter missing")
             }
-            oAuthCallback.redirectUri
+            result.callbackUri
         }
     }
 }

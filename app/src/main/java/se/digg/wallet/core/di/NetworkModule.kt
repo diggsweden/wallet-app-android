@@ -4,7 +4,6 @@
 
 package se.digg.wallet.core.di
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import dagger.Module
@@ -25,15 +24,9 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import javax.inject.Qualifier
 import javax.inject.Singleton
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.designsystem.utils.getAppVersion
 import se.digg.wallet.core.network.DeviceInfo
@@ -108,10 +101,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideSessionManager(
-        @BaseHttpClient base: HttpClient,
-        userDao: UserDao,
-    ): SessionManager {
+    fun provideSessionManager(@BaseHttpClient base: HttpClient, userDao: UserDao): SessionManager {
         val client = base.config {
             defaultRequest {
                 url {

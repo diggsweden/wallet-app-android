@@ -15,7 +15,6 @@ import com.nimbusds.jose.crypto.ECDHEncrypter
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
-import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import eu.europa.ec.eudi.sdjwt.NimbusSdJwtOps
 import eu.europa.ec.eudi.sdjwt.dsl.values.sdJwt
@@ -49,41 +48,38 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import se.digg.wallet.core.crypto.CryptoSpec
+import se.digg.wallet.core.crypto.ProofKey
+import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.IssuerDisplay
+import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.Proof
-import se.digg.wallet.data.SavedCredential
-import se.digg.wallet.data.WuaProvider
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
 private const val NONCE_ENDPOINT = "https://issuer.example/nonce"
-private const val PIN = "123456"
 
-private class FakeProofSigner(private val key: JWK) : ProofSigner {
-    var pin: String? = null
+private class FakeProofSigner : ProofSigner {
+    var keyId: ProofKeyId? = null
     var signedInput: ByteArray? = null
 
-    override suspend fun publicKey(pin: String): JWK {
-        this.pin = pin
-        return key
-    }
-
-    override suspend fun sign(pin: String, data: ByteArray): String {
-        this.pin = pin
+    override suspend fun sign(keyId: ProofKeyId, data: ByteArray): String {
+        this.keyId = keyId
         signedInput = data
         return "c2lnbmF0dXJl"
     }
 }
 
-private class FakeWuaProvider : WuaProvider {
+private class FakeKeyAttestationProvider : KeyAttestationProvider {
     var callCount = 0
     var nonce: String? = null
+    var keys: List<ECKey>? = null
 
-    override suspend fun fetchWua(nonce: String?): String {
+    override suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String {
         callCount += 1
+        this.keys = keys
         this.nonce = nonce
         return "wua.jwt"
     }
@@ -92,8 +88,9 @@ private class FakeWuaProvider : WuaProvider {
 class DefaultIssuanceServiceTest {
 
     private val hsmKey = ECKeyGenerator(Curve.P_256).keyID("hsm-key").generate()
-    private val proofSigner = FakeProofSigner(hsmKey.toPublicJWK())
-    private val wuaProvider = FakeWuaProvider()
+    private val proofKey = ProofKey(id = ProofKeyId("hsm-key"), publicKey = hsmKey.toPublicJWK())
+    private val proofSigner = FakeProofSigner()
+    private val wuaProvider = FakeKeyAttestationProvider()
     private val clock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC)
 
     private val requests = mutableListOf<HttpRequestData>()
@@ -120,9 +117,8 @@ class DefaultIssuanceServiceTest {
     }
 
     private val service = DefaultIssuanceService(
-        wuaProvider = wuaProvider,
+        keyAttestationProvider = wuaProvider,
         openIdNetworkService = OpenIdNetworkService(httpClient),
-        proofSigner = proofSigner,
         clock = clock,
         httpClient = httpClient,
     )
@@ -147,10 +143,10 @@ class DefaultIssuanceServiceTest {
 
     @Test
     fun `the proof carries the hsm key when no attestation is required`() = runTest {
-        val proof = service.createProof(session(), PIN)
+        val proof = service.createProof(session(), proofKey, proofSigner)
 
         val jwt = proof.jwt.single()
-        assertEquals(PIN, proofSigner.pin)
+        assertEquals(proofKey.id, proofSigner.keyId)
         assertEquals("openid4vci-proof+jwt", headerOf(jwt)["typ"]?.jsonPrimitive?.content)
         assertEquals(
             hsmKey.toPublicJWK().toJSONString(),
@@ -163,7 +159,7 @@ class DefaultIssuanceServiceTest {
 
     @Test
     fun `the proof is bound to the issuer and signed over its own header and payload`() = runTest {
-        val proof = service.createProof(session(), PIN)
+        val proof = service.createProof(session(), proofKey, proofSigner)
 
         val jwt = proof.jwt.single()
         val payload = payloadOf(jwt)
@@ -177,7 +173,7 @@ class DefaultIssuanceServiceTest {
 
     @Test
     fun `no nonce is requested when the issuer has no nonce endpoint`() = runTest {
-        service.createProof(session(), PIN)
+        service.createProof(session(), proofKey, proofSigner)
 
         assertTrue(requests.isEmpty())
     }
@@ -190,12 +186,14 @@ class DefaultIssuanceServiceTest {
 
         val proof = service.createProof(
             session(nonceEndpoint = NONCE_ENDPOINT, requiresKeyAttestation = true),
-            PIN,
+            proofKey,
+            proofSigner,
         )
 
         val jwt = proof.jwt.single()
         assertEquals(NONCE_ENDPOINT, requests.single().url.toString())
         assertEquals("nonce-abc", wuaProvider.nonce)
+        assertEquals(listOf(proofKey.publicKey), wuaProvider.keys)
         assertEquals("wua.jwt", headerOf(jwt)["key_attestation"]?.jsonPrimitive?.content)
         assertEquals("0", headerOf(jwt)["kid"]?.jsonPrimitive?.content)
         assertNull(headerOf(jwt)["jwk"])
@@ -209,7 +207,7 @@ class DefaultIssuanceServiceTest {
             """{"credentials":[{"credential":"$credential"}]}""" to "application/json"
         }
 
-        val issued = service.fetchCredential(session(), Proof(listOf("proof.jwt")))
+        val issued = service.fetchCredential(session(), Proof(listOf("proof.jwt")), proofKey.id)
 
         val request = requests.single()
         val body = Json.parseToJsonElement(bodyOf(request)).jsonObject
@@ -230,6 +228,7 @@ class DefaultIssuanceServiceTest {
         assertEquals("urn:eudi:pid:1", stored.type)
         assertEquals("Personal ID", stored.displayData?.name)
         assertEquals("Test Issuer", stored.issuer?.name)
+        assertEquals("hsm-key", stored.keyId)
         assertEquals(listOf("given_name"), issued.claims.map { it.id })
         assertEquals(listOf("Förnamn"), issued.claims.map { it.displayName })
     }
@@ -265,6 +264,7 @@ class DefaultIssuanceServiceTest {
                 ),
             ),
             Proof(listOf("proof.jwt")),
+            proofKey.id,
         )
 
         val request = requests.single()
@@ -307,7 +307,7 @@ class DefaultIssuanceServiceTest {
     }
 
     @Test
-    fun `the service retains authorization and proof through a complete issuance`() = runTest {
+    fun `the service retains authorization through a complete issuance`() = runTest {
         val credential = issueSdJwt()
         handle = { request ->
             val response = when (request.url.encodedPath) {
@@ -383,21 +383,22 @@ class DefaultIssuanceServiceTest {
             authorization.toString().substringBefore("?"),
         )
         service.exchangeAuthorizationCode("wallet-app://authorize?code=code&state=$state")
-        service.createProof(PIN)
-        val issued = service.fetchCredential()
+        val proof = service.createProof(proofKey, proofSigner)
+        val issued = service.fetchCredential(proof, proofKey.id)
 
         assertEquals(credential, issued.credential.compactSerialized)
         val request = requests.single { it.url.encodedPath == "/credential" }
         assertEquals("Bearer access-token", request.headers[HttpHeaders.Authorization])
         val body = Json.parseToJsonElement(bodyOf(request)).jsonObject
-        val proof = body["proofs"]!!.jsonObject["jwt"]!!.jsonArray.single().jsonPrimitive.content
-        assertEquals(proof.substringBeforeLast("."), proofSigner.signedInput?.decodeToString())
+        val sentProof =
+            body["proofs"]!!.jsonObject["jwt"]!!.jsonArray.single().jsonPrimitive.content
+        assertEquals(sentProof.substringBeforeLast("."), proofSigner.signedInput?.decodeToString())
 
         service.fetchOffer(
             "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffer",
         )
         assertThrows(IllegalStateException::class.java) {
-            runBlocking { service.fetchCredential() }
+            runBlocking { service.fetchCredential(proof, proofKey.id) }
         }
     }
 
@@ -410,10 +411,10 @@ class DefaultIssuanceServiceTest {
             runBlocking { service.exchangeAuthorizationCode("wallet-app://authorize?code=code") }
         }
         assertThrows(IllegalStateException::class.java) {
-            runBlocking { service.createProof(PIN) }
+            runBlocking { service.createProof(proofKey, proofSigner) }
         }
         assertThrows(IllegalStateException::class.java) {
-            runBlocking { service.fetchCredential() }
+            runBlocking { service.fetchCredential(Proof(listOf("proof.jwt")), proofKey.id) }
         }
         assertTrue(requests.isEmpty())
         assertNull(proofSigner.signedInput)

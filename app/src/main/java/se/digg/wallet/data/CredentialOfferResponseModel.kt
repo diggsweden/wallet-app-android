@@ -49,6 +49,7 @@ data class SavedCredential(
     val type: String = "",
     val id: String = UUID.randomUUID().toString(),
     val displayData: CredentialDisplayData?,
+    val keyId: String,
 )
 
 @Serializable

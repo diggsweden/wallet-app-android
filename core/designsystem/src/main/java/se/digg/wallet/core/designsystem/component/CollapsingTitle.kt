@@ -38,7 +38,6 @@ fun Modifier.collapsingAppBarTitle(state: CollapsingTitleState): Modifier =
     this.graphicsLayer { alpha = state.appBarTitleAlpha.value }
 
 /** Apply to the large title in scrollable content; measures it and fades it out as it scrolls away. */
-fun Modifier.collapsingContentTitle(state: CollapsingTitleState): Modifier =
-    this
-        .onSizeChanged { state.contentTitleHeightPx = it.height }
-        .graphicsLayer { alpha = 1f - state.appBarTitleAlpha.value }
+fun Modifier.collapsingContentTitle(state: CollapsingTitleState): Modifier = this
+    .onSizeChanged { state.contentTitleHeightPx = it.height }
+    .graphicsLayer { alpha = 1f - state.appBarTitleAlpha.value }

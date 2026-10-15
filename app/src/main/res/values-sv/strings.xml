@@ -8,7 +8,6 @@
     <string name="settings_logout_dialog_description">All din data raderas från den här enheten, inklusive dina dokument. Detta går inte att ångra.</string>
     <string name="generic_close">Stäng</string>
     <string name="generic_next">Nästa</string>
-    <string name="issuance_approve_button">Godkänn</string>
     <string name="generic_confirm">Bekräfta</string>
     <string name="generic_share">Dela</string>
     <string name="presentation_share_successful_info">Du kan nu gå tillbaka till appen eller hemsidan som du kom ifrån.</string>
@@ -65,6 +64,7 @@
     <string name="error_device_key_duplicate_title">Konto finns redan</string>
     <string name="error_device_key_duplicate_message">Den här enheten är redan registrerad till ett konto.</string>
     <string name="wallet_setup_step_create_account">Skapar konto</string>
+    <string name="wallet_setup_step_fetch_client_config">Hämtar konfiguration</string>
     <string name="wallet_setup_step_init_hsm">Upprättar säker anslutning</string>
     <string name="wallet_setup_step_register_pin">Registrerar PIN</string>
     <string name="wallet_setup_step_authenticate">Autentiserar</string>
@@ -79,4 +79,10 @@
     <string name="error_detail_invalid_parameter">Ogiltig parameter</string>
     <string name="onboarding_issuance_ready_to_sign_confirm_button">Begär personuppgifter</string>
     <string name="onboarding_issuance_ready_to_sign_description">Skriv in din PIN-kod för att begära hämtning av dina personuppgifter.</string>
+    <string name="app_setup_reset_title">Din plånbok har återställts</string>
+    <string name="app_setup_reset_description">Appen är under utveckling. En uppdatering gjorde att din plånbok behövde återställas.</string>
+    <string name="app_setup_reset_removed_title">Borttaget från den här enheten</string>
+    <string name="app_setup_reset_removed_description">Dina uppgifter och dokument har raderats.</string>
+    <string name="app_setup_reset_register_again">Du behöver registrera plånboken igen.</string>
+    <string name="app_setup_reset_button">Jag förstår</string>
 </resources>

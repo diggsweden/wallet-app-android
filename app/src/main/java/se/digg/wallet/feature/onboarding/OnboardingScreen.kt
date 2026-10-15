@@ -30,7 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -87,6 +90,7 @@ private fun OnboardingScreen(
 ) {
     val currentStep = uiState.currentStep.ordinal + 1
     val progress = currentStep.toFloat() / uiState.totalSteps.toFloat()
+    var closeVisible by remember(uiState.currentStep) { mutableStateOf(true) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -105,11 +109,13 @@ private fun OnboardingScreen(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        IconButton(onClick = { onAction(OnboardingAction.Close) }) {
-                            Icon(
-                                painter = painterResource(R.drawable.close_x),
-                                contentDescription = null,
-                            )
+                        if (closeVisible) {
+                            IconButton(onClick = { onAction(OnboardingAction.Close) }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close_x),
+                                    contentDescription = null,
+                                )
+                            }
                         }
                     }
                 },
@@ -159,7 +165,9 @@ private fun OnboardingScreen(
                         pageNumber = currentStep,
                         step = contentStep,
                         capturedPin = uiState.capturedPin,
+                        credentialOfferUri = uiState.credentialOfferUri,
                         onAction = onAction,
+                        onCloseVisibleChange = { closeVisible = it },
                     )
                 }
             }
@@ -172,17 +180,19 @@ fun OnboardingStepContent(
     pageNumber: Int,
     step: OnboardingStep,
     capturedPin: String,
+    credentialOfferUri: String,
     onAction: (OnboardingAction) -> Unit,
+    onCloseVisibleChange: (Boolean) -> Unit,
 ) {
     when (step) {
         OnboardingStep.SETUP_PIN -> PinSetupRoute(
-            onPinEntered = { onAction(OnboardingAction.PinEntered(it, step)) },
+            onPinEnter = { onAction(OnboardingAction.PinEntered(it, step)) },
         )
 
         OnboardingStep.VERIFY_PIN -> PinSetupRoute(
             verifyPin = true,
-            onPinEntered = {},
-            onPinVerified = { onAction(OnboardingAction.PinVerified(it, step)) },
+            onPinEnter = {},
+            onPinVerify = { onAction(OnboardingAction.PinVerified(it, step)) },
             onBack = { onAction(OnboardingAction.Back(step)) },
         )
 
@@ -201,9 +211,9 @@ fun OnboardingStepContent(
         )
 
         OnboardingStep.CREDENTIAL_OFFER -> OnboardingIssuanceRoute(
-            onBack = {},
+            credentialOfferUri = credentialOfferUri,
             onFinish = { onAction(OnboardingAction.Finish) },
-            pageNumber = pageNumber,
+            onDismissibleChange = onCloseVisibleChange,
         )
     }
 }

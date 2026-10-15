@@ -13,6 +13,7 @@ import eu.europa.ec.eudi.sdjwt.vc.ClaimPath as SdJwtClaimPath
 import eu.europa.ec.eudi.sdjwt.vc.ClaimPathElement as SdJwtClaimPathElement
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
+import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.data.CredentialQuery
 import se.digg.wallet.data.PresentationItem
@@ -82,6 +83,7 @@ internal object CredentialMatcher {
             isRequired = query.required,
             claims = claims,
             disclosedSdJwt = matchedSdJwt,
+            bindingKeyId = ProofKeyId(savedCredential.keyId),
         )
     }
 }
