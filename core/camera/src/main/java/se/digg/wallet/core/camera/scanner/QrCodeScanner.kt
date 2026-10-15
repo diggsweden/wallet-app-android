@@ -6,9 +6,7 @@ package se.digg.wallet.core.camera.scanner
 
 import android.net.Uri
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -27,7 +25,6 @@ import se.digg.wallet.core.camera.component.ScannerHelpButton
 import se.digg.wallet.core.camera.component.ScannerHelpSheet
 import se.digg.wallet.core.camera.component.ScannerMessage
 import se.digg.wallet.core.camera.component.ScannerViewfinder
-import se.digg.wallet.core.camera.component.TorchButton
 
 @Composable
 internal fun QrCodeScanner(onQrCodeScan: (Uri) -> Unit, modifier: Modifier = Modifier) {
@@ -35,7 +32,6 @@ internal fun QrCodeScanner(onQrCodeScan: (Uri) -> Unit, modifier: Modifier = Mod
     val haptics = LocalHapticFeedback.current
     val cameraController = remember(context) { LifecycleCameraController(context) }
     val scanState = rememberQrCodeScanState()
-    val torch by rememberTorchUiState(cameraController)
     var showsHelp by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = modifier) {
@@ -50,20 +46,12 @@ internal fun QrCodeScanner(onQrCodeScan: (Uri) -> Unit, modifier: Modifier = Mod
             modifier = Modifier.fillMaxSize(),
         )
         ScannerViewfinder(modifier = Modifier.align(Alignment.Center))
-        Row(
+        ScannerHelpButton(
+            onClick = { showsHelp = true },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (torch.isAvailable) {
-                TorchButton(
-                    checked = torch.isOn,
-                    onCheckedChange = { cameraController.enableTorch(it) },
-                )
-            }
-            ScannerHelpButton(onClick = { showsHelp = true })
-        }
+        )
         ScannerMessage(
             showUnsupportedMessage = scanState.showsUnsupportedMessage,
             modifier = Modifier

@@ -5,7 +5,6 @@
     <string name="qr_scanner_permission_title">Åtkomst till kameran krävs</string>
     <string name="qr_scanner_permission_description">Tillåt åtkomst till kameran i appens inställningar för att skanna QR-koder.</string>
     <string name="qr_scanner_permission_button">Öppna inställningar</string>
-    <string name="qr_scanner_torch">Ficklampa</string>
     <string name="qr_scanner_help">Hjälp</string>
     <string name="qr_scanner_help_close">Stäng</string>
     <string name="qr_scanner_help_title">Skanna en QR-kod</string>
