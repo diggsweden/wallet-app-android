@@ -21,17 +21,29 @@ permissions:
 
 jobs:
   release:
-    uses: diggsweden/reusable-ci/.github/workflows/release-orchestrator.yml@68338adeadf2e60b7d865f7e24fc195b6ff8334f # v2.8.3
+    uses: diggsweden/reusable-ci/.github/workflows/release-orchestrator.yml@997d7dc2238b40c79798fda309d8061b0707a3e5 # v3.0.0
     permissions:
       contents: write
+      pull-requests: read
       packages: write
       id-token: write
       attestations: write
       security-events: write
       actions: read
-    secrets: inherit
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
+      RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+      RELEASE_GPG_PUBLIC_KEY: ${{ secrets.RELEASE_GPG_PUBLIC_KEY }}
+      CODE_SCANNING_TOKEN: ${{ secrets.CODE_SCANNING_TOKEN }}
+      ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      SECRETS_PROPERTIES_BASE64: ${{ secrets.SECRETS_PROPERTIES_BASE64 }}
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
     with:
-      reusable-ci-ref: 68338adeadf2e60b7d865f7e24fc195b6ff8334f
+      reusable-ci-ref: 997d7dc2238b40c79798fda309d8061b0707a3e5
       artifacts-config: .github/artifacts.yml
       release.attachartifacts: |
         app/build/outputs/apk/demo/release/*.apk
