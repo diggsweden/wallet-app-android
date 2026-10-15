@@ -8,6 +8,7 @@ import se.digg.wallet.core.error.AppError
 
 enum class SetupStep {
     CREATE_ACCOUNT,
+    FETCH_CLIENT_CONFIG,
     INIT_HSM,
     REGISTER_PIN,
     AUTHENTICATE,

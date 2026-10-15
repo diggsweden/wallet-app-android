@@ -14,16 +14,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +27,7 @@ import se.digg.wallet.core.deeplink.DeepLinkHandler
 import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.locale.LocaleOverride
-import se.digg.wallet.core.navigation.IntroKey
+import se.digg.wallet.core.navigation.AppSetupKey
 import se.digg.wallet.core.navigation.WalletNavDisplay
 import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.core.navigation.toNavKey
@@ -66,7 +61,7 @@ class MainActivity : ComponentActivity() {
         val initialDeepLinkKey = intent.data?.toNavKey()
 
         setContent {
-            val backStack = rememberNavBackStack(IntroKey)
+            val backStack = rememberNavBackStack(AppSetupKey)
             val nav = remember { WalletNavigator(backStack) }
             SideEffect { walletNavigator = nav }
 
@@ -109,32 +104,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppRoot(
-    navigator: WalletNavigator,
-    initialDeepLinkKey: NavKey?,
-    viewModel: MainActivityViewModel = hiltViewModel(),
-) {
-    val app by viewModel.onboardingState.collectAsState()
-    var prevFlowName by rememberSaveable { mutableStateOf<String?>(null) }
-    var initialDeepLinkApplied by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(app.flow) {
-        if (app.flow.name == prevFlowName) return@LaunchedEffect
-        prevFlowName = app.flow.name
-        when (app.flow) {
-            AppFlow.Onboarding -> {
-                navigator.resetToOnboarding()
-            }
-
-            AppFlow.Dashboard -> {
-                navigator.resetToDashboard()
-                if (!initialDeepLinkApplied && initialDeepLinkKey != null) {
-                    navigator.navigate(initialDeepLinkKey)
-                    initialDeepLinkApplied = true
-                }
-            }
-        }
-    }
-
-    WalletNavDisplay(navigator = navigator)
+fun AppRoot(navigator: WalletNavigator, initialDeepLinkKey: NavKey?) {
+    WalletNavDisplay(navigator = navigator, initialDeepLinkKey = initialDeepLinkKey)
 }

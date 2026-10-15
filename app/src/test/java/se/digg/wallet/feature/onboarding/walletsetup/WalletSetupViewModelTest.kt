@@ -33,6 +33,8 @@ private class FakeWalletSetupService : WalletSetupService {
 
     override suspend fun createAccount() = record(SetupStep.CREATE_ACCOUNT)
 
+    override suspend fun fetchClientConfig() = record(SetupStep.FETCH_CLIENT_CONFIG)
+
     override suspend fun initHsm() = record(SetupStep.INIT_HSM)
 
     override suspend fun registerPin(pin: String) = record(SetupStep.REGISTER_PIN)
@@ -117,6 +119,7 @@ class WalletSetupViewModelTest {
 
         assertEquals(listOf(WalletSetupUiEffect.OnNext), effects)
         assertEquals(1, service.callCounts.getValue(SetupStep.CREATE_ACCOUNT))
+        assertEquals(1, service.callCounts.getValue(SetupStep.FETCH_CLIENT_CONFIG))
         assertEquals(1, service.callCounts.getValue(SetupStep.INIT_HSM))
         assertEquals(1, service.callCounts.getValue(SetupStep.REGISTER_PIN))
         assertEquals(2, service.callCounts.getValue(SetupStep.AUTHENTICATE))

@@ -11,6 +11,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,6 +72,55 @@ class AppDatabaseMigrationTest {
                 "accountId should be preserved",
                 "acc-123",
                 cursor.getString(cursor.getColumnIndexOrThrow("accountId")),
+            )
+        }
+    }
+
+    /**
+     * Validates the v6 → v7 migration:
+     * - existing user data is preserved
+     * - isReset is added and set to true for existing users
+     * - backendGeneration is added and null
+     */
+    @Test
+    fun migrate6To7_userPreserved_markedAsReset() {
+        helper.createDatabase(TEST_DB, 6).apply {
+            execSQL(
+                "INSERT INTO user (id, accountId, credentials, opaqueSession) " +
+                    "VALUES (0, 'acc-123', '[]', NULL)",
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(
+            TEST_DB,
+            7,
+            true,
+            AppDatabase.MIGRATION_6_7,
+        )
+
+        db.query("SELECT * FROM user WHERE id = 0").use { cursor ->
+            assertEquals("Row should survive migration", 1, cursor.count)
+            cursor.moveToFirst()
+
+            assertEquals(
+                "accountId should be preserved",
+                "acc-123",
+                cursor.getString(cursor.getColumnIndexOrThrow("accountId")),
+            )
+            assertEquals(
+                "credentials should be preserved",
+                "[]",
+                cursor.getString(cursor.getColumnIndexOrThrow("credentials")),
+            )
+            assertEquals(
+                "isReset should be true for existing users",
+                1,
+                cursor.getInt(cursor.getColumnIndexOrThrow("isReset")),
+            )
+            assertTrue(
+                "backendGeneration should be null",
+                cursor.isNull(cursor.getColumnIndexOrThrow("backendGeneration")),
             )
         }
     }

@@ -33,6 +33,9 @@ data object LicensesKey : NavKey
 data class CredentialDetailsKey(val id: String) : NavKey
 
 @Serializable
+data object AppSetupKey : NavKey
+
+@Serializable
 data object IntroKey : NavKey
 
 @Serializable

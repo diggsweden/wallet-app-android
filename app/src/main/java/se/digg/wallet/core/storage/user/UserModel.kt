@@ -17,7 +17,12 @@ data class User(
     val accountId: String?,
     val credentials: List<SavedCredential>,
     val opaqueSession: OpaqueSession? = null,
-)
+    val isReset: Boolean = false,
+    val backendGeneration: Int? = null,
+) {
+    val isOnboarded: Boolean
+        get() = accountId != null && credentials.isNotEmpty()
+}
 
 @Serializable
 data class OpaqueSession(

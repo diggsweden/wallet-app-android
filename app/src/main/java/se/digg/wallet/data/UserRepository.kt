@@ -18,8 +18,10 @@ import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AttestationV0KeyAttestationsClient
+import se.wallet.client.gateway.client.UtilV0ClientConfigsClient
 import se.wallet.client.gateway.client.V0AccountsClient
 import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
+import se.wallet.client.gateway.models.ClientConfigResponse
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
 import se.wallet.client.gateway.models.KeyAttestationRequest
@@ -34,6 +36,7 @@ class UserRepository @Inject constructor(
     private val accountsClient = V0AccountsClient(gatewayClient)
     private val walletKeysClient = V0AccountsWalletKeysClient(gatewayClient)
     private val attestationsClient = AttestationV0KeyAttestationsClient(gatewayClient)
+    private val clientConfigsClient = UtilV0ClientConfigsClient(gatewayClient)
 
     override suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String =
         attestationsClient.createKeyAttestation(
@@ -50,8 +53,11 @@ class UserRepository @Inject constructor(
         walletKeysClient.addAccountWalletKey(ecJwkRequest = request).getOrThrow()
     }
 
-    suspend fun isOnboarded() = !(getPid() == null || getAccountId() == null)
-    suspend fun getPid(): SavedCredential? = getCredentials().firstOrNull()
+    suspend fun getClientConfig(): ClientConfigResponse =
+        clientConfigsClient.getClientConfig().getOrThrow()
+
+    suspend fun getUser() = userDao.get()
+
     override suspend fun getCredentials(): List<SavedCredential> =
         userDao.get()?.credentials ?: emptyList()
 
@@ -63,9 +69,10 @@ class UserRepository @Inject constructor(
         return matchingCredential
     }
 
-    suspend fun getAccountId(): String? = userDao.get()?.accountId
-
     suspend fun setAccountId(accountId: String?) = updateUser { it.copy(accountId = accountId) }
+
+    suspend fun setBackendGeneration(backendGeneration: Int) =
+        updateUser { it.copy(backendGeneration = backendGeneration) }
 
     override suspend fun addCredentials(credentials: List<SavedCredential>) =
         updateUser { it.copy(credentials = it.credentials + credentials) }
