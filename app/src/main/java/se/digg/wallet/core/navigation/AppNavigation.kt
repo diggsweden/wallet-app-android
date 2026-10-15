@@ -7,6 +7,7 @@ package se.digg.wallet.core.navigation
 import android.net.Uri
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import se.digg.wallet.core.common.schemas.WalletUriSchemes
 
 @Serializable
 data object DashboardKey : NavKey
@@ -36,6 +37,9 @@ data class CredentialDetailsKey(val id: String) : NavKey
 data object AppSetupKey : NavKey
 
 @Serializable
+data object QrScannerKey : NavKey
+
+@Serializable
 data object IntroKey : NavKey
 
 @Serializable
@@ -48,7 +52,7 @@ data class IssuanceDeepLinkKey(val fullUri: String) : NavKey
 data class PresentationKey(val fullUri: String) : NavKey
 
 fun Uri.toNavKey(): NavKey? = when (scheme) {
-    "openid-credential-offer", "haip-vci" -> IssuanceDeepLinkKey(toString())
-    "eudi-openid4vp", "openid4vp", "haip-vp" -> PresentationKey(toString())
+    in WalletUriSchemes.ISSUANCE -> IssuanceDeepLinkKey(toString())
+    in WalletUriSchemes.PRESENTATION -> PresentationKey(toString())
     else -> null
 }

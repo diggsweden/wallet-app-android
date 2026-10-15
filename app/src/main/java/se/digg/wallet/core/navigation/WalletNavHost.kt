@@ -23,6 +23,7 @@ import se.digg.wallet.feature.issuance.DeepLinkedIssuanceRoute
 import se.digg.wallet.feature.onboarding.OnboardingRoute
 import se.digg.wallet.feature.onboarding.intro.IntroRoute
 import se.digg.wallet.feature.presentation.PresentationRoute
+import se.digg.wallet.feature.qrscanner.QrScannerRoute
 import se.digg.wallet.feature.settings.HelpRoute
 import se.digg.wallet.feature.settings.LanguageRoute
 import se.digg.wallet.feature.settings.SettingsRoute
@@ -77,6 +78,16 @@ fun WalletNavDisplay(
                 DashboardRoute(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
                     onSettingsClick = { navigator.navigate(SettingsKey()) },
+                    onScanQrCodeClick = { navigator.navigate(QrScannerKey) },
+                )
+            }
+            entry<QrScannerKey> {
+                QrScannerRoute(
+                    onBack = { navigator.goBack() },
+                    onWalletLinkScan = { key ->
+                        navigator.goBack()
+                        navigator.navigate(key)
+                    },
                 )
             }
             entry<CredentialDetailsKey> { key ->

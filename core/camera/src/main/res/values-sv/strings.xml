@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_scanner_hint">Rikta kameran mot en QR-kod</string>
+    <string name="qr_scanner_unsupported_code">Den här QR-koden kan inte användas i plånboken</string>
+    <string name="qr_scanner_permission_title">Åtkomst till kameran krävs</string>
+    <string name="qr_scanner_permission_description">Tillåt åtkomst till kameran i appens inställningar för att skanna QR-koder.</string>
+    <string name="qr_scanner_permission_button">Öppna inställningar</string>
+    <string name="qr_scanner_help">Hjälp</string>
+    <string name="qr_scanner_help_close">Stäng</string>
+    <string name="qr_scanner_help_title">Skanna en QR-kod</string>
+    <string name="qr_scanner_help_description">Med kameran kan du legitimera dig, dela uppgifter och lägga till dokument i plånboken.</string>
+    <string name="qr_scanner_help_scannable_title">Vad kan jag skanna?</string>
+    <string name="qr_scanner_help_identify_title">Legitimera dig och dela uppgifter</string>
+    <string name="qr_scanner_help_identify_detail">När en tjänst vill veta vem du är eller behöver uppgifter från dina dokument.</string>
+    <string name="qr_scanner_help_add_document_title">Lägga till ett dokument</string>
+    <string name="qr_scanner_help_add_document_detail">När du får ett nytt dokument att spara i plånboken.</string>
+    <string name="qr_scanner_help_consent_title">Du bestämmer alltid</string>
+    <string name="qr_scanner_help_consent_detail">Innan något delas ser du vem som frågar och vilka uppgifter det gäller. Inget skickas förrän du godkänner med din PIN-kod.</string>
+    <string name="qr_scanner_help_tips_title">Om det inte fungerar</string>
+    <string name="qr_scanner_help_tip_frame">Få med hela koden i bilden.</string>
+    <string name="qr_scanner_help_tip_light">Se till att det är tillräckligt ljust.</string>
+    <string name="qr_scanner_help_tip_steady">Håll telefonen stilla en kort stund.</string>
+    <string name="qr_scanner_help_tip_supported">Bara koder från tjänster som stöder ID-plånboken fungerar.</string>
+    <string name="qr_scanner_help_tip_same_device">Är koden på den här telefonen? Tryck på länken i stället.</string>
+</resources>
