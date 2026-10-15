@@ -89,4 +89,6 @@
     <string name="app_setup_reset_removed_description">Your information and documents have been deleted.</string>
     <string name="app_setup_reset_register_again">You need to register the wallet again.</string>
     <string name="app_setup_reset_button">I understand</string>
+    <string name="dashboard_fab_add_document">Add document</string>
+    <string name="dashboard_fab_scan_qr_code">Scan QR code</string>
 </resources>
