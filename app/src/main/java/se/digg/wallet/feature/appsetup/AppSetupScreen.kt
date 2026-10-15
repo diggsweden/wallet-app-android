@@ -9,21 +9,16 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
+import se.digg.wallet.core.designsystem.component.InfoCard
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.theme.Black100
 import se.digg.wallet.core.designsystem.theme.Brown30
@@ -132,42 +128,69 @@ private fun AppSetupReset(onAcknowledge: () -> Unit, modifier: Modifier = Modifi
             .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Spacer(modifier = Modifier.height(32.dp))
-            ResetIllustration(containerColor = containerColor, accentColor = accentColor)
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = stringResource(R.string.app_setup_reset_title),
-                style = WalletTextStyle.H1,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.app_setup_reset_description),
-                style = WalletTextStyle.BodyMD,
-                textAlign = TextAlign.Center,
-                color = descriptionColor,
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            ResetInfoCard(containerColor = containerColor, accentColor = accentColor)
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = stringResource(R.string.app_setup_reset_register_again),
-                style = WalletTextStyle.BodyMD,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+        ResetContent(
+            containerColor = containerColor,
+            accentColor = accentColor,
+            descriptionColor = descriptionColor,
+            modifier = Modifier.weight(1f),
+        )
         PrimaryButton(
             text = stringResource(R.string.app_setup_reset_button),
             onClick = onAcknowledge,
+        )
+    }
+}
+
+@Composable
+private fun ResetContent(
+    containerColor: Color,
+    accentColor: Color,
+    descriptionColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(modifier = Modifier.height(32.dp))
+        ResetIllustration(containerColor = containerColor, accentColor = accentColor)
+        Spacer(modifier = Modifier.height(24.dp))
+        ResetHeader(descriptionColor = descriptionColor)
+        Spacer(modifier = Modifier.height(32.dp))
+        InfoCard(
+            iconRes = R.drawable.smartphone_24px,
+            title = stringResource(R.string.app_setup_reset_removed_title),
+            description = stringResource(R.string.app_setup_reset_removed_description),
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = stringResource(R.string.app_setup_reset_register_again),
+            style = WalletTextStyle.BodyMD,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun ResetHeader(descriptionColor: Color, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.app_setup_reset_title),
+            style = WalletTextStyle.H1,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.app_setup_reset_description),
+            style = WalletTextStyle.BodyMD,
+            textAlign = TextAlign.Center,
+            color = descriptionColor,
         )
     }
 }
@@ -178,11 +201,41 @@ private fun ResetIllustration(
     accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
-    val badgeIconColor = if (isWalletInDarkTheme()) Black100 else White
-    val badgeRotation = remember { Animatable(0f) }
+    Box(modifier = modifier.size(120.dp)) {
+        WalletIcon(
+            containerColor = containerColor,
+            accentColor = accentColor,
+            modifier = Modifier.fillMaxSize(),
+        )
+        RefreshBadge(
+            accentColor = accentColor,
+            modifier = Modifier.align(Alignment.BottomEnd),
+        )
+    }
+}
+
+@Composable
+private fun WalletIcon(containerColor: Color, accentColor: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.background(color = containerColor, shape = CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.account_balance_wallet_24px),
+            contentDescription = null,
+            tint = accentColor,
+            modifier = Modifier.size(48.dp),
+        )
+    }
+}
+
+@Composable
+private fun RefreshBadge(accentColor: Color, modifier: Modifier = Modifier) {
+    val iconColor = if (isWalletInDarkTheme()) Black100 else White
+    val rotation = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        badgeRotation.animateTo(
+        rotation.animateTo(
             targetValue = 360f,
             animationSpec = tween(
                 durationMillis = 800,
@@ -192,78 +245,26 @@ private fun ResetIllustration(
         )
     }
 
-    Box(modifier = modifier.size(120.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = containerColor, shape = CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.account_balance_wallet_24px),
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(48.dp),
-            )
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(44.dp)
-                .border(
-                    width = 4.dp,
-                    color = MaterialTheme.colorScheme.background,
-                    shape = CircleShape,
-                )
-                .padding(4.dp)
-                .background(color = accentColor, shape = CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.refresh_24px),
-                contentDescription = null,
-                tint = badgeIconColor,
-                modifier = Modifier
-                    .size(20.dp)
-                    .graphicsLayer { rotationZ = badgeRotation.value },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ResetInfoCard(
-    containerColor: Color,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Row(
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .background(color = containerColor, shape = RoundedCornerShape(16.dp))
-            .padding(horizontal = 20.dp, vertical = 20.dp),
-        horizontalArrangement = Arrangement.Start,
+            .size(44.dp)
+            .border(
+                width = 4.dp,
+                color = MaterialTheme.colorScheme.background,
+                shape = CircleShape,
+            )
+            .padding(4.dp)
+            .background(color = accentColor, shape = CircleShape),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(R.drawable.smartphone_24px),
+            painter = painterResource(R.drawable.refresh_24px),
             contentDescription = null,
-            tint = accentColor,
-            modifier = Modifier.size(28.dp),
+            tint = iconColor,
+            modifier = Modifier
+                .size(20.dp)
+                .graphicsLayer { rotationZ = rotation.value },
         )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = stringResource(R.string.app_setup_reset_removed_title),
-                style = WalletTextStyle.H5,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.app_setup_reset_removed_description),
-                style = WalletTextStyle.BodyMD,
-                color = accentColor,
-            )
-        }
     }
 }
 
