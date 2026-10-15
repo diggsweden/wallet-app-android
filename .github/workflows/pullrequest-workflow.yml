@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   pr-checks:
-    uses: diggsweden/reusable-ci/.github/workflows/pullrequest-orchestrator.yml@997d7dc2238b40c79798fda309d8061b0707a3e5 # v3.0.0
+    uses: diggsweden/reusable-ci/.github/workflows/pullrequest-orchestrator.yml@dc5d89991e5013e2f59d19e282a9220fedda539a # main (setup-android v4)
     permissions:
       contents: read
       packages: read
@@ -24,7 +24,7 @@ jobs:
     secrets:
       CODE_SCANNING_TOKEN: ${{ secrets.CODE_SCANNING_TOKEN }}
     with:
-      reusable-ci-ref: 997d7dc2238b40c79798fda309d8061b0707a3e5
+      reusable-ci-ref: dc5d89991e5013e2f59d19e282a9220fedda539a
       project-type: gradle
       # Use devbase-check linting (replaces megalint, commitlint, licenselint)
       linters.devbasecheck: true
