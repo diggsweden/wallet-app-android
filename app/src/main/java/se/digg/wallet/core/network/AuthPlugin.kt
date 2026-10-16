@@ -13,10 +13,15 @@ class AuthPluginConfig {
     lateinit var sessionManager: SessionManager
 }
 
+private val sessionlessPaths = setOf(
+    "/v0/accounts",
+    "/util/v0/client-configs",
+)
+
 val authPlugin =
     createClientPlugin("AuthPlugin", ::AuthPluginConfig) {
         on(Send) { request ->
-            if (request.url.encodedPath == "/v0/accounts") {
+            if (request.url.encodedPath in sessionlessPaths) {
                 return@on proceed(request)
             }
 
