@@ -6,6 +6,7 @@ package se.digg.wallet.feature.settings
 
 import android.app.Activity
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
@@ -41,19 +42,7 @@ private fun LanguageScreen(onBackClick: () -> Unit, modifier: Modifier = Modifie
         Column(modifier = Modifier.selectableGroup()) {
             AppLanguageOption.entries.forEach { option ->
                 WalletRadioRow(
-                    title = when (option) {
-                        AppLanguageOption.SYSTEM -> {
-                            stringResource(R.string.settings_language_option_system)
-                        }
-
-                        AppLanguageOption.ENGLISH -> {
-                            stringResource(R.string.settings_language_option_english)
-                        }
-
-                        AppLanguageOption.SWEDISH -> {
-                            stringResource(R.string.settings_language_option_swedish)
-                        }
-                    },
+                    title = stringResource(option.labelRes()),
                     selected = option == selectedOption,
                     onClick = {
                         selectedOption = option
@@ -69,6 +58,13 @@ private enum class AppLanguageOption(val languageTag: String?) {
     SYSTEM(languageTag = null),
     ENGLISH(languageTag = "en"),
     SWEDISH(languageTag = "sv"),
+}
+
+@StringRes
+private fun AppLanguageOption.labelRes(): Int = when (this) {
+    AppLanguageOption.SYSTEM -> R.string.settings_language_option_system
+    AppLanguageOption.ENGLISH -> R.string.settings_language_option_english
+    AppLanguageOption.SWEDISH -> R.string.settings_language_option_swedish
 }
 
 private fun currentAppLanguageOption(context: Context): AppLanguageOption {

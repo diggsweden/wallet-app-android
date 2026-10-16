@@ -35,7 +35,7 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 @Composable
 fun IntroRoute(onContinue: () -> Unit, onSettingsClick: () -> Unit, modifier: Modifier = Modifier) {
     IntroScreen(
-        onContinue = { onContinue.invoke() },
+        onContinue = onContinue,
         onSettingsClick = onSettingsClick,
         modifier = modifier,
     )
@@ -47,13 +47,13 @@ private fun IntroScreen(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BackHandler {
-    }
+    // Intro is the root of the onboarding back stack, so system back is consumed here.
+    BackHandler {}
 
-    val isDarkMode = isWalletInDarkTheme()
-    val walletImageResource = when (isDarkMode) {
-        true -> painterResource(id = R.drawable.wallet_logo_dark)
-        false -> painterResource(id = R.drawable.wallet_logo_light)
+    val walletImageResource = if (isWalletInDarkTheme()) {
+        painterResource(id = R.drawable.wallet_logo_dark)
+    } else {
+        painterResource(id = R.drawable.wallet_logo_light)
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -82,9 +82,7 @@ private fun IntroScreen(
             Spacer(modifier = Modifier.weight(2f))
             PrimaryButton(
                 text = stringResource(R.string.onboarding_intro_button),
-                onClick = {
-                    onContinue.invoke()
-                },
+                onClick = onContinue,
                 modifier = Modifier,
             )
             Spacer(modifier = Modifier.height(24.dp))

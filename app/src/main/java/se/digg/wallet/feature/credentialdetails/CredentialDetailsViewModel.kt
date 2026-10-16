@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.extensions.getClaimUiModels
 import se.digg.wallet.data.UserRepository
@@ -20,7 +21,7 @@ class CredentialDetailsViewModel @Inject constructor(private val userRepository:
     ViewModel() {
 
     private val _uiState = MutableStateFlow<CredentialDetailsState>(CredentialDetailsState.Loading)
-    val uiState: StateFlow<CredentialDetailsState> = _uiState
+    val uiState: StateFlow<CredentialDetailsState> = _uiState.asStateFlow()
 
     fun toUiModel(credentialId: String) {
         viewModelScope.launch {

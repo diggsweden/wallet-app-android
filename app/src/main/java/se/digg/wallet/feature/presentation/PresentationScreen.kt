@@ -16,13 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -33,17 +30,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
+import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.data.PresentationItem
 
 @Composable
 fun PresentationRoute(
@@ -54,7 +54,7 @@ fun PresentationRoute(
     modifier: Modifier = Modifier,
     viewModel: PresentationViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val currentOnPopBack by rememberUpdatedState(onPopBack)
 
@@ -71,16 +71,11 @@ fun PresentationRoute(
         }
     }
     PresentationScreen(
-        onBackCLick = onBack,
-        onShareClick = { viewModel.onAccept() },
+        onBackClick = onBack,
+        onShareClick = viewModel::onAccept,
         onFinishClick = onFinish,
-        onSubmitPin = { viewModel.sendData(it) },
-        onOptionalClaimClick = { id, checked ->
-            viewModel.onOptionalClaimCheckedChanged(
-                id,
-                checked,
-            )
-        },
+        onSubmitPin = viewModel::sendData,
+        onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
         uiState = uiState,
         modifier = modifier,
     )
@@ -89,7 +84,7 @@ fun PresentationRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PresentationScreen(
-    onBackCLick: () -> Unit,
+    onBackClick: () -> Unit,
     onShareClick: () -> Unit,
     onFinishClick: () -> Unit,
     onSubmitPin: (String) -> Unit,
@@ -100,16 +95,7 @@ private fun PresentationScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            WalletTopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { onBackCLick.invoke() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_left),
-                            contentDescription = null,
-                        )
-                    }
-                },
-            )
+            WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
         },
     ) { innerPadding ->
         Column(
@@ -129,85 +115,93 @@ private fun PresentationScreen(
                 }
 
                 is PresentationUiState.EnterPin -> {
-                    Column(
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Spacer(Modifier.height(64.dp))
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.presentation_pin_title),
-                            style = WalletTextStyle.H1,
-                        )
-                        Spacer(Modifier.height(32.dp))
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.presentation_pin_description),
-                            style = WalletTextStyle.BodyLG,
-                        )
-                        Spacer(Modifier.height(64.dp))
-                        PinInput(
-                            "Dela",
-                            {
-                                onSubmitPin.invoke(it)
-                            },
-                            Modifier
-                                .fillMaxWidth(),
-                        )
-                    }
+                    EnterPinContent(onSubmitPin = onSubmitPin)
                 }
 
                 is PresentationUiState.PresentClaims -> {
-                    val requiredClaims = uiState.requiredClaims
-                    val optionalClaims = uiState.optionalClaims
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .verticalScroll(rememberScrollState())
-                                .padding(bottom = 80.dp),
-                        ) {
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                text = stringResource(R.string.presentation_share_title),
-                                style = WalletTextStyle.H2,
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            requiredClaims.forEach { item ->
-                                ClaimList(claims = item.claims, showShare = true)
-                            }
-                            if (optionalClaims.isNotEmpty()) {
-                                SelectiveDisclosureList(
-                                    onClaimClick = { id, checked ->
-                                        onOptionalClaimClick.invoke(
-                                            id,
-                                            checked,
-                                        )
-                                    },
-                                    presentationItems = optionalClaims,
-                                )
-                            }
-                        }
-                        PrimaryButton(
-                            text = stringResource(R.string.generic_share),
-                            onClick = { onShareClick.invoke() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomCenter),
-                        )
-                    }
+                    PresentClaimsContent(
+                        requiredClaims = uiState.requiredClaims,
+                        optionalClaims = uiState.optionalClaims,
+                        onOptionalClaimClick = onOptionalClaimClick,
+                        onShareClick = onShareClick,
+                    )
                 }
 
                 is PresentationUiState.ShareSuccess -> {
-                    ShareSuccess(onFinishClick = { onFinishClick.invoke() })
+                    ShareSuccess(onFinishClick = onFinishClick)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EnterPinContent(onSubmitPin: (String) -> Unit) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Spacer(Modifier.height(64.dp))
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(R.string.presentation_pin_title),
+            style = WalletTextStyle.H1,
+        )
+        Spacer(Modifier.height(32.dp))
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(R.string.presentation_pin_description),
+            style = WalletTextStyle.BodyLG,
+        )
+        Spacer(Modifier.height(64.dp))
+        PinInput(
+            buttonLabel = stringResource(R.string.generic_share),
+            onSubmit = onSubmitPin,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun PresentClaimsContent(
+    requiredClaims: List<PresentationItem>,
+    optionalClaims: List<PresentationItem>,
+    onOptionalClaimClick: (String, Boolean) -> Unit,
+    onShareClick: () -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 80.dp),
+        ) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                text = stringResource(R.string.presentation_share_title),
+                style = WalletTextStyle.H2,
+            )
+            Spacer(Modifier.height(8.dp))
+            requiredClaims.forEach { item ->
+                ClaimList(claims = item.claims, showShare = true)
+            }
+            if (optionalClaims.isNotEmpty()) {
+                SelectiveDisclosureList(
+                    onClaimClick = onOptionalClaimClick,
+                    presentationItems = optionalClaims,
+                )
+            }
+        }
+        PrimaryButton(
+            text = stringResource(R.string.generic_share),
+            onClick = onShareClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter),
+        )
     }
 }
 
@@ -242,7 +236,7 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
         Spacer(Modifier.weight(1f))
         PrimaryButton(
             text = stringResource(R.string.generic_close),
-            onClick = { onFinishClick.invoke() },
+            onClick = onFinishClick,
         )
     }
 }
@@ -252,7 +246,7 @@ private fun ShareSuccess(onFinishClick: () -> Unit) {
 private fun PresentationPreview() {
     WalletPreview {
         PresentationScreen(
-            onBackCLick = { },
+            onBackClick = { },
             onShareClick = { },
             onFinishClick = { },
             onOptionalClaimClick = { _, _ -> },

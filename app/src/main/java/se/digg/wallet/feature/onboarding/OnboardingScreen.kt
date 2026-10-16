@@ -8,6 +8,8 @@ package se.digg.wallet.feature.onboarding
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -43,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.AnimatedLinearProgress
+import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -89,36 +92,16 @@ private fun OnboardingScreen(
     modifier: Modifier = Modifier,
 ) {
     val currentStep = uiState.currentStep.ordinal + 1
-    val progress = currentStep.toFloat() / uiState.totalSteps.toFloat()
     var closeVisible by remember(uiState.currentStep) { mutableStateOf(true) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            WalletTopAppBar(
-                navigationIcon = {
-                    Row(Modifier.fillMaxWidth()) {
-                        if (uiState.enableBack.contains(uiState.currentStep)) {
-                            IconButton(
-                                onClick = { onAction(OnboardingAction.Back(uiState.currentStep)) },
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.arrow_left),
-                                    contentDescription = null,
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        if (closeVisible) {
-                            IconButton(onClick = { onAction(OnboardingAction.Close) }) {
-                                Icon(
-                                    painter = painterResource(R.drawable.close_x),
-                                    contentDescription = null,
-                                )
-                            }
-                        }
-                    }
-                },
+            OnboardingTopBar(
+                backVisible = uiState.enableBack.contains(uiState.currentStep),
+                closeVisible = closeVisible,
+                onBackClick = { onAction(OnboardingAction.Back(uiState.currentStep)) },
+                onCloseClick = { onAction(OnboardingAction.Close) },
             )
         },
         content = { innerPadding ->
@@ -127,38 +110,10 @@ private fun OnboardingScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
             ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = stringResource(
-                        R.string.onboarding_step_title,
-                        currentStep,
-                        uiState.totalSteps,
-                    ),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                AnimatedLinearProgress(
-                    targetProgress = progress,
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                )
+                OnboardingProgress(currentStep = currentStep, totalSteps = uiState.totalSteps)
                 AnimatedContent(
                     targetState = uiState.currentStep,
-                    transitionSpec = {
-                        val forward = targetState.ordinal > initialState.ordinal
-
-                        val slideIn = slideInHorizontally(
-                            animationSpec = tween(durationMillis = 250),
-                        ) { fullWidth ->
-                            if (forward) fullWidth else -fullWidth
-                        } + fadeIn(animationSpec = tween(250))
-
-                        val slideOut = slideOutHorizontally(
-                            animationSpec = tween(durationMillis = 250),
-                        ) { fullWidth ->
-                            if (forward) -fullWidth else fullWidth
-                        } + fadeOut(animationSpec = tween(250))
-
-                        slideIn togetherWith slideOut using SizeTransform(clip = false)
-                    },
+                    transitionSpec = { stepTransition() },
                     label = "OnboardingStepTransition",
                 ) { contentStep ->
                     OnboardingStepContent(
@@ -176,7 +131,68 @@ private fun OnboardingScreen(
 }
 
 @Composable
-fun OnboardingStepContent(
+private fun OnboardingTopBar(
+    backVisible: Boolean,
+    closeVisible: Boolean,
+    onBackClick: () -> Unit,
+    onCloseClick: () -> Unit,
+) {
+    WalletTopAppBar(
+        navigationIcon = {
+            Row(Modifier.fillMaxWidth()) {
+                if (backVisible) {
+                    WalletBackButton(onClick = onBackClick)
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                if (closeVisible) {
+                    IconButton(onClick = onCloseClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.close_x),
+                            contentDescription = null,
+                        )
+                    }
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun OnboardingProgress(currentStep: Int, totalSteps: Int) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            text = stringResource(R.string.onboarding_step_title, currentStep, totalSteps),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        AnimatedLinearProgress(
+            targetProgress = currentStep.toFloat() / totalSteps.toFloat(),
+            modifier = Modifier.padding(horizontal = 24.dp),
+        )
+    }
+}
+
+/** Slides forward steps in from the right and backward steps in from the left. */
+private fun AnimatedContentTransitionScope<OnboardingStep>.stepTransition(): ContentTransform {
+    val forward = targetState.ordinal > initialState.ordinal
+
+    val slideIn = slideInHorizontally(
+        animationSpec = tween(durationMillis = 250),
+    ) { fullWidth ->
+        if (forward) fullWidth else -fullWidth
+    } + fadeIn(animationSpec = tween(250))
+
+    val slideOut = slideOutHorizontally(
+        animationSpec = tween(durationMillis = 250),
+    ) { fullWidth ->
+        if (forward) -fullWidth else fullWidth
+    } + fadeOut(animationSpec = tween(250))
+
+    return slideIn togetherWith slideOut using SizeTransform(clip = false)
+}
+
+@Composable
+private fun OnboardingStepContent(
     pageNumber: Int,
     step: OnboardingStep,
     capturedPin: String,

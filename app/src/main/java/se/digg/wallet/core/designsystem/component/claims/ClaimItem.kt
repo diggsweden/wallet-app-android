@@ -90,36 +90,7 @@ private fun ClaimContent(value: ClaimValue) {
         }
 
         is ClaimValue.BooleanValue -> {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(
-                        if (value.value) {
-                            R.drawable.check_circle
-                        } else {
-                            R.drawable.cancel
-                        },
-                    ),
-                    contentDescription = null,
-                    tint = if (value.value) {
-                        Color(0xFF2E7D32)
-                    } else {
-                        Color(0xFFC62828)
-                    },
-                )
-                Text(
-                    text = if (value.value) {
-                        stringResource(R.string.generic_yes)
-                    } else {
-                        stringResource(
-                            R.string.generic_no,
-                        )
-                    },
-                    style = WalletTextStyle.BodyMD,
-                )
-            }
+            BooleanClaim(value = value.value)
         }
 
         is ClaimValue.NullValue -> {
@@ -131,29 +102,57 @@ private fun ClaimContent(value: ClaimValue) {
         }
 
         is ClaimValue.ArrayValue -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                value.items.forEach { item ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(text = "\u2022", style = WalletTextStyle.BodyMD)
-                        ClaimContent(value = item.value)
-                    }
-                }
-            }
+            ArrayClaim(items = value.items)
         }
 
         is ClaimValue.ObjectValue -> {
-            Column(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                value.claims.forEach { child ->
-                    ClaimItem(
-                        claim = child,
-                        modifier = Modifier.padding(start = 8.dp),
-                        labelStyle = WalletTextStyle.H6,
-                    )
-                }
+            ObjectClaim(claims = value.claims)
+        }
+    }
+}
+
+@Composable
+private fun BooleanClaim(value: Boolean) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(if (value) R.drawable.check_circle else R.drawable.cancel),
+            contentDescription = null,
+            tint = if (value) Color(0xFF2E7D32) else Color(0xFFC62828),
+        )
+        Text(
+            text = stringResource(if (value) R.string.generic_yes else R.string.generic_no),
+            style = WalletTextStyle.BodyMD,
+        )
+    }
+}
+
+@Composable
+private fun ArrayClaim(items: List<ClaimUiModel>) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        items.forEach { item ->
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(text = "\u2022", style = WalletTextStyle.BodyMD)
+                ClaimContent(value = item.value)
             }
+        }
+    }
+}
+
+@Composable
+private fun ObjectClaim(claims: List<ClaimUiModel>) {
+    Column(
+        modifier = Modifier.padding(top = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        claims.forEach { child ->
+            ClaimItem(
+                claim = child,
+                modifier = Modifier.padding(start = 8.dp),
+                labelStyle = WalletTextStyle.H6,
+            )
         }
     }
 }
