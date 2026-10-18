@@ -211,19 +211,19 @@ dependencies {
 
     constraints {
         implementation("org.bouncycastle:bcprov-jdk18on") {
-            version { require("1.85") }
+            version { require("1.86") }
             because(
                 "CVE-2026-59650: DH agreement exponentiates unvalidated peer value, fixed in 1.85",
             )
         }
         implementation("org.bouncycastle:bcutil-jdk18on") {
-            version { require("1.85") }
+            version { require("1.86") }
             because(
                 "must match bcprov-jdk18on 1.85 - bcutil 1.83 duplicates classes bcprov 1.85 now provides",
             )
         }
         implementation("org.bouncycastle:bcpkix-jdk18on") {
-            version { require("1.85") }
+            version { require("1.86") }
             because("must match bcprov-jdk18on 1.85 - keep the whole BC trio on one version")
         }
     }
