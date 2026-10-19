@@ -69,9 +69,6 @@ class WalletSetupViewModel @Inject constructor(
                     _uiState.value = WalletSetupUiState.Failed(step, unexpectedErrorUiModel)
                     return@launch
                 }
-                if (step != SetupStep.entries.last()) {
-                    delay(randomDelay().milliseconds)
-                }
             }
             _effects.emit(WalletSetupUiEffect.OnNext)
         }
@@ -87,8 +84,6 @@ class WalletSetupViewModel @Inject constructor(
             SetupStep.POST_HSM_KEY -> walletSetupService.postHsmKey()
         }
     }
-
-    private fun randomDelay(): Long = Random.nextLong(250L, 800L)
 
     private fun AppError.toUiModel(): ErrorUiModel = when (this) {
         is AppError.Problem -> ErrorUiModel(title = title, message = detail, problem = this)
