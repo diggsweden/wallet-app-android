@@ -37,12 +37,7 @@ fun SelectiveDisclosureList(
                 .padding(vertical = 12.dp, horizontal = 20.dp),
         )
         presentationItems.forEach { item ->
-            SelectiveDisclosureItem(
-                item = item,
-                onClaimClick = { id, checked ->
-                    onClaimClick.invoke(id, checked)
-                },
-            )
+            SelectiveDisclosureItem(item = item, onClaimClick = onClaimClick)
         }
     }
 }

@@ -66,7 +66,7 @@ fun PidSetupRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     PidSetupScreen(
         uiState = uiState,
-        onFetchId = { viewModel.getCredentialOffer() },
+        onFetchId = viewModel::getCredentialOffer,
     )
 }
 
@@ -79,7 +79,7 @@ private fun PidSetupScreen(uiState: PidSetupUiState, onFetchId: () -> Unit) {
             onPrimaryAction = onFetchId,
         )
 
-        PidSetupUiState.Idle -> Content(onFetchId = { onFetchId.invoke() })
+        PidSetupUiState.Idle -> Content(onFetchId = onFetchId)
 
         PidSetupUiState.Loading -> Loading()
     }
@@ -91,9 +91,7 @@ private fun Content(onFetchId: () -> Unit) {
         floatingContent = {
             PrimaryButton(
                 text = stringResource(R.string.onboarding_fetch_id_button),
-                onClick = {
-                    onFetchId.invoke()
-                },
+                onClick = onFetchId,
                 modifier = Modifier.fillMaxWidth(),
             )
         },

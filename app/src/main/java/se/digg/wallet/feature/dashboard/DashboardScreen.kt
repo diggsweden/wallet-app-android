@@ -20,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.DocumentCard
@@ -54,7 +54,7 @@ fun DashboardRoute(
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
-    val credentialDetails by viewModel.uiState.collectAsState()
+    val credentialDetails by viewModel.uiState.collectAsStateWithLifecycle()
 
     DashboardScreen(
         credentialDetails = credentialDetails,
@@ -201,7 +201,8 @@ private fun CredentialsSection(
         )
         for (credential in credentials) {
             DocumentCard(
-                title = credential.displayData?.name ?: "Handling",
+                title = credential.displayData?.name
+                    ?: stringResource(R.string.dashboard_credential_fallback_title),
                 onClick = { onCredentialClick(credential.id) },
             )
         }

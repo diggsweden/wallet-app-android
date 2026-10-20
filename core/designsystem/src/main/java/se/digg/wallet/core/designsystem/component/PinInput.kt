@@ -5,12 +5,12 @@
 package se.digg.wallet.core.designsystem.component
 
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
-import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -42,6 +41,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import se.digg.wallet.core.designsystem.R
@@ -55,97 +55,77 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 
 private const val PIN_LENGTH = 6
 
+private val keypadRows = listOf(
+    listOf(Numerics("1", ""), Numerics("2", "ABC"), Numerics("3", "DEF")),
+    listOf(Numerics("4", "GHI"), Numerics("5", "JKL"), Numerics("6", "MNO")),
+    listOf(Numerics("7", "PQRS"), Numerics("8", "TUV"), Numerics("9", "WXYZ")),
+)
+
+/** Every size and placement in the PIN input that differs between portrait and landscape. */
+private enum class PinInputLayout(
+    val fill: Modifier,
+    val verticalArrangement: Arrangement.Vertical,
+    val ballsToPadSpacing: Dp,
+    val padToButtonSpacing: Dp,
+    val keyRowSpacing: Dp,
+    val digitKeySize: DpSize,
+    val backspaceKeySize: DpSize,
+    val bottomRowPlaceholderSize: DpSize,
+) {
+    Portrait(
+        fill = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Top,
+        ballsToPadSpacing = 32.dp,
+        padToButtonSpacing = 24.dp,
+        keyRowSpacing = 4.dp,
+        digitKeySize = DpSize(80.dp, 50.dp),
+        backspaceKeySize = DpSize(80.dp, 45.dp),
+        bottomRowPlaceholderSize = DpSize(80.dp, 80.dp),
+    ),
+    Landscape(
+        fill = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.Center,
+        ballsToPadSpacing = 16.dp,
+        padToButtonSpacing = 16.dp,
+        keyRowSpacing = 2.dp,
+        digitKeySize = DpSize(100.dp, 50.dp),
+        backspaceKeySize = DpSize(100.dp, 45.dp),
+        bottomRowPlaceholderSize = DpSize(100.dp, 45.dp),
+    ),
+}
+
 @Composable
 fun PinInput(buttonLabel: String, onSubmit: (String) -> Unit, modifier: Modifier = Modifier) {
     var pin by rememberSaveable { mutableStateOf("") }
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == ORIENTATION_LANDSCAPE
-
-    val onPinChange: (String) -> Unit = { value ->
-        if (value.length <= PIN_LENGTH) {
-            pin = value
-        }
-    }
-    val onSubmitClick = {
-        if (pin.length == PIN_LENGTH) {
-            onSubmit(pin)
-            pin = ""
-        }
-    }
-
-    if (isLandscape) {
-        Landscape(
-            pin = pin,
-            buttonLabel = buttonLabel,
-            onPinChange = onPinChange,
-            onSubmitClick = onSubmitClick,
-            modifier = modifier,
-        )
+    val layout = if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) {
+        PinInputLayout.Landscape
     } else {
-        Portrait(
-            pin = pin,
-            buttonLabel = buttonLabel,
-            onPinChange = onPinChange,
-            onSubmitClick = onSubmitClick,
-            modifier = modifier,
-        )
+        PinInputLayout.Portrait
     }
-}
 
-@Composable
-private fun Portrait(
-    pin: String,
-    buttonLabel: String,
-    onPinChange: (String) -> Unit,
-    onSubmitClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
     Column(
         modifier = modifier
-            .fillMaxWidth()
+            .then(layout.fill)
             .padding(16.dp),
+        verticalArrangement = layout.verticalArrangement,
     ) {
         PinBalls(requiredLength = PIN_LENGTH, pinLength = pin.length)
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(layout.ballsToPadSpacing))
         PinPad(
             value = pin,
-            onValueChange = onPinChange,
+            onValueChange = { value -> if (value.length <= PIN_LENGTH) pin = value },
+            layout = layout,
             modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(layout.padToButtonSpacing))
         PrimaryButton(
             text = buttonLabel,
-            onClick = onSubmitClick,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
-private fun Landscape(
-    pin: String,
-    buttonLabel: String,
-    onPinChange: (String) -> Unit,
-    onSubmitClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        PinBalls(requiredLength = PIN_LENGTH, pinLength = pin.length)
-        Spacer(Modifier.height(16.dp))
-        PinPad(
-            value = pin,
-            onValueChange = onPinChange,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(Modifier.height(16.dp))
-        PrimaryButton(
-            text = buttonLabel,
-            onClick = onSubmitClick,
+            onClick = {
+                if (pin.length == PIN_LENGTH) {
+                    onSubmit(pin)
+                    pin = ""
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -194,74 +174,48 @@ private fun PinCircle(filled: Boolean, size: Dp) {
 }
 
 @Composable
-private fun PinPad(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    val haptic = LocalHapticFeedback.current
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.orientation == ORIENTATION_PORTRAIT
-    val buttonSpacer = if (isPortrait) {
-        4.dp
-    } else {
-        2.dp
-    }
-    val buttonModifier = if (isPortrait) {
-        Modifier.size(80.dp)
-    } else {
-        Modifier.size(width = 100.dp, height = 45.dp)
-    }
-
+private fun PinPad(
+    value: String,
+    onValueChange: (String) -> Unit,
+    layout: PinInputLayout,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(buttonSpacer),
+        verticalArrangement = Arrangement.spacedBy(layout.keyRowSpacing),
     ) {
-        KeyRow(
-            labels = listOf(
-                Numerics(number = "1", letters = ""),
-                Numerics(number = "2", letters = "ABC"),
-                Numerics(number = "3", letters = "DEF"),
-            ),
-            current = value,
-            onValueChange = onValueChange,
-        )
-        Spacer(Modifier.height(8.dp))
-        KeyRow(
-            labels = listOf(
-                Numerics(number = "4", letters = "GHI"),
-                Numerics(number = "5", letters = "JKL"),
-                Numerics(number = "6", letters = "MNO"),
-            ),
-            current = value,
-            onValueChange = onValueChange,
-        )
-        Spacer(Modifier.height(8.dp))
-        KeyRow(
-            labels = listOf(
-                Numerics(number = "7", letters = "PQRS"),
-                Numerics(number = "8", letters = "TUV"),
-                Numerics(number = "9", letters = "WXYZ"),
-            ),
-            current = value,
-            onValueChange = onValueChange,
-        )
-        Spacer(Modifier.height(8.dp))
+        keypadRows.forEach { keys ->
+            KeyRow(
+                keys = keys,
+                keySize = layout.digitKeySize,
+                current = value,
+                onValueChange = onValueChange,
+            )
+            Spacer(Modifier.height(8.dp))
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
-            T9IconButton(
-                painterResource = painterResource(R.drawable.backspace_24px),
-                showBackground = false,
+            BackspaceButton(
+                size = layout.backspaceKeySize,
                 onClick = { if (value.isNotEmpty()) onValueChange(value.dropLast(1)) },
             )
-            NumericButton(number = "0", text = "", onClick = { onValueChange(value + "0") })
-            Box(modifier = buttonModifier)
+            NumericButton(
+                key = Numerics(number = "0", letters = ""),
+                size = layout.digitKeySize,
+                onClick = { onValueChange(value + "0") },
+            )
+            Box(modifier = Modifier.size(layout.bottomRowPlaceholderSize))
         }
     }
 }
 
 @Composable
 private fun KeyRow(
-    labels: List<Numerics>,
+    keys: List<Numerics>,
+    keySize: DpSize,
     current: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -270,131 +224,92 @@ private fun KeyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround,
     ) {
-        labels.forEach { label ->
+        keys.forEach { key ->
             NumericButton(
-                number = label.number,
-                text = label.letters,
-                onClick = {
-                    onValueChange(current + label.number)
+                key = key,
+                size = keySize,
+                onClick = { onValueChange(current + key.number) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun BackspaceButton(size: DpSize, onClick: () -> Unit) {
+    PinPadKey(size = size, showBackground = false, onClick = onClick) {
+        Icon(
+            modifier = Modifier.size(32.dp),
+            painter = painterResource(R.drawable.backspace_24px),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary,
+        )
+    }
+}
+
+@Composable
+private fun NumericButton(key: Numerics, size: DpSize, onClick: () -> Unit) {
+    val fontScale = LocalDensity.current.fontScale
+
+    PinPadKey(size = size, onClick = onClick) {
+        Text(
+            text = key.number,
+            fontSize = 28.sp,
+            fontFamily = ubuntuFontFamily,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimary,
+        )
+        if (fontScale <= 1.2f) {
+            Text(
+                text = key.letters,
+                fontSize = 13.sp,
+                lineHeight = 13.sp,
+                fontFamily = ubuntuFontFamily,
+                fontWeight = FontWeight.Light,
+                color = if (isWalletInDarkTheme()) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    DiggBlack
                 },
             )
         }
     }
 }
 
+/** The button shell shared by every key on the pad: fixed size, haptic tap, centred content. */
 @Composable
-private fun T9IconButton(
-    painterResource: Painter,
-    contentDescription: String = "",
-    showBackground: Boolean = true,
+private fun PinPadKey(
+    size: DpSize,
     onClick: () -> Unit,
+    showBackground: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.orientation == ORIENTATION_PORTRAIT
-    val buttonModifier = if (isPortrait) {
-        Modifier.size(width = 80.dp, height = 45.dp)
-    } else {
-        Modifier.size(width = 100.dp, height = 45.dp)
-    }
+
     Button(
         contentPadding = PaddingValues(0.dp),
-        modifier = buttonModifier,
+        modifier = Modifier.size(size),
         colors = ButtonDefaults.buttonColors(
-            containerColor = (
-                if (!showBackground) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
-                ),
+            containerColor = if (showBackground) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                Color.Transparent
+            },
         ),
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
-            onClick.invoke()
+            onClick()
         },
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(
-                modifier = Modifier.size(32.dp),
-                painter = painterResource,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
+            content = content,
+        )
     }
 }
 
-@Composable
-private fun NumericButton(
-    number: String,
-    text: String,
-    onClick: () -> Unit,
-    showBackground: Boolean = true,
-) {
-    val haptic = LocalHapticFeedback.current
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.orientation == ORIENTATION_PORTRAIT
-    val buttonModifier = if (isPortrait) {
-        Modifier.size(width = 80.dp, height = 50.dp)
-    } else {
-        Modifier.size(width = 100.dp, height = 50.dp)
-    }
-
-    val fontScale = LocalDensity.current.fontScale
-
-    Button(
-        contentPadding = PaddingValues(0.dp),
-        modifier = buttonModifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = (
-                if (!showBackground) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
-                ),
-        ),
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
-            onClick.invoke()
-        },
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = number,
-                fontSize = 28.sp,
-                fontFamily = ubuntuFontFamily,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-            if (fontScale <= 1.2f) {
-                Text(
-                    text = text,
-                    fontSize = 13.sp,
-                    lineHeight = 13.sp,
-                    fontFamily = ubuntuFontFamily,
-                    fontWeight = FontWeight.Light,
-                    color = if (isWalletInDarkTheme()) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        DiggBlack
-                    },
-                )
-            }
-        }
-    }
-}
-
-data class Numerics(val number: String, val letters: String)
+private data class Numerics(val number: String, val letters: String)
 
 @Composable
 @PreviewsWallet

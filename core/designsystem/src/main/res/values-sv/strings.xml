@@ -3,6 +3,7 @@
     <string name="generic_yes">Ja</string>
     <string name="generic_no">Nej</string>
     <string name="generic_home">Till startsidan</string>
+    <string name="generic_navigate_back">Navigera bakåt</string>
     <string name="generic_retry">Försök igen</string>
     <string name="generic_error_screen_message">Vi kunde inte visa innehållet just nu. Försök gärna igen senare.</string>
     <string name="generic_error_screen_title">Hoppsan! Något gick fel</string>
