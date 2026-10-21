@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
