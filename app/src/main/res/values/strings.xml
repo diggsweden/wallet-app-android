@@ -71,7 +71,6 @@
     <string name="wallet_setup_step_init_hsm">" Establishing a secure connection"</string>
     <string name="wallet_setup_step_register_pin">Register PIN</string>
     <string name="wallet_setup_step_authenticate">Authenticate</string>
-    <string name="wallet_setup_step_post_hsm_key">Post HSM key</string>
     <string name="error_detail_timestamp">Timestamp</string>
     <string name="error_detail_title">Title</string>
     <string name="error_detail_message">Message</string>

@@ -81,7 +81,6 @@ class WalletSetupViewModel @Inject constructor(
             SetupStep.INIT_HSM -> walletSetupService.initHsm()
             SetupStep.REGISTER_PIN -> walletSetupService.registerPin(pin)
             SetupStep.AUTHENTICATE -> walletSetupService.authenticate(pin)
-            SetupStep.POST_HSM_KEY -> walletSetupService.postHsmKey()
         }
     }
 

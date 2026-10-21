@@ -41,7 +41,6 @@ private class FakeWalletSetupService : WalletSetupService {
 
     override suspend fun authenticate(pin: String) = record(SetupStep.AUTHENTICATE)
 
-    override suspend fun postHsmKey() = record(SetupStep.POST_HSM_KEY)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -101,7 +100,6 @@ class WalletSetupViewModelTest {
             viewModel.uiState.value,
         )
         assertTrue(effects.isEmpty())
-        assertEquals(0, service.callCounts.getValue(SetupStep.POST_HSM_KEY))
     }
 
     @Test
@@ -123,26 +121,8 @@ class WalletSetupViewModelTest {
         assertEquals(1, service.callCounts.getValue(SetupStep.INIT_HSM))
         assertEquals(1, service.callCounts.getValue(SetupStep.REGISTER_PIN))
         assertEquals(2, service.callCounts.getValue(SetupStep.AUTHENTICATE))
-        assertEquals(1, service.callCounts.getValue(SetupStep.POST_HSM_KEY))
     }
 
-    @Test
-    fun `retry after post key failure retries only the post step`() = runTest(dispatcher) {
-        service.failAt = SetupStep.POST_HSM_KEY
-        val viewModel = WalletSetupViewModel(service)
-        val effects = collectEffects(viewModel)
-
-        viewModel.start(pin = "123456")
-        advanceUntilIdle()
-
-        service.failAt = null
-        viewModel.retry()
-        advanceUntilIdle()
-
-        assertEquals(listOf(WalletSetupUiEffect.OnNext), effects)
-        assertEquals(1, service.callCounts.getValue(SetupStep.AUTHENTICATE))
-        assertEquals(2, service.callCounts.getValue(SetupStep.POST_HSM_KEY))
-    }
 
     @Test
     fun `retry does nothing when setup has not failed`() = runTest(dispatcher) {

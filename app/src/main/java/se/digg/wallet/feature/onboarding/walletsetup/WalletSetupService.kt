@@ -4,7 +4,6 @@
 
 package se.digg.wallet.feature.onboarding.walletsetup
 
-import com.nimbusds.jose.jwk.JWK
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.network.WalletOpaqueClient
@@ -21,7 +20,6 @@ interface WalletSetupService {
     suspend fun initHsm()
     suspend fun registerPin(pin: String)
     suspend fun authenticate(pin: String)
-    suspend fun postHsmKey()
 }
 
 internal class DefaultWalletSetupService @Inject constructor(
@@ -71,26 +69,7 @@ internal class DefaultWalletSetupService @Inject constructor(
         requireClient().authenticate(pin = pin)
     }
 
-    override suspend fun postHsmKey() {
-        val hsmKey = checkNotNull(requireClient().listHsmKeys().firstOrNull()) {
-            "No HSM keys found"
-        }
-        val key = hsmKey.publicKey.toKeyRequest()
-        userRepository.postWalletKey(request = key)
-    }
-
     private fun requireClient(): OpaqueClient = checkNotNull(opaqueClient) {
         "OpaqueClient not initialized - initHsm must run first"
-    }
-
-    private fun JWK.toKeyRequest(): EcJwkRequest {
-        val ecKey = toECKey()
-        return EcJwkRequest(
-            kty = ecKey.keyType.value,
-            crv = ecKey.curve.name,
-            x = ecKey.x.toString(),
-            y = ecKey.y.toString(),
-            kid = ecKey.keyID,
-        )
     }
 }

@@ -69,7 +69,6 @@
     <string name="wallet_setup_step_init_hsm">Upprättar säker anslutning</string>
     <string name="wallet_setup_step_register_pin">Registrerar PIN</string>
     <string name="wallet_setup_step_authenticate">Autentiserar</string>
-    <string name="wallet_setup_step_post_hsm_key">Post HSM key</string>
     <string name="error_detail_timestamp">Tidsstämpel</string>
     <string name="error_detail_title">Titel</string>
     <string name="error_detail_message">Meddelande</string>

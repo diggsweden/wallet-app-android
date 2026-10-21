@@ -115,7 +115,6 @@ private fun SetupStep.displayName(): Int = when (this) {
     SetupStep.INIT_HSM -> R.string.wallet_setup_step_init_hsm
     SetupStep.REGISTER_PIN -> R.string.wallet_setup_step_register_pin
     SetupStep.AUTHENTICATE -> R.string.wallet_setup_step_authenticate
-    SetupStep.POST_HSM_KEY -> R.string.wallet_setup_step_post_hsm_key
 }
 
 @Composable
