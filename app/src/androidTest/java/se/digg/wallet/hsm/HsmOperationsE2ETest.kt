@@ -151,7 +151,6 @@ class HsmOperationsE2ETest {
             createAccount()
             initHsm()
             registerPin(pin)
-            authenticate(pin)
         }
     }
 
