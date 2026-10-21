@@ -114,8 +114,6 @@ private fun SetupStep.displayName(): Int = when (this) {
     SetupStep.FETCH_CLIENT_CONFIG -> R.string.wallet_setup_step_fetch_client_config
     SetupStep.INIT_HSM -> R.string.wallet_setup_step_init_hsm
     SetupStep.REGISTER_PIN -> R.string.wallet_setup_step_register_pin
-    SetupStep.AUTHENTICATE -> R.string.wallet_setup_step_authenticate
-    SetupStep.POST_HSM_KEY -> R.string.wallet_setup_step_post_hsm_key
 }
 
 @Composable
@@ -136,7 +134,7 @@ private fun WalletSetupFailedPreview() {
     WalletPreview {
         WalletSetupScreen(
             uiState = WalletSetupUiState.Failed(
-                SetupStep.AUTHENTICATE,
+                SetupStep.INIT_HSM,
                 ErrorUiModel(title = null, message = null, problem = null),
             ),
             onRetry = {},

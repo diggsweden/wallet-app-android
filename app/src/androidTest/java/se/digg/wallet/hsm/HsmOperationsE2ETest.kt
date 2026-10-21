@@ -7,6 +7,7 @@ package se.digg.wallet.hsm
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jwt.SignedJWT
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import java.io.IOException
@@ -27,11 +28,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import se.digg.wallet.access_mechanism.api.OpaqueClient
-import se.digg.wallet.core.crypto.KeyBindingSigner
-import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.crypto.HsmProofKeyManagerFactory
+import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.network.WalletOpaqueClient
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
+import se.digg.wallet.data.KeyBindingJwtHeader
+import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.onboarding.walletsetup.DefaultWalletSetupService
 
@@ -48,10 +52,7 @@ class HsmOperationsE2ETest {
     lateinit var opaqueTransport: WalletOpaqueClient
 
     @Inject
-    lateinit var proofSigner: ProofSigner
-
-    @Inject
-    lateinit var keyBindingSigner: KeyBindingSigner
+    lateinit var proofKeyManagerFactory: HsmProofKeyManagerFactory
 
     private val pin = "123456"
 
@@ -70,36 +71,38 @@ class HsmOperationsE2ETest {
     fun onboarding_provisions_a_p256_hsm_key() = e2e {
         onboard()
 
-        assertEquals("P-256", proofSigner.publicKey(pin).toECKey().curve.name)
+        assertEquals("P-256", onboardedKey().toECKey().curve.name)
     }
 
     @Test
     fun proof_signer_signature_verifies_against_the_hsm_key() = e2e {
         onboard()
+        val key = onboardedKey()
 
         val data = "wallet-app-android hsm e2e".toByteArray()
-        val signature = proofSigner.sign(pin, data)
+        val signature = proofKeyManagerFactory.create(pin).sign(ProofKeyId(key.keyID), data)
 
-        assertTrue(
-            "raw ECDSA signature verifies",
-            verifyEcdsa(proofSigner.publicKey(pin), data, signature),
-        )
+        assertTrue("raw ECDSA signature verifies", verifyEcdsa(key, data, signature))
     }
 
     @Test
     fun key_binding_jwt_verifies_against_the_hsm_key() = e2e {
         onboard()
+        val key = onboardedKey()
+        val signer = proofKeyManagerFactory.create(pin)
 
-        val kbJwt = keyBindingSigner.sign(
-            sdJwt = "eyJhbGciOiJFUzI1NiJ9.e30.sig~",
+        val payload = KeybindingPayload(
+            aud = "https://verifier.example",
             nonce = "hsm-e2e-nonce",
-            audience = "https://verifier.example",
-            pin = pin,
+            sdHash = "hsm-e2e-sd-hash",
         )
+        val kbJwt = JwtUtils.signJwtWith(KeyBindingJwtHeader(), payload) { data ->
+            signer.sign(keyId = ProofKeyId(key.keyID), data = data)
+        }
 
         assertTrue(
             "KB-JWT (JwtUtils.signJwtWith + HSM sign) verifies against the HSM key",
-            JWSObject.parse(kbJwt).verify(ECDSAVerifier(proofSigner.publicKey(pin).toECKey())),
+            JWSObject.parse(kbJwt).verify(ECDSAVerifier(key.toECKey())),
         )
     }
 
@@ -124,14 +127,37 @@ class HsmOperationsE2ETest {
         assertFalse("deleted key is gone", client.listHsmKeys().any { it.publicKey.keyID == kid })
     }
 
+    @Test
+    fun key_attestation_covers_the_hsm_key() = e2e {
+        onboard()
+        val key = onboardedKey().toECKey()
+
+        val jwt = SignedJWT.parse(
+            userRepository.getKeyAttestation(keys = listOf(key), nonce = "hsm-e2e-nonce"),
+        )
+
+        val claims = jwt.jwtClaimsSet
+        assertEquals("hsm-e2e-nonce", claims.getStringClaim("nonce"))
+        val attested = claims.getListClaim("attested_keys")
+            .map { JWK.parse(it as Map<String, Any>).toECKey() }
+        assertTrue(
+            "attested_keys contains the HSM key",
+            attested.any { it.x == key.x && it.y == key.y },
+        )
+    }
+
     private suspend fun onboard() {
         DefaultWalletSetupService(userRepository, opaqueTransport).apply {
             createAccount()
             initHsm()
             registerPin(pin)
-            authenticate(pin)
-            postHsmKey()
         }
+    }
+
+    private suspend fun onboardedKey(): JWK {
+        val client = resumedClient()
+        client.authenticate(pin)
+        return checkNotNull(client.listHsmKeys().firstOrNull()) { "No HSM keys found" }.publicKey
     }
 
     private suspend fun resumedClient() = OpaqueClient.resume(

@@ -20,10 +20,8 @@ import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AttestationV0KeyAttestationsClient
 import se.wallet.client.gateway.client.UtilV0ClientConfigsClient
 import se.wallet.client.gateway.client.V0AccountsClient
-import se.wallet.client.gateway.client.V0AccountsWalletKeysClient
 import se.wallet.client.gateway.models.ClientConfigResponse
 import se.wallet.client.gateway.models.CreateAccountRequest
-import se.wallet.client.gateway.models.EcJwkRequest
 import se.wallet.client.gateway.models.KeyAttestationRequest
 
 class UserRepository @Inject constructor(
@@ -34,7 +32,6 @@ class UserRepository @Inject constructor(
     KeyAttestationProvider {
     val user: Flow<User?> = userDao.observe()
     private val accountsClient = V0AccountsClient(gatewayClient)
-    private val walletKeysClient = V0AccountsWalletKeysClient(gatewayClient)
     private val attestationsClient = AttestationV0KeyAttestationsClient(gatewayClient)
     private val clientConfigsClient = UtilV0ClientConfigsClient(gatewayClient)
 
@@ -48,10 +45,6 @@ class UserRepository @Inject constructor(
 
     suspend fun createAccount(request: CreateAccountRequest): String =
         accountsClient.createAccount(createAccountRequest = request).getOrThrow().accountId
-
-    suspend fun postWalletKey(request: EcJwkRequest) {
-        walletKeysClient.addAccountWalletKey(ecJwkRequest = request).getOrThrow()
-    }
 
     suspend fun getClientConfig(): ClientConfigResponse =
         clientConfigsClient.getClientConfig().getOrThrow()
