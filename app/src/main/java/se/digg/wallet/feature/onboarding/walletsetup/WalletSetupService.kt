@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.onboarding.walletsetup
 
+import javax.inject.Inject
 import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.network.WalletOpaqueClient
@@ -12,14 +13,12 @@ import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
-import javax.inject.Inject
 
 interface WalletSetupService {
     suspend fun createAccount()
     suspend fun fetchClientConfig()
     suspend fun initHsm()
     suspend fun registerPin(pin: String)
-    suspend fun authenticate(pin: String)
 }
 
 internal class DefaultWalletSetupService @Inject constructor(
@@ -63,10 +62,6 @@ internal class DefaultWalletSetupService @Inject constructor(
 
     override suspend fun registerPin(pin: String) {
         requireClient().registration(pin = pin)
-    }
-
-    override suspend fun authenticate(pin: String) {
-        requireClient().authenticate(pin = pin)
     }
 
     private fun requireClient(): OpaqueClient = checkNotNull(opaqueClient) {

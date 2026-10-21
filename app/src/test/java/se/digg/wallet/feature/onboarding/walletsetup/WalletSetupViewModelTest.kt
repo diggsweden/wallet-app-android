@@ -38,9 +38,6 @@ private class FakeWalletSetupService : WalletSetupService {
     override suspend fun initHsm() = record(SetupStep.INIT_HSM)
 
     override suspend fun registerPin(pin: String) = record(SetupStep.REGISTER_PIN)
-
-    override suspend fun authenticate(pin: String) = record(SetupStep.AUTHENTICATE)
-
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -85,7 +82,7 @@ class WalletSetupViewModelTest {
 
     @Test
     fun `failure sets failed state for the failing step`() = runTest(dispatcher) {
-        service.failAt = SetupStep.AUTHENTICATE
+        service.failAt = SetupStep.REGISTER_PIN
         val viewModel = WalletSetupViewModel(service)
         val effects = collectEffects(viewModel)
 
@@ -94,7 +91,7 @@ class WalletSetupViewModelTest {
 
         assertEquals(
             WalletSetupUiState.Failed(
-                SetupStep.AUTHENTICATE,
+                SetupStep.REGISTER_PIN,
                 ErrorUiModel(null, null, null),
             ),
             viewModel.uiState.value,
@@ -104,7 +101,7 @@ class WalletSetupViewModelTest {
 
     @Test
     fun `retry resumes from the failed step`() = runTest(dispatcher) {
-        service.failAt = SetupStep.AUTHENTICATE
+        service.failAt = SetupStep.REGISTER_PIN
         val viewModel = WalletSetupViewModel(service)
         val effects = collectEffects(viewModel)
 
@@ -119,10 +116,8 @@ class WalletSetupViewModelTest {
         assertEquals(1, service.callCounts.getValue(SetupStep.CREATE_ACCOUNT))
         assertEquals(1, service.callCounts.getValue(SetupStep.FETCH_CLIENT_CONFIG))
         assertEquals(1, service.callCounts.getValue(SetupStep.INIT_HSM))
-        assertEquals(1, service.callCounts.getValue(SetupStep.REGISTER_PIN))
-        assertEquals(2, service.callCounts.getValue(SetupStep.AUTHENTICATE))
+        assertEquals(2, service.callCounts.getValue(SetupStep.REGISTER_PIN))
     }
-
 
     @Test
     fun `retry does nothing when setup has not failed`() = runTest(dispatcher) {

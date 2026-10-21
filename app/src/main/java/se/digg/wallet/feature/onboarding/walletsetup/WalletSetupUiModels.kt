@@ -11,7 +11,6 @@ enum class SetupStep {
     FETCH_CLIENT_CONFIG,
     INIT_HSM,
     REGISTER_PIN,
-    AUTHENTICATE,
 }
 
 /**

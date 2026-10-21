@@ -80,7 +80,6 @@ class WalletSetupViewModel @Inject constructor(
             SetupStep.FETCH_CLIENT_CONFIG -> walletSetupService.fetchClientConfig()
             SetupStep.INIT_HSM -> walletSetupService.initHsm()
             SetupStep.REGISTER_PIN -> walletSetupService.registerPin(pin)
-            SetupStep.AUTHENTICATE -> walletSetupService.authenticate(pin)
         }
     }
 
