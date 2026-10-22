@@ -4,8 +4,14 @@
 
 package se.digg.wallet.feature.appsetup
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respondError
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -19,6 +25,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import se.digg.wallet.core.trust.TrustStore
 
 private class FakeAppSetupService : AppSetupService {
     var destination = StartDestination.Intro
@@ -42,6 +49,16 @@ class AppSetupViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val service = FakeAppSetupService()
+    private val offlineClient = HttpClient(
+        MockEngine {
+            respondError(HttpStatusCode.ServiceUnavailable)
+        },
+    )
+    private val trustStore = TrustStore(
+        gatewayHttpClient = offlineClient,
+        baseHttpClient = offlineClient,
+        applicationScope = CoroutineScope(Job()),
+    )
 
     @Before
     fun setUp() {
@@ -64,7 +81,7 @@ class AppSetupViewModelTest {
     @Test
     fun `the intro destination navigates to the intro`() = runTest(dispatcher) {
         service.destination = StartDestination.Intro
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         val effects = collectEffects(viewModel)
 
         advanceUntilIdle()
@@ -76,7 +93,7 @@ class AppSetupViewModelTest {
     fun `the dashboard destination navigates to the dashboard without wiping user data`() =
         runTest(dispatcher) {
             service.destination = StartDestination.Dashboard
-            val viewModel = AppSetupViewModel(service)
+            val viewModel = AppSetupViewModel(service, trustStore)
             val effects = collectEffects(viewModel)
 
             advanceUntilIdle()
@@ -88,7 +105,7 @@ class AppSetupViewModelTest {
     @Test
     fun `the reset screen is shown once user data is wiped`() = runTest(dispatcher) {
         service.destination = StartDestination.Reset
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         val effects = collectEffects(viewModel)
 
         advanceUntilIdle()
@@ -101,7 +118,7 @@ class AppSetupViewModelTest {
     @Test
     fun `acknowledging the reset navigates to the intro`() = runTest(dispatcher) {
         service.destination = StartDestination.Reset
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         val effects = collectEffects(viewModel)
         advanceUntilIdle()
 
@@ -115,7 +132,7 @@ class AppSetupViewModelTest {
     fun `a failed wipe shows the error instead of the reset screen`() = runTest(dispatcher) {
         service.destination = StartDestination.Reset
         service.clearError = IllegalStateException("wipe failed")
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         val states = mutableListOf<AppSetupUiState>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { states.add(it) }
@@ -132,7 +149,7 @@ class AppSetupViewModelTest {
     @Test
     fun `a failed destination check shows the error without navigating`() = runTest(dispatcher) {
         service.resolveError = IllegalStateException("offline")
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         val effects = collectEffects(viewModel)
 
         advanceUntilIdle()
@@ -144,7 +161,7 @@ class AppSetupViewModelTest {
     @Test
     fun `retrying a failed destination check shows loading again`() = runTest(dispatcher) {
         service.resolveError = IllegalStateException("offline")
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         advanceUntilIdle()
 
         viewModel.onRetry()
@@ -155,7 +172,7 @@ class AppSetupViewModelTest {
     @Test
     fun `a successful retry navigates to the resolved destination`() = runTest(dispatcher) {
         service.resolveError = IllegalStateException("offline")
-        val viewModel = AppSetupViewModel(service)
+        val viewModel = AppSetupViewModel(service, trustStore)
         val effects = collectEffects(viewModel)
         advanceUntilIdle()
         service.resolveError = null

@@ -185,6 +185,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.mock)
+    testImplementation(libs.bouncycastle.pkix)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -255,6 +256,7 @@ fabrikt {
             uuid = String
             date = String
             datetime = String
+            uri = String
         }
         client {
             generate = enabled
