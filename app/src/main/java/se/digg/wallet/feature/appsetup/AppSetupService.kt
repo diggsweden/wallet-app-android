@@ -5,6 +5,7 @@
 package se.digg.wallet.feature.appsetup
 
 import javax.inject.Inject
+import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.UserRepository
 
 enum class StartDestination { Intro, Reset, Dashboard }

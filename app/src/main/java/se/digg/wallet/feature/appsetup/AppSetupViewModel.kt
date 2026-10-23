@@ -15,11 +15,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.trust.TrustStore
 import timber.log.Timber
 
 @HiltViewModel
-class AppSetupViewModel @Inject constructor(private val appSetupService: AppSetupService) :
-    ViewModel() {
+class AppSetupViewModel @Inject constructor(
+    private val appSetupService: AppSetupService,
+    trustStore: TrustStore,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AppSetupUiState>(AppSetupUiState.Loading)
     val uiState: StateFlow<AppSetupUiState> = _uiState.asStateFlow()
@@ -28,6 +31,7 @@ class AppSetupViewModel @Inject constructor(private val appSetupService: AppSetu
     val effects: Flow<AppSetupUiEffect> = _effects.receiveAsFlow()
 
     init {
+        trustStore.prefetchTrustAnchors()
         resolveStart()
     }
 
