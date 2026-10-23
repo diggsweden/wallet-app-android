@@ -28,7 +28,6 @@ import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.locale.LocaleOverride
 import se.digg.wallet.core.navigation.AppSetupKey
-import se.digg.wallet.core.navigation.WalletNavDisplay
 import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.core.navigation.toNavKey
 import se.digg.wallet.core.permission.requestLocalNetworkAccess
@@ -36,6 +35,7 @@ import se.digg.wallet.core.theme.ThemeOption
 import se.digg.wallet.core.theme.ThemePreference
 import se.digg.wallet.core.webauth.BrowserWebAuthenticator
 import se.digg.wallet.core.webauth.hostWebAuthenticator
+import se.digg.wallet.navigation.WalletNavDisplay
 import timber.log.Timber
 
 @AndroidEntryPoint

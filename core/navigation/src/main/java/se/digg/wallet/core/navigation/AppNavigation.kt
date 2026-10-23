@@ -46,13 +46,13 @@ data object IntroKey : NavKey
 data object OnboardingKey : NavKey
 
 @Serializable
-data class IssuanceDeepLinkKey(val fullUri: String) : NavKey
+data class IssuanceKey(val fullUri: String) : NavKey
 
 @Serializable
 data class PresentationKey(val fullUri: String) : NavKey
 
-fun Uri.toNavKey(): NavKey? = when (scheme) {
-    in WalletUriSchemes.ISSUANCE -> IssuanceDeepLinkKey(toString())
+fun Uri.toNavKey(): NavKey? = when (normalizeScheme().scheme) {
+    in WalletUriSchemes.ISSUANCE -> IssuanceKey(toString())
     in WalletUriSchemes.PRESENTATION -> PresentationKey(toString())
     else -> null
 }
