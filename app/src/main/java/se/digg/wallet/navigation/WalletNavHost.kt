@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.navigation
+package se.digg.wallet.navigation
 
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -14,6 +14,21 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import se.digg.wallet.core.navigation.AboutKey
+import se.digg.wallet.core.navigation.AppSetupKey
+import se.digg.wallet.core.navigation.CredentialDetailsKey
+import se.digg.wallet.core.navigation.DashboardKey
+import se.digg.wallet.core.navigation.HelpKey
+import se.digg.wallet.core.navigation.IntroKey
+import se.digg.wallet.core.navigation.IssuanceKey
+import se.digg.wallet.core.navigation.LanguageKey
+import se.digg.wallet.core.navigation.LicensesKey
+import se.digg.wallet.core.navigation.OnboardingKey
+import se.digg.wallet.core.navigation.PresentationKey
+import se.digg.wallet.core.navigation.QrScannerKey
+import se.digg.wallet.core.navigation.SettingsKey
+import se.digg.wallet.core.navigation.ThemeKey
+import se.digg.wallet.core.navigation.WalletNavigator
 import se.digg.wallet.feature.about.AboutRoute
 import se.digg.wallet.feature.about.LicensesRoute
 import se.digg.wallet.feature.appsetup.AppSetupRoute
@@ -125,7 +140,7 @@ fun WalletNavDisplay(
             entry<HelpKey> {
                 HelpRoute(onBack = { navigator.goBack() })
             }
-            entry<IssuanceDeepLinkKey> { key ->
+            entry<IssuanceKey> { key ->
                 DeepLinkedIssuanceRoute(
                     onBackClick = { navigator.goBack() },
                     onFinishClick = { navigator.goBack() },
