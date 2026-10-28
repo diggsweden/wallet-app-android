@@ -12,9 +12,11 @@ object WalletUriSchemes {
     const val EUDI_OPENID4VP = "eudi-openid4vp"
     const val OPENID4VP = "openid4vp"
     const val HAIP_VP = "haip-vp"
+    const val EA_EAA_OFFER = "eu-eaa-offer"
+    const val EA_EAAP = "eu-eaap"
 
-    val ISSUANCE: Set<String> = setOf(OPENID_CREDENTIAL_OFFER, HAIP_VCI)
-    val PRESENTATION: Set<String> = setOf(EUDI_OPENID4VP, OPENID4VP, HAIP_VP)
+    val ISSUANCE: Set<String> = setOf(OPENID_CREDENTIAL_OFFER, HAIP_VCI, EA_EAA_OFFER)
+    val PRESENTATION: Set<String> = setOf(EUDI_OPENID4VP, OPENID4VP, HAIP_VP, EA_EAAP)
 
     val SUPPORTED_SCHEMES: Set<String> = ISSUANCE + PRESENTATION
 }

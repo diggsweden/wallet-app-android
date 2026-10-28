@@ -34,12 +34,19 @@ class OpenIdNetworkService @Inject constructor(
         request: CredentialRequestModel,
         contentType: ContentType = ContentType.Application.Json,
         acceptType: ContentType = ContentType.Application.Json,
-    ): CredentialResponseModel = httpClient.post(url) {
-        authorizeWith(authorization)
-        contentType(contentType)
-        setBody(request)
-        accept(acceptType)
-    }.body()
+    ): CredentialResponseModel {
+        val response = httpClient.post(url) {
+            authorizeWith(authorization)
+            contentType(contentType)
+            setBody(request)
+            accept(acceptType)
+        }
+        check(response.status.isSuccess()) {
+            "Failed fetching credential: ${response.status} ${response.bodyAsText()}"
+        }
+
+        return response.body()
+    }
 
     suspend fun fetchCredential(
         url: String,

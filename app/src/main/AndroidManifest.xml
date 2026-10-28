@@ -36,6 +36,8 @@
                 <data android:scheme="openid4vp" />
                 <data android:scheme="eudi-openid4vp" />
                 <data android:scheme="haip-vp" />
+                <data android:scheme="eu-eaa-offer" />
+                <data android:scheme="eu-eaap" />
             </intent-filter>
 
             <!-- OAuth redirect callback -->
