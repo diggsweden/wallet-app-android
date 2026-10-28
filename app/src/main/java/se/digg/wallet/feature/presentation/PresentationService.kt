@@ -40,6 +40,7 @@ import se.digg.wallet.data.KeyBindingJwtHeader
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.data.UserRepository
+import se.digg.wallet.data.VerifierUiModel
 import se.digg.wallet.data.VpTokenResponse
 import timber.log.Timber
 
@@ -52,14 +53,15 @@ data class PresentationRequest(
     val nonce: String,
     val state: String?,
     val encryption: CryptoSpec?,
+    val verifier: VerifierUiModel,
     val requiredItems: List<PresentationItem>,
     val optionalItems: List<PresentationItem>,
 )
 
 interface PresentationService {
     /**
-     * Resolves the authorization request behind [uri] and matches its DCQL query
-     * against the stored credentials.
+     * Resolves the authorization request behind [uri], verifies that the verifier is registered
+     * for what it asks for, and matches its DCQL query against the stored credentials.
      */
     suspend fun resolve(uri: String): PresentationRequest
 
@@ -84,7 +86,7 @@ internal class DefaultPresentationService @Inject constructor(
         try {
             CertificateValidator.validate(
                 certChain = certChain,
-                trustAnchors = trustStore.getTrustAnchors(ServiceType.WrpacIssuance.uri),
+                trustAnchors = trustStore.getTrustAnchors(ServiceType.Access.uri),
             )
             true
         } catch (e: CancellationException) {
@@ -130,8 +132,17 @@ internal class DefaultPresentationService @Inject constructor(
             }
         }
 
+        val registrationCertificates = RegistrationCertificateValidator.parse(
+            verifierInfo = requestObject.verifierInfo,
+            trustAnchors = trustStore.getTrustAnchors(ServiceType.Registration.uri),
+        )
+        val queries = CredentialMatcher.toQueries(requestObject.query)
+        registrationCertificates.forEach { certificate ->
+            RegistrationCertificateValidator.authorize(queries = queries, certificate = certificate)
+        }
+
         val items = CredentialMatcher.match(
-            dcql = requestObject.query,
+            queries = queries,
             credentials = userRepository.getCredentials(),
         )
         val (requiredItems, optionalItems) = items.partition { it.isRequired }
@@ -142,6 +153,7 @@ internal class DefaultPresentationService @Inject constructor(
             nonce = requestObject.nonce,
             state = requestObject.state,
             encryption = requestObject.responseEncryptionSpecification?.toCryptoSpec(),
+            verifier = registrationCertificates.first().toVerifierUiModel(),
             requiredItems = requiredItems,
             optionalItems = optionalItems,
         )

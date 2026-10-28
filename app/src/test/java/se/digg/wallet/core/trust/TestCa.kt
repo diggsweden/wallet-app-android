@@ -29,6 +29,8 @@ private fun generateKeyPair(): KeyPair {
     return generator.generateKeyPair()
 }
 
+internal class SigningLeaf(val certificate: X509Certificate, val keyPair: KeyPair)
+
 internal class TestCa private constructor(
     val certificate: X509Certificate,
     private val keyPair: KeyPair,
@@ -50,6 +52,15 @@ internal class TestCa private constructor(
         notBefore = notBefore,
         notAfter = notAfter,
     )
+
+    /**
+     * Issues a leaf together with its key pair, for tests that sign data with the leaf.
+     */
+    fun issueSigningLeaf(subject: String): SigningLeaf {
+        val keyPair = generateKeyPair()
+        val certificate = sign(subject = subject, publicKey = keyPair.public, isCa = false)
+        return SigningLeaf(certificate, keyPair)
+    }
 
     private fun sign(
         subject: String,

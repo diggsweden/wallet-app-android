@@ -4,6 +4,7 @@
 
 package se.digg.wallet.core.trust
 
+import java.security.PublicKey
 import java.security.cert.CertPathValidator
 import java.security.cert.CertificateFactory
 import java.security.cert.PKIXCertPathValidatorResult
@@ -12,7 +13,10 @@ import java.security.cert.TrustAnchor
 import java.security.cert.X509Certificate
 
 object CertificateValidator {
-    fun validate(certChain: List<X509Certificate>, trustAnchors: List<X509Certificate>) {
+    /**
+     * Validates [certChain] (leaf first) against [trustAnchors] and returns the leaf's public key.
+     */
+    fun validate(certChain: List<X509Certificate>, trustAnchors: List<X509Certificate>): PublicKey {
         require(certChain.isNotEmpty()) { "Certificate chain is empty" }
         require(trustAnchors.isNotEmpty()) { "Trust anchors are empty" }
 
@@ -27,7 +31,8 @@ object CertificateValidator {
             isRevocationEnabled = false
         }
 
-        CertPathValidator.getInstance("PKIX")
+        val result = CertPathValidator.getInstance("PKIX")
             .validate(path, parameters) as PKIXCertPathValidatorResult
+        return result.publicKey
     }
 }

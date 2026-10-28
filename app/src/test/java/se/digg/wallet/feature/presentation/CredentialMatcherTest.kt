@@ -53,12 +53,13 @@ class CredentialMatcherTest {
     )
 
     @Test
-    fun `toQueries maps ids, vct values, claim paths and required flag`() {
+    fun `toQueries maps ids, formats, vct values, claim paths and required flag`() {
         val queries = CredentialMatcher.toQueries(dcql)
 
         assertEquals(listOf("pid", "age"), queries.map { it.id })
+        assertEquals(listOf("dc+sd-jwt", "dc+sd-jwt"), queries.map { it.format })
         assertEquals(listOf(true, false), queries.map { it.required })
-        assertEquals(listOf("urn:eudi:pid:1", "urn:eudi:age:1"), queries[1].vctValues)
+        assertEquals(setOf("urn:eudi:pid:1", "urn:eudi:age:1"), queries[1].vctValues)
         assertEquals(
             setOf(ClaimPath.claim("given_name"), ClaimPath.claim("family_name")),
             queries[0].claimPaths,
@@ -91,7 +92,7 @@ class CredentialMatcherTest {
             ),
         )
 
-        val items = CredentialMatcher.match(dcql, listOf(credential))
+        val items = CredentialMatcher.match(CredentialMatcher.toQueries(dcql), listOf(credential))
 
         assertEquals(listOf("pid", "age"), items.map { it.id })
         assertEquals(listOf(true, false), items.map { it.isRequired })
@@ -110,14 +111,14 @@ class CredentialMatcherTest {
         )
 
         assertThrows(IllegalStateException::class.java) {
-            CredentialMatcher.match(dcql, listOf(credential))
+            CredentialMatcher.match(CredentialMatcher.toQueries(dcql), listOf(credential))
         }
     }
 
     @Test
     fun `match fails when the wallet is empty`() {
         assertThrows(IllegalStateException::class.java) {
-            CredentialMatcher.match(dcql, emptyList())
+            CredentialMatcher.match(CredentialMatcher.toQueries(dcql), emptyList())
         }
     }
 

@@ -120,6 +120,7 @@ private fun PresentationScreen(
 
                 is PresentationUiState.PresentClaims -> {
                     PresentClaimsContent(
+                        verifierName = uiState.verifierName,
                         requiredClaims = uiState.requiredClaims,
                         optionalClaims = uiState.optionalClaims,
                         onOptionalClaimClick = onOptionalClaimClick,
@@ -166,6 +167,7 @@ private fun EnterPinContent(onSubmitPin: (String) -> Unit) {
 
 @Composable
 private fun PresentClaimsContent(
+    verifierName: String,
     requiredClaims: List<PresentationItem>,
     optionalClaims: List<PresentationItem>,
     onOptionalClaimClick: (String, Boolean) -> Unit,
@@ -181,7 +183,7 @@ private fun PresentClaimsContent(
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                text = stringResource(R.string.presentation_share_title),
+                text = stringResource(R.string.presentation_share_title, verifierName),
                 style = WalletTextStyle.H2,
             )
             Spacer(Modifier.height(8.dp))

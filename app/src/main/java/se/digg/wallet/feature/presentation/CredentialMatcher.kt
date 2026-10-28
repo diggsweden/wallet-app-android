@@ -21,13 +21,16 @@ import se.digg.wallet.data.SavedCredential
 
 internal object CredentialMatcher {
 
-    fun match(dcql: DCQL, credentials: List<SavedCredential>): List<PresentationItem> {
+    fun match(
+        queries: List<CredentialQuery>,
+        credentials: List<SavedCredential>,
+    ): List<PresentationItem> {
         check(credentials.isNotEmpty()) {
             "No credentials found"
         }
         val credentialsByType = credentials.associateBy { it.type }
 
-        return toQueries(dcql).mapNotNull { query ->
+        return queries.mapNotNull { query ->
             val credential = checkNotNull(
                 query.vctValues.firstNotNullOfOrNull { credentialsByType[it] },
             ) {
@@ -57,9 +60,11 @@ internal object CredentialMatcher {
                     ?.content
             }
             .orEmpty()
+            .toSet()
 
         CredentialQuery(
             id = query.id.value,
+            format = query.format.value,
             required = isRequired,
             vctValues = vctValues,
             claimPaths = claimPaths,
@@ -88,7 +93,7 @@ internal object CredentialMatcher {
     }
 }
 
-private fun DcqlClaimPath.toSdJwtClaimPath(): SdJwtClaimPath {
+internal fun DcqlClaimPath.toSdJwtClaimPath(): SdJwtClaimPath {
     val elements = value.map { it.toSdJwtClaimPathElement() }
     return SdJwtClaimPath(elements.first(), *elements.drop(1).toTypedArray())
 }

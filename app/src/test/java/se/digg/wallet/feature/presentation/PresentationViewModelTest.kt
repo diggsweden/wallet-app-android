@@ -29,6 +29,7 @@ import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.services.PresentationResult
 import se.digg.wallet.data.PresentationItem
+import se.digg.wallet.data.VerifierUiModel
 
 private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): PresentationItem =
     PresentationItem(
@@ -56,6 +57,12 @@ private class FakePresentationService : PresentationService {
         nonce = "nonce",
         state = "state",
         encryption = null,
+        verifier = VerifierUiModel(
+            name = "Verifier",
+            country = "SE",
+            descriptions = emptyMap(),
+            purpose = emptyMap(),
+        ),
         requiredItems = listOf(item("pid", isRequired = true)),
         optionalItems = listOf(
             item("age", isRequired = false),
@@ -128,6 +135,7 @@ class PresentationViewModelTest {
 
         assertEquals(
             PresentationUiState.PresentClaims(
+                verifierName = "Verifier",
                 requiredClaims = service.request.requiredItems,
                 optionalClaims = service.request.optionalItems,
             ),

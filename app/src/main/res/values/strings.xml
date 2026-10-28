@@ -11,7 +11,7 @@
     <string name="generic_share">Share</string>
     <string name="presentation_share_successful_info">You can now go back to the app or website you came from.</string>
     <string name="presentation_share_successful_title">Done</string>
-    <string name="presentation_share_title">Share attributes</string>
+    <string name="presentation_share_title">Share attributes with %1$s</string>
     <string name="presentation_app_bar_title">Share attributes</string>
     <string name="presentation_pin_title">Approve and identify</string>
     <string name="presentation_pin_description">By entering your PIN code and identifying yourself, you approve the sharing of your data.</string>
