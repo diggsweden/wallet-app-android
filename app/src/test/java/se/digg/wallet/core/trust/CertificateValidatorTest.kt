@@ -7,6 +7,7 @@ package se.digg.wallet.core.trust
 import java.security.cert.CertPathValidatorException
 import java.time.Duration
 import java.time.Instant
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -22,6 +23,18 @@ class CertificateValidatorTest {
             certChain = listOf(leaf),
             trustAnchors = listOf(anchor.certificate),
         )
+    }
+
+    @Test
+    fun `validation returns the public key of the leaf`() {
+        val leaf = anchor.issueSigningLeaf("CN=Relying Party")
+
+        val publicKey = CertificateValidator.validate(
+            certChain = listOf(leaf.certificate),
+            trustAnchors = listOf(anchor.certificate),
+        )
+
+        assertEquals(leaf.keyPair.public, publicKey)
     }
 
     @Test

@@ -44,8 +44,8 @@ private const val PROVIDERS_URL = "https://gateway.test/trust/v0/lote-providers"
 private const val LOTE_A_URL = "https://lote-a.test/lote"
 private const val LOTE_B_URL = "https://lote-b.test/lote"
 
-private val WRPAC = ServiceType.WrpacIssuance.uri
-private val WRPRC = ServiceType.WrprcIssuance.uri
+private val WRPAC = ServiceType.Access.uri
+private val WRPRC = ServiceType.Registration.uri
 
 private typealias Route = MockRequestHandleScope.() -> HttpResponseData
 

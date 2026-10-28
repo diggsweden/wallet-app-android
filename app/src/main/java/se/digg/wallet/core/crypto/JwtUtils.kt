@@ -10,15 +10,20 @@ import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDHEncrypter
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jose.util.X509CertChainUtils
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.security.KeyPair
+import java.security.PublicKey
+import java.security.cert.X509Certificate
 import java.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
@@ -33,6 +38,9 @@ object JwtUtils {
         encodeDefaults = true
         explicitNulls = false
     }
+
+    @PublishedApi
+    internal val payloadFormat = Json { ignoreUnknownKeys = true }
 
     @PublishedApi
     internal inline fun <reified T> encodeClaims(payload: T): String {
@@ -102,6 +110,26 @@ object JwtUtils {
         val encrypter = ECDHEncrypter(recipientKey.toECKey())
         jweBody.encrypt(encrypter)
         return jweBody.serialize()
+    }
+
+    /**
+     * Verifies a compact JWS signed by the leaf of its `x5c` header and decodes its payload.
+     * [validateCertChain] must establish trust in the chain and return the key to verify with.
+     */
+    inline fun <reified T> verifyJws(
+        compactString: String,
+        validateCertChain: (List<X509Certificate>) -> PublicKey,
+    ): T {
+        val jws = JWSObject.parse(compactString)
+        val certChain = checkNotNull(jws.header.x509CertChain) {
+            "JWS has no certificate chain"
+        }
+        val publicKey = validateCertChain(X509CertChainUtils.parse(certChain))
+        val verifier = DefaultJWSVerifierFactory().createJWSVerifier(jws.header, publicKey)
+        check(jws.verify(verifier)) {
+            "JWS signature is invalid"
+        }
+        return payloadFormat.decodeFromString<T>(jws.payload.toString())
     }
 
     inline fun <reified T> decryptJwe(compactString: String, decryptionKeyPair: KeyPair): T {

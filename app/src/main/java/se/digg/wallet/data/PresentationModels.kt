@@ -38,9 +38,21 @@ data class KeyBindingJwtHeader(
 
 data class CredentialQuery(
     val id: String,
+    val format: String,
     val required: Boolean = true,
-    val vctValues: List<String>,
+    val vctValues: Set<String>,
     val claimPaths: Set<ClaimPath>,
+)
+
+/**
+ * The verifier as described by its registration certificate. [descriptions] and [purpose]
+ * are keyed by language tag.
+ */
+data class VerifierUiModel(
+    val name: String,
+    val country: String,
+    val descriptions: Map<String, String>,
+    val purpose: Map<String, String>,
 )
 
 data class PresentationItem(
