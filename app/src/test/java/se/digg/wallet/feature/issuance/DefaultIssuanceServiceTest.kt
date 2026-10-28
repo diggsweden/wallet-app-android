@@ -22,10 +22,12 @@ import eu.europa.ec.eudi.sdjwt.dsl.values.sdJwt
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.engine.mock.respondError
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.utils.buildHeaders
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.content.TextContent
 import io.ktor.serialization.kotlinx.json.json
@@ -33,6 +35,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.Base64
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -58,6 +62,7 @@ import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
+import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.IssuerDisplay
 import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.WalletInstanceAttestationProvider
@@ -65,6 +70,15 @@ import se.digg.wallet.data.Proof
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
 private const val NONCE_ENDPOINT = "https://issuer.example/nonce"
+
+private const val AUTHORIZATION_SERVER_METADATA = """{
+    "issuer":"https://issuer.example",
+    "authorization_endpoint":"https://issuer.example/authorize",
+    "token_endpoint":"https://issuer.example/token",
+    "response_types_supported":["code"],
+    "grant_types_supported":["authorization_code"],
+    "code_challenge_methods_supported":["S256"]
+}"""
 
 private class FakeProofSigner : ProofSigner {
     var keyId: ProofKeyId? = null
@@ -121,6 +135,12 @@ class DefaultIssuanceServiceTest {
         install(dpopPlugin)
     }
 
+    private val offlineClient = HttpClient(
+        MockEngine {
+            respondError(HttpStatusCode.ServiceUnavailable)
+        },
+    )
+
     private val service = DefaultIssuanceService(
         keyAttestationProvider = wuaProvider,
         walletInstanceAttestationProvider = object : WalletInstanceAttestationProvider {
@@ -128,6 +148,11 @@ class DefaultIssuanceServiceTest {
                 error("Unexpected wallet instance attestation")
         },
         openIdNetworkService = OpenIdNetworkService(httpClient),
+        trustStore = TrustStore(
+            gatewayHttpClient = offlineClient,
+            baseHttpClient = offlineClient,
+            applicationScope = CoroutineScope(Job()),
+        ),
         clock = clock,
         httpClient = httpClient,
     )
@@ -378,14 +403,7 @@ class DefaultIssuanceServiceTest {
                 "/.well-known/openid-configuration",
                 "/.well-known/oauth-authorization-server",
                 -> {
-                    """{
-                    "issuer":"https://issuer.example",
-                    "authorization_endpoint":"https://issuer.example/authorize",
-                    "token_endpoint":"https://issuer.example/token",
-                    "response_types_supported":["code"],
-                    "grant_types_supported":["authorization_code"],
-                    "code_challenge_methods_supported":["S256"]
-                }"""
+                    AUTHORIZATION_SERVER_METADATA
                 }
 
                 "/token" -> {
@@ -433,6 +451,52 @@ class DefaultIssuanceServiceTest {
         )
         assertThrows(IllegalStateException::class.java) {
             runBlocking { service.fetchCredential(proof, proofKey.id) }
+        }
+    }
+
+    @Test
+    fun `an offer from an issuer with an unverifiable registration certificate is rejected`() {
+        handle = { request ->
+            val response = when (request.url.encodedPath) {
+                "/offer" -> {
+                    """{
+                    "credential_issuer":"https://issuer.example",
+                    "credential_configuration_ids":["pid-sd-jwt"],
+                    "grants":{"authorization_code":{}}
+                }"""
+                }
+
+                "/.well-known/openid-credential-issuer" -> {
+                    """{
+                    "credential_issuer":"https://issuer.example",
+                    "credential_endpoint":"$CREDENTIAL_ENDPOINT",
+                    "issuer_info":[{"format":"registration_cert","data":"registration.jwt"}],
+                    "credential_configurations_supported":{
+                        "pid-sd-jwt":{"format":"dc+sd-jwt","vct":"urn:eudi:pid:1"}
+                    }
+                }"""
+                }
+
+                "/.well-known/openid-configuration",
+                "/.well-known/oauth-authorization-server",
+                -> {
+                    AUTHORIZATION_SERVER_METADATA
+                }
+
+                else -> {
+                    error("Unexpected request: ${request.url}")
+                }
+            }
+            response to "application/json"
+        }
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                service.fetchOffer(
+                    "openid-credential-offer://?credential_offer_uri=" +
+                        "https%3A%2F%2Fissuer.example%2Foffer",
+                )
+            }
         }
     }
 

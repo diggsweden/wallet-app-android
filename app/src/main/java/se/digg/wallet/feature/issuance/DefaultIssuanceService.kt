@@ -47,6 +47,8 @@ import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
+import se.digg.wallet.core.trust.ServiceType
+import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.ClaimUiModel
 import se.digg.wallet.data.CredentialDisplayData
 import se.digg.wallet.data.CredentialRequestModel
@@ -69,6 +71,7 @@ internal class DefaultIssuanceService @Inject constructor(
     private val keyAttestationProvider: KeyAttestationProvider,
     walletInstanceAttestationProvider: WalletInstanceAttestationProvider,
     private val openIdNetworkService: OpenIdNetworkService,
+    private val trustStore: TrustStore,
     private val clock: Clock,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : IssuanceService {
@@ -91,6 +94,7 @@ internal class DefaultIssuanceService @Inject constructor(
         ),
         dPoPUsage = DPoPUsage.IfSupported(DPoPConfig(dpopProofBuilder)),
         clock = clock,
+        issuerMetadataPolicy = preferSignedMetadataPolicy(trustStore),
     )
 
     override suspend fun fetchOffer(credentialOfferUri: String): IssuerDisplay? {
@@ -103,6 +107,9 @@ internal class DefaultIssuanceService @Inject constructor(
             config = openId4VCIConfig,
             uri = credentialOfferUri,
         ).getOrThrowException()
+        credentialOffer.credentialIssuerMetadata.verifyRegistrationCertificates {
+            trustStore.getTrustAnchors(ServiceType.Registration.uri)
+        }
         val (issuer, _) = Issuer.make(
             config = configFor(credentialOffer),
             credentialOffer = credentialOffer,

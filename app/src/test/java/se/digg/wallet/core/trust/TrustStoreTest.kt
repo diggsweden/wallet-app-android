@@ -36,6 +36,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -340,6 +341,35 @@ class TrustStoreTest {
 
         assertEquals(listOf(wrpacCa.certificate), anchors)
         assertEquals(2, requestCount(LOTE_A_URL))
+    }
+
+    @Test
+    fun `a chain issued by an anchor of the service type is trusted`() = runTest {
+        serveProviders(LOTE_A_URL)
+        serveLote(LOTE_A_URL, lote(entity(service(WRPAC, wrpacCa.certificate))))
+        val leaf = wrpacCa.issueLeaf("CN=Issuer")
+
+        assertTrue(trustStore().isTrusted(listOf(leaf), ServiceType.Access))
+    }
+
+    @Test
+    fun `a chain issued by an anchor of another service type is not trusted`() = runTest {
+        serveProviders(LOTE_A_URL)
+        serveLote(
+            LOTE_A_URL,
+            lote(entity(service(WRPAC, wrpacCa.certificate), service(WRPRC, wrprcCa.certificate))),
+        )
+        val leaf = wrprcCa.issueLeaf("CN=Issuer")
+
+        assertFalse(trustStore().isTrusted(listOf(leaf), ServiceType.Access))
+    }
+
+    @Test
+    fun `a chain is not trusted when the anchors cannot be loaded`() = runTest {
+        failWith(PROVIDERS_URL, HttpStatusCode.InternalServerError)
+        val leaf = wrpacCa.issueLeaf("CN=Issuer")
+
+        assertFalse(trustStore().isTrusted(listOf(leaf), ServiceType.Access))
     }
 
     @Test

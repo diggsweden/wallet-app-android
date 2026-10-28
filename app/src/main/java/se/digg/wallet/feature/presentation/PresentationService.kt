@@ -25,7 +25,6 @@ import io.ktor.client.HttpClient
 import java.security.MessageDigest
 import java.util.Base64
 import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofKeyId
@@ -33,7 +32,6 @@ import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.core.services.PresentationResult
-import se.digg.wallet.core.trust.CertificateValidator
 import se.digg.wallet.core.trust.ServiceType
 import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.KeyBindingJwtHeader
@@ -42,7 +40,6 @@ import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.data.UserRepository
 import se.digg.wallet.data.VerifierUiModel
 import se.digg.wallet.data.VpTokenResponse
-import timber.log.Timber
 
 /**
  * A resolved OpenID4VP authorization request, matched against the wallet's credentials.
@@ -83,18 +80,7 @@ internal class DefaultPresentationService @Inject constructor(
 ) : PresentationService {
 
     private val certificateTrust: X509CertificateTrust = { certChain ->
-        try {
-            CertificateValidator.validate(
-                certChain = certChain,
-                trustAnchors = trustStore.getTrustAnchors(ServiceType.Access.uri),
-            )
-            true
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.d(e, "Failed to validate certificate chain")
-            false
-        }
+        trustStore.isTrusted(certChain = certChain, serviceType = ServiceType.Access)
     }
 
     private val walletConfig = OpenId4VPConfig(

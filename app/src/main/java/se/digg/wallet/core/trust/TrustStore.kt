@@ -61,6 +61,20 @@ class TrustStore @Inject constructor(
         return trustAnchors
     }
 
+    suspend fun isTrusted(certChain: List<X509Certificate>, serviceType: ServiceType): Boolean =
+        try {
+            CertificateValidator.validate(
+                certChain = certChain,
+                trustAnchors = getTrustAnchors(serviceType.uri),
+            )
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.d(e, "Certificate chain is not trusted for ${serviceType.uri}")
+            false
+        }
+
     private suspend fun loadTrustAnchors(): Map<String, List<X509Certificate>> =
         cacheMutex.withLock {
             if (serviceTrustAnchorsCache.isEmpty()) {
