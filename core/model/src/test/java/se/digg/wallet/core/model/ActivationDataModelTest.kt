@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.data
+package se.digg.wallet.core.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -50,26 +50,32 @@ class ActivationDataModelTest {
         val copy = original.copy(kid = "key-2")
         assertEquals("key-2", copy.kid)
         assertEquals(original.kty, copy.kty)
+        assertEquals(original.crv, copy.crv)
+        assertEquals(original.x, copy.x)
+        assertEquals(original.y, copy.y)
+        assertEquals(original.alg, copy.alg)
+        assertEquals(original.use, copy.use)
     }
 
     @Test
     fun `WuaRequestModel stores walletId and jwk`() {
         val jwk = sampleJwk()
-        val request = WuaRequestModel(walletId = "wallet-abc", jwk = jwk)
-        assertEquals("wallet-abc", request.walletId)
-        assertEquals(jwk, request.jwk)
+        val model = WuaRequestModel("wallet-123", jwk)
+        assertEquals("wallet-123", model.walletId)
+        assertEquals(jwk, model.jwk)
     }
 
     @Test
-    fun `WuaResponseModel stores jwt string`() {
-        val response = WuaResponseModel(jwt = "eyJhbGciOiJFUzI1NiJ9.payload.signature")
-        assertEquals("eyJhbGciOiJFUzI1NiJ9.payload.signature", response.jwt)
-    }
-
-    @Test
-    fun `WuaResponseModel equality based on jwt value`() {
-        val a = WuaResponseModel(jwt = "token")
-        val b = WuaResponseModel(jwt = "token")
+    fun `WuaRequestModel equality based on fields`() {
+        val jwk = sampleJwk()
+        val a = WuaRequestModel("wallet-123", jwk)
+        val b = WuaRequestModel("wallet-123", jwk)
         assertEquals(a, b)
+    }
+
+    @Test
+    fun `WuaResponseModel stores jwt`() {
+        val model = WuaResponseModel("header.payload.signature")
+        assertEquals("header.payload.signature", model.jwt)
     }
 }

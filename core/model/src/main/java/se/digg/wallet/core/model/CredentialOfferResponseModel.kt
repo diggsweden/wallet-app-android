@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.data
+package se.digg.wallet.core.model
 
-import eu.europa.ec.eudi.openid4vci.Claim
 import java.net.URI
 import java.util.Date
 import java.util.Locale
@@ -76,9 +75,6 @@ data class IssuerDisplay(
         val alternativeText: String? = null,
     )
 }
-
-@Serializable
-data class DisclosureLocal(val base64: String, val claim: Claim, val value: String)
 
 object LocaleSerializer : KSerializer<Locale> {
     override val descriptor: SerialDescriptor =

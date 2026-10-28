@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.core.model.SavedCredential
 
 @Entity(tableName = "user")
 data class User(

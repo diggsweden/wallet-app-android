@@ -5,8 +5,8 @@
 package se.digg.wallet.core.extensions
 
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps
-import se.digg.wallet.data.ClaimUiModel
-import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.SavedCredential
 
 fun SavedCredential.getClaimUiModels(): List<ClaimUiModel> = with(DefaultSdJwtOps) {
     unverifiedIssuanceFrom(compactSerialized).getOrThrow()

@@ -42,19 +42,19 @@ import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.CredentialDisplayData
+import se.digg.wallet.core.model.CredentialRequestModel
+import se.digg.wallet.core.model.CredentialResponseEncryptionModel
+import se.digg.wallet.core.model.CredentialResponseModel
+import se.digg.wallet.core.model.IssuerDisplay
+import se.digg.wallet.core.model.Proof
+import se.digg.wallet.core.model.SavedCredential
+import se.digg.wallet.core.model.toJwkModel
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.services.OpenIdNetworkService
-import se.digg.wallet.data.ClaimUiModel
-import se.digg.wallet.data.CredentialDisplayData
-import se.digg.wallet.data.CredentialRequestModel
-import se.digg.wallet.data.CredentialResponseEncryptionModel
-import se.digg.wallet.data.CredentialResponseModel
-import se.digg.wallet.data.IssuerDisplay
 import se.digg.wallet.data.KeyAttestationProvider
-import se.digg.wallet.data.Proof
-import se.digg.wallet.data.SavedCredential
-import se.digg.wallet.data.toJwkModel
 
 private const val REDIRECT_SCHEME = "wallet-app"
 private const val REDIRECT_URI = "$REDIRECT_SCHEME://authorize"

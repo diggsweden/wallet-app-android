@@ -27,10 +27,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.model.CredentialsOfferRequestModel
+import se.digg.wallet.core.model.CredentialsOfferResponseModel
 import se.digg.wallet.core.webauth.WebAuthResult
 import se.digg.wallet.core.webauth.WebAuthenticator
-import se.digg.wallet.data.CredentialsOfferRequestModel
-import se.digg.wallet.data.CredentialsOfferResponseModel
 import se.digg.wallet.data.UserRepository
 import timber.log.Timber
 

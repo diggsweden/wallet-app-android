@@ -7,10 +7,10 @@ package se.digg.wallet.feature.issuance
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
-import se.digg.wallet.data.ClaimUiModel
-import se.digg.wallet.data.IssuerDisplay
-import se.digg.wallet.data.Proof
-import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.IssuerDisplay
+import se.digg.wallet.core.model.Proof
+import se.digg.wallet.core.model.SavedCredential
 
 data class IssuedCredential(val credential: SavedCredential, val claims: List<ClaimUiModel>)
 

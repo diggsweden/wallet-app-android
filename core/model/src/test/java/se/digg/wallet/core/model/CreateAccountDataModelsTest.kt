@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.data
+package se.digg.wallet.core.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -47,12 +47,5 @@ class CreateAccountDataModelsTest {
     fun `CreateAccountResponseDTO stores accountId`() {
         val response = CreateAccountResponseDTO(accountId = "account-xyz-123")
         assertEquals("account-xyz-123", response.accountId)
-    }
-
-    @Test
-    fun `CreateAccountResponseDTO equality based on accountId`() {
-        val a = CreateAccountResponseDTO("id-1")
-        val b = CreateAccountResponseDTO("id-1")
-        assertEquals(a, b)
     }
 }

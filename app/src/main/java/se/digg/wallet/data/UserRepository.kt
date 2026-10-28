@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
 import se.digg.wallet.core.crypto.toEcJwkRequests
 import se.digg.wallet.core.extensions.getOrThrow
+import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.core.storage.user.OpaqueSession

@@ -16,12 +16,12 @@ import io.ktor.http.isSuccess
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.model.CredentialRequestModel
+import se.digg.wallet.core.model.CredentialResponseModel
+import se.digg.wallet.core.model.NonceResponseModel
+import se.digg.wallet.core.model.PresentationResponseModel
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.authorizeWith
-import se.digg.wallet.data.CredentialRequestModel
-import se.digg.wallet.data.CredentialResponseModel
-import se.digg.wallet.data.response.NonceResponseModel
-import se.digg.wallet.data.response.PresentationResponseModel
 
 class OpenIdNetworkService @Inject constructor(
     @param:BaseHttpClient private val httpClient: HttpClient,
@@ -82,8 +82,9 @@ class OpenIdNetworkService @Inject constructor(
 
         val model: PresentationResponseModel = json.decodeFromString(response.body())
 
-        return if (model.redirectUri != null) {
-            PresentationResult.Redirect(model.redirectUri)
+        val redirectUri = model.redirectUri
+        return if (redirectUri != null) {
+            PresentationResult.Redirect(redirectUri)
         } else {
             PresentationResult.Success
         }

@@ -23,10 +23,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.di.ApplicationScope
+import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.webauth.WebAuthResult
 import se.digg.wallet.core.webauth.WebAuthenticator
 import se.digg.wallet.data.CredentialStore
-import se.digg.wallet.data.IssuerDisplay
 import timber.log.Timber
 
 @HiltViewModel(assistedFactory = IssuanceViewModel.Factory::class)

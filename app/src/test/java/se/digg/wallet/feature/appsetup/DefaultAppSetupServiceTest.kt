@@ -21,10 +21,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import se.digg.wallet.core.error.AppException
+import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
-import se.digg.wallet.data.SavedCredential
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient

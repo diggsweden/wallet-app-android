@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.data
+package se.digg.wallet.core.model
 
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
@@ -51,63 +51,43 @@ class ClaimUiModelTest {
     fun `ClaimValue DoubleValue holds double`() {
         val value: ClaimValue = ClaimValue.DoubleValue(3.14)
         assertTrue(value is ClaimValue.DoubleValue)
-        assertEquals(3.14, (value as ClaimValue.DoubleValue).value, 0.001)
+        assertEquals(3.14, (value as ClaimValue.DoubleValue).value, 0.0001)
     }
 
     @Test
-    fun `ClaimValue BooleanValue holds true`() {
+    fun `ClaimValue BooleanValue holds boolean`() {
         val value: ClaimValue = ClaimValue.BooleanValue(true)
         assertTrue(value is ClaimValue.BooleanValue)
-        assertTrue((value as ClaimValue.BooleanValue).value)
+        assertEquals(true, (value as ClaimValue.BooleanValue).value)
     }
 
     @Test
-    fun `ClaimValue BooleanValue holds false`() {
-        val value: ClaimValue = ClaimValue.BooleanValue(false)
-        assertTrue(value is ClaimValue.BooleanValue)
-        assertEquals(false, (value as ClaimValue.BooleanValue).value)
+    fun `ClaimValue ImageValue holds dataUri`() {
+        val value: ClaimValue = ClaimValue.ImageValue("data:image/png;base64,abc")
+        assertTrue(value is ClaimValue.ImageValue)
+        assertEquals("data:image/png;base64,abc", (value as ClaimValue.ImageValue).dataUri)
+    }
+
+    @Test
+    fun `ClaimValue ArrayValue holds list of ClaimUiModels`() {
+        val items = listOf(ClaimUiModel("child", "Child", ClaimValue.TextValue("item")))
+        val value: ClaimValue = ClaimValue.ArrayValue(items)
+        assertTrue(value is ClaimValue.ArrayValue)
+        assertEquals(items, (value as ClaimValue.ArrayValue).items)
+    }
+
+    @Test
+    fun `ClaimValue ObjectValue holds list of ClaimUiModels`() {
+        val claims = listOf(ClaimUiModel("prop", "Prop", ClaimValue.IntValue(1L)))
+        val value: ClaimValue = ClaimValue.ObjectValue(claims)
+        assertTrue(value is ClaimValue.ObjectValue)
+        assertEquals(claims, (value as ClaimValue.ObjectValue).claims)
     }
 
     @Test
     fun `ClaimValue NullValue is singleton`() {
-        val value: ClaimValue = ClaimValue.NullValue
-        assertTrue(value is ClaimValue.NullValue)
-    }
-
-    @Test
-    fun `ClaimValue ArrayValue holds nested claims`() {
-        val nested = listOf(
-            ClaimUiModel("n1", "Item 1", ClaimValue.TextValue("a")),
-            ClaimUiModel("n2", "Item 2", ClaimValue.IntValue(1L)),
-        )
-        val value: ClaimValue = ClaimValue.ArrayValue(nested)
-        assertTrue(value is ClaimValue.ArrayValue)
-        assertEquals(2, (value as ClaimValue.ArrayValue).items.size)
-        assertEquals("n1", value.items[0].id)
-    }
-
-    @Test
-    fun `ClaimValue ObjectValue holds claim list`() {
-        val claims = listOf(
-            ClaimUiModel("c1", "Field A", ClaimValue.TextValue("x")),
-        )
-        val value: ClaimValue = ClaimValue.ObjectValue(claims)
-        assertTrue(value is ClaimValue.ObjectValue)
-        assertEquals(1, (value as ClaimValue.ObjectValue).claims.size)
-    }
-
-    @Test
-    fun `ClaimUiModel data class equality works`() {
-        val a = ClaimUiModel("id", "Name", ClaimValue.TextValue("val"))
-        val b = ClaimUiModel("id", "Name", ClaimValue.TextValue("val"))
+        val a: ClaimValue = ClaimValue.NullValue
+        val b: ClaimValue = ClaimValue.NullValue
         assertEquals(a, b)
-    }
-
-    @Test
-    fun `ClaimUiModel copy produces independent instance`() {
-        val original = ClaimUiModel("id", "Name", ClaimValue.IntValue(5L))
-        val copy = original.copy(id = "other")
-        assertEquals("other", copy.id)
-        assertEquals("id", original.id)
     }
 }

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.data
+package se.digg.wallet.core.model
 
 import java.time.LocalDate
 
