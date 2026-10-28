@@ -10,6 +10,7 @@ import io.ktor.client.HttpClient
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
+import se.digg.wallet.core.crypto.toEcJwkRequest
 import se.digg.wallet.core.crypto.toEcJwkRequests
 import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.network.SessionManager
@@ -18,21 +19,26 @@ import se.digg.wallet.core.storage.user.OpaqueSession
 import se.digg.wallet.core.storage.user.User
 import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.AttestationV0KeyAttestationsClient
+import se.wallet.client.gateway.client.AttestationV0WalletInstanceAttestationsClient
 import se.wallet.client.gateway.client.UtilV0ClientConfigsClient
 import se.wallet.client.gateway.client.V0AccountsClient
 import se.wallet.client.gateway.models.ClientConfigResponse
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.KeyAttestationRequest
+import se.wallet.client.gateway.models.WalletInstanceAttestationRequest
 
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
     private val gatewayClient: HttpClient,
     private val sessionManager: SessionManager,
 ) : CredentialStore,
-    KeyAttestationProvider {
+    KeyAttestationProvider,
+    WalletInstanceAttestationProvider {
     val user: Flow<User?> = userDao.observe()
     private val accountsClient = V0AccountsClient(gatewayClient)
     private val attestationsClient = AttestationV0KeyAttestationsClient(gatewayClient)
+    private val walletInstanceAttestationsClient =
+        AttestationV0WalletInstanceAttestationsClient(gatewayClient)
     private val clientConfigsClient = UtilV0ClientConfigsClient(gatewayClient)
 
     override suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String =
@@ -41,6 +47,11 @@ class UserRepository @Inject constructor(
                 keys = keys.toEcJwkRequests(),
                 nonce = nonce,
             ),
+        ).getOrThrow().jwt
+
+    override suspend fun getWalletInstanceAttestation(key: ECKey): String =
+        walletInstanceAttestationsClient.createWalletInstanceAttestation(
+            WalletInstanceAttestationRequest(key = key.toEcJwkRequest()),
         ).getOrThrow().jwt
 
     suspend fun createAccount(request: CreateAccountRequest): String =

@@ -39,6 +39,8 @@ import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
+import se.digg.wallet.core.error.AppError
+import se.digg.wallet.core.error.AppException
 import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
@@ -54,6 +56,7 @@ import se.digg.wallet.data.IssuerDisplay
 import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.Proof
 import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.data.WalletInstanceAttestationProvider
 import se.digg.wallet.data.toJwkModel
 
 private const val REDIRECT_SCHEME = "wallet-app"
@@ -64,12 +67,14 @@ private const val PROOF_ISSUER = "wallet-app"
 
 internal class DefaultIssuanceService @Inject constructor(
     private val keyAttestationProvider: KeyAttestationProvider,
+    walletInstanceAttestationProvider: WalletInstanceAttestationProvider,
     private val openIdNetworkService: OpenIdNetworkService,
     private val clock: Clock,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : IssuanceService {
 
     private val dpopProofBuilder = DpopProofBuilder(clock = clock)
+    private val walletAttestation = WalletAttestationProvisioner(walletInstanceAttestationProvider)
 
     private var resolvedOffer: ResolvedOffer? = null
     private var preparedRequest: AuthorizationRequestPrepared? = null
@@ -93,11 +98,16 @@ internal class DefaultIssuanceService @Inject constructor(
         preparedRequest = null
         authorizedSession = null
         proof = null
-        val (issuer, _) = Issuer.make(
-            config = openId4VCIConfig,
+        val credentialOffer = CredentialOffer.resolve(
             httpClient = httpClient,
-            credentialOfferUri = credentialOfferUri,
-        ).getOrThrow()
+            config = openId4VCIConfig,
+            uri = credentialOfferUri,
+        ).getOrThrowException()
+        val (issuer, _) = Issuer.make(
+            config = configFor(credentialOffer),
+            credentialOffer = credentialOffer,
+            httpClient = httpClient,
+        ).getOrThrowException()
 
         val metadata = issuer.credentialOffer.credentialIssuerMetadata
         val offer = ResolvedOffer(
@@ -110,6 +120,19 @@ internal class DefaultIssuanceService @Inject constructor(
         return offer.issuerDisplay
     }
 
+    /** Uses the Wallet Instance Attestation when the authorization server accepts it. */
+    private fun configFor(credentialOffer: CredentialOffer): OpenId4VCIConfig =
+        if (credentialOffer.authorizationServerMetadata.supportsWalletAttestation()) {
+            openId4VCIConfig.copy(
+                clientAuthentication = ClientAuthentication.AttestationBased(
+                    id = CLIENT_ID,
+                    provisionClientAttestation = walletAttestation,
+                ),
+            )
+        } else {
+            openId4VCIConfig
+        }
+
     override suspend fun authorizationUrl(): String {
         val issuer = checkNotNull(resolvedOffer) {
             "fetchOffer must succeed before authorization"
@@ -117,7 +140,7 @@ internal class DefaultIssuanceService @Inject constructor(
         preparedRequest = null
         authorizedSession = null
         proof = null
-        val prepared = with(issuer) { prepareAuthorizationRequest().getOrThrow() }
+        val prepared = with(issuer) { prepareAuthorizationRequest().getOrThrowException() }
         preparedRequest = prepared
         return prepared.authorizationCodeURL.toString()
     }
@@ -137,7 +160,7 @@ internal class DefaultIssuanceService @Inject constructor(
                 authorizeWithAuthorizationCode(
                     AuthorizationCode(code = authCode),
                     state,
-                ).getOrThrow()
+                ).getOrThrowException()
             }
         }
 
@@ -339,6 +362,14 @@ internal class DefaultIssuanceService @Inject constructor(
                 }
             }
             .toMap()
+}
+
+/**
+ * Like [getOrThrow], but always throws an [Exception]: the OpenID4VCI library reports issuer
+ * errors as [eu.europa.ec.eudi.openid4vci.CredentialIssuanceError], which is a [Throwable] only.
+ */
+internal fun <T> Result<T>.getOrThrowException(): T = getOrElse { cause ->
+    throw cause as? Exception ?: AppException(AppError.Unexpected(cause))
 }
 
 internal fun authorizationCodeOf(

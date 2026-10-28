@@ -19,3 +19,8 @@ interface KeyAttestationProvider {
     /** Fetches a Wallet Unit Attestation, bound to [nonce] when one is given. */
     suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String
 }
+
+interface WalletInstanceAttestationProvider {
+    /** Fetches a Wallet Instance Attestation bound to [key]. */
+    suspend fun getWalletInstanceAttestation(key: ECKey): String
+}

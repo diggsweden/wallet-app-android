@@ -16,6 +16,7 @@ import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
+import eu.europa.ec.eudi.openid4vci.CredentialIssuanceError
 import eu.europa.ec.eudi.sdjwt.NimbusSdJwtOps
 import eu.europa.ec.eudi.sdjwt.dsl.values.sdJwt
 import io.ktor.client.HttpClient
@@ -44,10 +45,13 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import se.digg.wallet.core.crypto.CryptoSpec
+import se.digg.wallet.core.error.AppError
+import se.digg.wallet.core.error.AppException
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
@@ -56,6 +60,7 @@ import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.IssuerDisplay
 import se.digg.wallet.data.KeyAttestationProvider
+import se.digg.wallet.data.WalletInstanceAttestationProvider
 import se.digg.wallet.data.Proof
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
@@ -118,6 +123,10 @@ class DefaultIssuanceServiceTest {
 
     private val service = DefaultIssuanceService(
         keyAttestationProvider = wuaProvider,
+        walletInstanceAttestationProvider = object : WalletInstanceAttestationProvider {
+            override suspend fun getWalletInstanceAttestation(key: ECKey): String =
+                error("Unexpected wallet instance attestation")
+        },
         openIdNetworkService = OpenIdNetworkService(httpClient),
         clock = clock,
         httpClient = httpClient,
@@ -304,6 +313,31 @@ class DefaultIssuanceServiceTest {
                 fallbackState = "our-state",
             )
         }
+    }
+
+    @Test
+    fun `issuer errors from the library are rethrown as exceptions`() {
+        val issuerError = CredentialIssuanceError.AccessTokenRequestFailed(
+            error = "Token request failed with 500",
+            errorDescription = null,
+        )
+
+        val thrown = assertThrows(AppException::class.java) {
+            Result.failure<Unit>(issuerError).getOrThrowException()
+        }
+
+        assertSame(issuerError, (thrown.error as AppError.Unexpected).cause)
+    }
+
+    @Test
+    fun `exceptions from the library are rethrown as they are`() {
+        val exception = IllegalStateException("broken offer")
+
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            Result.failure<Unit>(exception).getOrThrowException()
+        }
+
+        assertSame(exception, thrown)
     }
 
     @Test
