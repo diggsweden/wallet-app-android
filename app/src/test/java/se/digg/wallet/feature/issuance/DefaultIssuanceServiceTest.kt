@@ -51,12 +51,12 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.model.IssuerDisplay
+import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
-import se.digg.wallet.data.IssuerDisplay
 import se.digg.wallet.data.KeyAttestationProvider
-import se.digg.wallet.data.Proof
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
 private const val NONCE_ENDPOINT = "https://issuer.example/nonce"

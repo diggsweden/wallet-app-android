@@ -15,9 +15,9 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.extensions.toClaimUiModels
+import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.data.CredentialQuery
 import se.digg.wallet.data.PresentationItem
-import se.digg.wallet.data.SavedCredential
 
 internal object CredentialMatcher {
 

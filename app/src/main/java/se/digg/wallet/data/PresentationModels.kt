@@ -20,6 +20,7 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtHeader
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofKeyId
+import se.digg.wallet.core.model.ClaimUiModel
 
 @Serializable
 data class KeybindingPayload(

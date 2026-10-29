@@ -5,6 +5,7 @@
 package se.digg.wallet.data
 
 import com.nimbusds.jose.jwk.ECKey
+import se.digg.wallet.core.model.SavedCredential
 
 /**
  * The slice of the user's stored credentials that the issuance and presentation flows need.

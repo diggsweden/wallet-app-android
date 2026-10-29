@@ -19,7 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
-import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.core.model.SavedCredential
 
 class CredentialMatcherTest {
 

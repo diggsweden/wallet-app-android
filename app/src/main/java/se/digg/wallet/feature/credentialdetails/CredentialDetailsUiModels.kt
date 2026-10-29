@@ -6,7 +6,7 @@
 
 package se.digg.wallet.feature.credentialdetails
 
-import se.digg.wallet.data.ClaimUiModel
+import se.digg.wallet.core.model.ClaimUiModel
 
 sealed interface CredentialDetailsState {
     object Loading : CredentialDetailsState

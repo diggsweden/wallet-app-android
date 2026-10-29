@@ -21,6 +21,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 "implementation"(project(":core:designsystem"))
                 "implementation"(project(":core:common"))
                 "implementation"(project(":core:navigation"))
+                "implementation"(project(":core:model"))
 
                 "implementation"(libs.findLibrary("androidx-lifecycle-compose").get())
                 "implementation"(libs.findLibrary("androidx-lifecycle-runtime-ktx").get())

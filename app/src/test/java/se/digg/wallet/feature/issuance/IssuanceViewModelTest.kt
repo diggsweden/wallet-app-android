@@ -29,14 +29,14 @@ import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.ClaimValue
+import se.digg.wallet.core.model.IssuerDisplay
+import se.digg.wallet.core.model.Proof
+import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.webauth.WebAuthResult
 import se.digg.wallet.core.webauth.WebAuthenticator
-import se.digg.wallet.data.ClaimUiModel
-import se.digg.wallet.data.ClaimValue
 import se.digg.wallet.data.CredentialStore
-import se.digg.wallet.data.IssuerDisplay
-import se.digg.wallet.data.Proof
-import se.digg.wallet.data.SavedCredential
 
 private const val OFFER_URI = "openid-credential-offer://offer"
 private const val PIN = "123456"

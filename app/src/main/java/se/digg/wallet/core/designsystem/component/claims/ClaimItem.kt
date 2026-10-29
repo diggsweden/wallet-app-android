@@ -36,8 +36,8 @@ import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.data.ClaimUiModel
-import se.digg.wallet.data.ClaimValue
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.ClaimValue
 
 @Composable
 fun ClaimItem(

@@ -8,7 +8,7 @@ import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
 import se.digg.wallet.core.crypto.ProofKeyStore
-import se.digg.wallet.data.Proof
+import se.digg.wallet.core.model.Proof
 
 sealed interface IssuanceStep {
     data class LoadingCredentialOffer(val credentialOfferUri: String) : IssuanceStep

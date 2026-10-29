@@ -44,7 +44,7 @@ import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.data.SavedCredential
+import se.digg.wallet.core.model.SavedCredential
 
 @Composable
 fun DashboardRoute(

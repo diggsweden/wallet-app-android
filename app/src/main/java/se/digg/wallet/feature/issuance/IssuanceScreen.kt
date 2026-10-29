@@ -34,7 +34,7 @@ import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.data.IssuerDisplay
+import se.digg.wallet.core.model.IssuerDisplay
 
 @Composable
 fun IssuanceRoute(

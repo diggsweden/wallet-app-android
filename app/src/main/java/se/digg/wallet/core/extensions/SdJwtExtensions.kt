@@ -15,8 +15,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.longOrNull
-import se.digg.wallet.data.ClaimUiModel
-import se.digg.wallet.data.ClaimValue
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.ClaimValue
 
 private val RESERVED_CLAIMS = setOf(
     "iss", "sub", "aud", "exp", "nbf", "iat", "jti",
