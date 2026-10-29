@@ -25,7 +25,7 @@ object CertificateValidator {
             .toSet()
 
         val path = CertificateFactory.getInstance("X.509")
-            .generateCertPath(certChain)
+            .generateCertPath(chainFromLeaf(certChain))
 
         val parameters = PKIXParameters(anchors).apply {
             isRevocationEnabled = false
@@ -35,4 +35,22 @@ object CertificateValidator {
             .validate(path, parameters) as PKIXCertPathValidatorResult
         return result.publicKey
     }
+
+    /**
+     * Keeps the leaf and the certificates that actually chain from it, dropping anything after
+     * the first break. Some verifiers put unrelated certificates (e.g. an mdoc reader
+     * certificate) in x5c after the chain.
+     */
+    private fun chainFromLeaf(certChain: List<X509Certificate>): List<X509Certificate> {
+        val chain = mutableListOf(certChain.first())
+        for (next in certChain.drop(1)) {
+            if (!chain.last().isIssuedBy(next)) break
+            chain += next
+        }
+        return chain
+    }
+
+    private fun X509Certificate.isIssuedBy(issuer: X509Certificate): Boolean =
+        issuerX500Principal == issuer.subjectX500Principal &&
+            runCatching { verify(issuer.publicKey) }.isSuccess
 }
