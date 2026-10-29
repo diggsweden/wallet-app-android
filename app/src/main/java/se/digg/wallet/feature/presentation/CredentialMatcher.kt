@@ -16,38 +16,78 @@ import kotlinx.serialization.json.JsonPrimitive
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.data.CredentialQuery
+import se.digg.wallet.data.CredentialSet
 import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.data.SavedCredential
 
 internal object CredentialMatcher {
 
+    private const val SD_JWT_VC_FORMAT = "dc+sd-jwt"
+
+    fun isSupported(query: CredentialQuery): Boolean = query.format == SD_JWT_VC_FORMAT
+
+    /**
+     * Matches [queries] against [credentials]. Queries in unsupported formats (e.g. mso_mdoc)
+     * or without a matching credential are skipped, as long as every required credential set
+     * still has an option the wallet can satisfy. Without credential sets, every query is
+     * required.
+     */
     fun match(
         queries: List<CredentialQuery>,
         credentials: List<SavedCredential>,
+        credentialSets: List<CredentialSet> = emptyList(),
     ): List<PresentationItem> {
         check(credentials.isNotEmpty()) {
             "No credentials found"
         }
         val credentialsByType = credentials.associateBy { it.type }
 
-        return queries.mapNotNull { query ->
-            val credential = checkNotNull(
-                query.vctValues.firstNotNullOfOrNull { credentialsByType[it] },
-            ) {
-                "No matching credential for query ${query.id}"
+        val items = queries.filter(::isSupported).mapNotNull { query ->
+            query.vctValues.firstNotNullOfOrNull { credentialsByType[it] }
+                ?.let { matchClaims(query = query, savedCredential = it) }
+        }
+        val requiredIds = requiredQueryIds(
+            queries = queries,
+            credentialSets = credentialSets,
+            matchedIds = items.map { it.id }.toSet(),
+        )
+
+        return items.map { it.copy(isRequired = it.id in requiredIds) }
+    }
+
+    fun toCredentialSets(dcql: DCQL): List<CredentialSet> =
+        dcql.credentialSets?.value.orEmpty().map { credentialSet ->
+            CredentialSet(
+                options = credentialSet.options.map { ids -> ids.value.map { it.value }.toSet() },
+                // Per OpenID4VP, a credential set is required unless it says otherwise.
+                required = credentialSet.required ?: true,
+            )
+        }
+
+    /**
+     * Picks, for each required credential set, the first option the wallet can satisfy.
+     */
+    private fun requiredQueryIds(
+        queries: List<CredentialQuery>,
+        credentialSets: List<CredentialSet>,
+        matchedIds: Set<String>,
+    ): Set<String> {
+        if (credentialSets.isEmpty()) {
+            queries.forEach { query ->
+                check(query.id in matchedIds) {
+                    "No matching credential for query ${query.id}"
+                }
             }
-            matchClaims(query = query, savedCredential = credential)
+            return matchedIds
+        }
+        return credentialSets.filter { it.required }.flatMapTo(mutableSetOf()) { credentialSet ->
+            checkNotNull(credentialSet.options.firstOrNull { matchedIds.containsAll(it) }) {
+                "No matching credentials for credential set ${credentialSet.options}"
+            }
         }
     }
 
     fun toQueries(dcql: DCQL): List<CredentialQuery> = dcql.credentials.value.map { query ->
-        val isRequired = dcql.credentialSets?.value?.any { credentialSet ->
-            credentialSet.options.any { credentialQueryIds ->
-                credentialQueryIds.value.contains(query.id) &&
-                    credentialSet.required == true
-            }
-        } ?: true
-
         val claimPaths = query.claims
             ?.map { it.path.toSdJwtClaimPath() }
             ?.toSet()
@@ -65,7 +105,6 @@ internal object CredentialMatcher {
         CredentialQuery(
             id = query.id.value,
             format = query.format.value,
-            required = isRequired,
             vctValues = vctValues,
             claimPaths = claimPaths,
         )
@@ -85,7 +124,7 @@ internal object CredentialMatcher {
         return PresentationItem(
             id = query.id,
             isChecked = false,
-            isRequired = query.required,
+            isRequired = false,
             claims = claims,
             disclosedSdJwt = matchedSdJwt,
             bindingKeyId = ProofKeyId(savedCredential.keyId),

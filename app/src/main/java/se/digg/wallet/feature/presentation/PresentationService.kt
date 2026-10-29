@@ -123,13 +123,18 @@ internal class DefaultPresentationService @Inject constructor(
             trustAnchors = trustStore.getTrustAnchors(ServiceType.Registration.uri),
         )
         val queries = CredentialMatcher.toQueries(requestObject.query)
+        val supportedQueries = queries.filter(CredentialMatcher::isSupported)
         registrationCertificates.forEach { certificate ->
-            RegistrationCertificateValidator.authorize(queries = queries, certificate = certificate)
+            RegistrationCertificateValidator.authorize(
+                queries = supportedQueries,
+                certificate = certificate,
+            )
         }
 
         val items = CredentialMatcher.match(
             queries = queries,
             credentials = userRepository.getCredentials(),
+            credentialSets = CredentialMatcher.toCredentialSets(requestObject.query),
         )
         val (requiredItems, optionalItems) = items.partition { it.isRequired }
 

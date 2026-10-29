@@ -39,10 +39,15 @@ data class KeyBindingJwtHeader(
 data class CredentialQuery(
     val id: String,
     val format: String,
-    val required: Boolean = true,
     val vctValues: Set<String>,
     val claimPaths: Set<ClaimPath>,
 )
+
+/**
+ * A DCQL credential set: the wallet satisfies it by presenting every query id in any one of
+ * [options].
+ */
+data class CredentialSet(val options: List<Set<String>>, val required: Boolean)
 
 /**
  * The verifier as described by its registration certificate. [descriptions] and [purpose]
