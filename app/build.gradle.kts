@@ -193,7 +193,7 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
-    implementation(libs.bundles.storage)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
     implementation(libs.accessMechanism)
