@@ -10,8 +10,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import javax.inject.Singleton
+import se.digg.wallet.core.database.UserDao
 import se.digg.wallet.core.network.SessionManager
-import se.digg.wallet.core.storage.user.UserDao
 import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.UserRepository

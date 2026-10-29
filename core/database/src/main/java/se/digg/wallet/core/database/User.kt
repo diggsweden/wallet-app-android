@@ -2,11 +2,12 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.storage.user
+package se.digg.wallet.core.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.model.SavedCredential
@@ -24,6 +25,7 @@ data class User(
         get() = accountId != null && credentials.isNotEmpty()
 }
 
+@OptIn(InternalSerializationApi::class)
 @Serializable
 data class OpaqueSession(
     val serverPublicKeyJwk: String,

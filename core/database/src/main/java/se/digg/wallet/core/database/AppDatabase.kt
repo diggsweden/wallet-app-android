@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.storage.user
+package se.digg.wallet.core.database
 
 import androidx.room.AutoMigration
 import androidx.room.Database

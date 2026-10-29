@@ -38,7 +38,6 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.fabrikt)
     alias(libs.plugins.kotlinter)
-    alias(libs.plugins.room)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.aboutlibrariesAndroid)
 }
@@ -148,9 +147,6 @@ android {
     sourceSets.named("main") {
         kotlin.directories += fabriktOutputDirectory.get().asFile.path
     }
-    sourceSets.named("androidTest") {
-        assets.directories.add("$projectDir/schemas")
-    }
 }
 androidComponents {
     onVariants { variant ->
@@ -162,13 +158,10 @@ androidComponents {
     }
 }
 
-room {
-    schemaDirectory("$projectDir/schemas")
-}
-
 dependencies {
     implementation(project(":core:camera"))
     implementation(project(":core:common"))
+    implementation(project(":core:database"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
     implementation(project(":core:model"))
@@ -200,7 +193,7 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
-    implementation(libs.bundles.storage)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.di)
     implementation(libs.bundles.ktor)
     implementation(libs.accessMechanism)
@@ -208,9 +201,6 @@ dependencies {
     ksp(libs.hilt.compiler)
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.compiler)
-
-    ksp(libs.room.compiler)
-    androidTestImplementation(libs.room.testing)
 
     constraints {
         implementation("org.bouncycastle:bcprov-jdk18on") {
