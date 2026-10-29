@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.di
+package se.digg.wallet.core.database
 
 import android.content.Context
 import androidx.room.Room
@@ -12,8 +12,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import se.digg.wallet.core.storage.user.AppDatabase
-import se.digg.wallet.core.storage.user.UserDao
 
 @Module
 @InstallIn(SingletonComponent::class)

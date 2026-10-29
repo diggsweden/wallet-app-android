@@ -28,6 +28,7 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import se.digg.wallet.BuildConfig
+import se.digg.wallet.core.database.UserDao
 import se.digg.wallet.core.designsystem.utils.getAppVersion
 import se.digg.wallet.core.network.DeviceInfo
 import se.digg.wallet.core.network.SessionManager
@@ -35,7 +36,6 @@ import se.digg.wallet.core.network.authPlugin
 import se.digg.wallet.core.network.deviceInfoPlugin
 import se.digg.wallet.core.network.dpopPlugin
 import se.digg.wallet.core.services.OpenIdNetworkService
-import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
 

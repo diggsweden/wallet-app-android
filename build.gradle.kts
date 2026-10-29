@@ -11,6 +11,10 @@ plugins {
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.aboutlibraries) apply false
     alias(libs.plugins.aboutlibrariesAndroid) apply false
+    alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.room) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }
 
 

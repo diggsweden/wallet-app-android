@@ -6,11 +6,11 @@ package se.digg.wallet.core.network
 
 import java.security.KeyPair
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.database.UserDao
 import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.services.KeyAlias
 import se.digg.wallet.core.services.KeystoreManager
-import se.digg.wallet.core.storage.user.UserDao
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
 import se.wallet.client.gateway.models.AuthChallengeRequest
