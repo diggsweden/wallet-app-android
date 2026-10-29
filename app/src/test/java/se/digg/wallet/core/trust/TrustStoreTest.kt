@@ -344,6 +344,57 @@ class TrustStoreTest {
     }
 
     @Test
+    fun `all anchors are returned across lists and service types without duplicates`() = runTest {
+        serveProviders(LOTE_A_URL, LOTE_B_URL)
+        serveLote(
+            LOTE_A_URL,
+            lote(entity(service(WRPAC, wrpacCa.certificate), service(WRPRC, wrprcCa.certificate))),
+        )
+        serveLote(
+            LOTE_B_URL,
+            lote(entity(service(WRPAC, otherWrpacCa.certificate, wrpacCa.certificate))),
+        )
+
+        val anchors = trustStore().getAllTrustAnchors()
+
+        assertEquals(
+            setOf(wrpacCa.certificate, otherWrpacCa.certificate, wrprcCa.certificate),
+            anchors.toSet(),
+        )
+        assertEquals(3, anchors.size)
+    }
+
+    @Test
+    fun `all anchors share the cache with lookups by service type`() = runTest {
+        serveProviders(LOTE_A_URL)
+        serveLote(
+            LOTE_A_URL,
+            lote(entity(service(WRPAC, wrpacCa.certificate), service(WRPRC, wrprcCa.certificate))),
+        )
+        val trustStore = trustStore()
+
+        trustStore.getTrustAnchors(WRPAC)
+        val anchors = trustStore.getAllTrustAnchors()
+
+        assertEquals(setOf(wrpacCa.certificate, wrprcCa.certificate), anchors.toSet())
+        assertEquals(1, requestCount(PROVIDERS_URL))
+        assertEquals(1, requestCount(LOTE_A_URL))
+    }
+
+    @Test
+    fun `all anchors throws when the lists cannot be loaded`() {
+        failWith(PROVIDERS_URL, HttpStatusCode.InternalServerError)
+
+        val trustStore = trustStore()
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                trustStore.getAllTrustAnchors()
+            }
+        }
+    }
+
+    @Test
     fun `a chain issued by an anchor of the service type is trusted`() = runTest {
         serveProviders(LOTE_A_URL)
         serveLote(LOTE_A_URL, lote(entity(service(WRPAC, wrpacCa.certificate))))

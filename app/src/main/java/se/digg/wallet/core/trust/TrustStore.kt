@@ -43,6 +43,7 @@ class TrustStore @Inject constructor(
     private val certificateFactory = CertificateFactory.getInstance("X.509")
     private val cacheMutex = Mutex()
     private var serviceTrustAnchorsCache: Map<String, List<X509Certificate>> = emptyMap()
+    private var allTrustAnchorsCache: List<X509Certificate> = emptyList()
 
     fun prefetchTrustAnchors() {
         applicationScope.launch {
@@ -59,6 +60,14 @@ class TrustStore @Inject constructor(
                 "available service types: ${serviceTrustAnchorsCache.keys}"
         }
         return trustAnchors
+    }
+
+    suspend fun getAllTrustAnchors(): List<X509Certificate> {
+        loadTrustAnchors()
+        check(allTrustAnchorsCache.isNotEmpty()) {
+            "No trust anchors found"
+        }
+        return allTrustAnchorsCache
     }
 
     suspend fun isTrusted(certChain: List<X509Certificate>, serviceType: ServiceType): Boolean =
@@ -79,6 +88,7 @@ class TrustStore @Inject constructor(
         cacheMutex.withLock {
             if (serviceTrustAnchorsCache.isEmpty()) {
                 serviceTrustAnchorsCache = fetchTrustedLists()
+                allTrustAnchorsCache = serviceTrustAnchorsCache.values.flatten().distinct()
             }
             serviceTrustAnchorsCache
         }
