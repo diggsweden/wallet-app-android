@@ -28,12 +28,12 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import se.digg.wallet.BuildConfig
 import se.digg.wallet.R
+import se.digg.wallet.core.common.utils.getDeviceInfo
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletListItem
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.designsystem.utils.getDeviceInfo
 
 private const val CLIPBOARD_LABEL = "app version"
 

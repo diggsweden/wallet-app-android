@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import se.digg.wallet.core.common.di.ApplicationScope
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
-import se.digg.wallet.core.di.ApplicationScope
 import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.webauth.WebAuthResult
 import se.digg.wallet.core.webauth.WebAuthenticator

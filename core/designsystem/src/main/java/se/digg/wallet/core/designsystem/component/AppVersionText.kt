@@ -24,11 +24,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.common.utils.getAppVersion
 import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.designsystem.utils.getAppVersion
 
 private const val CLIPBOARD_LABEL = "version"
 

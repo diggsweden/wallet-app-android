@@ -39,11 +39,11 @@ import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
-import se.digg.wallet.core.designsystem.component.claims.SelectiveDisclosureList
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.data.PresentationItem
+import se.digg.wallet.feature.presentation.component.SelectiveDisclosureList
 
 @Composable
 fun PresentationRoute(

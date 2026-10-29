@@ -32,6 +32,7 @@ import io.ktor.http.Url
 import java.net.URI
 import java.time.Clock
 import javax.inject.Inject
+import se.digg.wallet.core.common.extensions.letAll
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
@@ -39,7 +40,6 @@ import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.di.BaseHttpClient
-import se.digg.wallet.core.extensions.letAll
 import se.digg.wallet.core.extensions.toClaimUiModels
 import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.model.ClaimUiModel

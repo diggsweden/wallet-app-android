@@ -35,4 +35,6 @@
     <string name="settings_app_version_variant" translatable="false">App version: %1$s (%2$d) (%3$s)</string>
     <string name="dashboard_main_pid_title">My ID document</string>
     <string name="dashboard_main_pid_description">Updated: %1$s</string>
+    <string name="claim_item_missing_value">No data</string>
+    <string name="presentation_required_claims_title">"Data to share:"</string>
 </resources>
