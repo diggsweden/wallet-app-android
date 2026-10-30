@@ -4,7 +4,7 @@
 
 package se.digg.wallet.core.network
 
-import se.digg.wallet.core.extensions.getOrThrow
+import se.digg.wallet.core.network.extensions.getOrThrow
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
 import se.wallet.client.gateway.models.AuthChallengeRequest

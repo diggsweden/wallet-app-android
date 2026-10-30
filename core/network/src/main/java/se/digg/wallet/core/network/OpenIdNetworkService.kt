@@ -15,13 +15,11 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
-import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.model.CredentialRequestModel
 import se.digg.wallet.core.model.CredentialResponseModel
 import se.digg.wallet.core.model.NonceResponseModel
 import se.digg.wallet.core.model.PresentationResponseModel
-import se.digg.wallet.core.network.RequestAuthorization
-import se.digg.wallet.core.network.authorizeWith
+import se.digg.wallet.core.network.di.BaseHttpClient
 
 class OpenIdNetworkService @Inject constructor(
     @param:BaseHttpClient private val httpClient: HttpClient,

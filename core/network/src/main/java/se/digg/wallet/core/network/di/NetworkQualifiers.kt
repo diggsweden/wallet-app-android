@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.di
+package se.digg.wallet.core.network.di
 
 import javax.inject.Qualifier
 

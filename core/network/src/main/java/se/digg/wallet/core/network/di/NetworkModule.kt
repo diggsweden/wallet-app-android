@@ -27,8 +27,6 @@ import io.ktor.serialization.kotlinx.json.json
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.common.utils.getAppVersion
-import se.digg.wallet.core.di.BaseHttpClient
-import se.digg.wallet.core.di.GatewayHttpClient
 import se.digg.wallet.core.network.DeviceAuthenticator
 import se.digg.wallet.core.network.DeviceInfo
 import se.digg.wallet.core.network.NetworkConfig
