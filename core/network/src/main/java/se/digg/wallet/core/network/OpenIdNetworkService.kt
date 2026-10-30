@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.services
+package se.digg.wallet.core.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

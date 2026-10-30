@@ -51,9 +51,9 @@ import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.model.toJwkModel
+import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.services.KeystoreManager
-import se.digg.wallet.core.services.OpenIdNetworkService
 import se.digg.wallet.data.KeyAttestationProvider
 
 private const val REDIRECT_SCHEME = "wallet-app"
