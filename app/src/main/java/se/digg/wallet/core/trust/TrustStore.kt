@@ -76,7 +76,7 @@ class TrustStore @Inject constructor(
             }
 
             is NetworkResult.Success -> {
-                response.data.items.map { it.url }
+                response.data.items.orEmpty().map { it.url }
             }
         }
         val lotes = coroutineScope {
