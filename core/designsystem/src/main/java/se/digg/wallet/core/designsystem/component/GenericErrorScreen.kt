@@ -48,6 +48,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import se.digg.wallet.core.common.utils.NetworkType
+import se.digg.wallet.core.common.utils.getDeviceInfo
 import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.Brown30
@@ -55,10 +57,8 @@ import se.digg.wallet.core.designsystem.theme.Brown50
 import se.digg.wallet.core.designsystem.theme.Brown70
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
-import se.digg.wallet.core.designsystem.utils.NetworkType
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.designsystem.utils.getDeviceInfo
 
 data class ErrorDetail(val title: String, val value: String)
 

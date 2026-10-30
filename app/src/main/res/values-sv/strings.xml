@@ -39,7 +39,6 @@
     <string name="about_acknowledgements">Erkännanden</string>
     <string name="about_app_version_title">Appversion</string>
     <string name="about_app_version_description">%1$s (%2$d)</string>
-    <string name="presentation_required_claims_title">Uppgifter som delas:</string>
     <string name="generic_error_retry">Något gick fel, försök igen.</string>
     <string name="onboarding_fetch_id_title">Begär personuppgifter</string>
     <string name="onboarding_fetch_id_description_1">Varför?</string>
@@ -53,8 +52,6 @@
     <string name="onboarding_pin_description_1">Skapa en sexsiffrig PIN-kod som du använder för att identifiera dig.</string>
     <string name="generic_login">Logga in</string>
     <string name="issuance_app_bar_title">Hämta attributsintyg</string>
-    <string name="claim_item_missing_value">Ingen uppgift</string>
-    <string name="claim_item_image_unavailable">Bilden kunde inte visas</string>
     <string name="presentation_selective_disclosure_title">Valfria uppgifter:</string>
     <string name="onboarding_step_title">Steg %1$d av %2$d</string>
     <string name="onboarding_intro_button">Kom igång med plånboken</string>

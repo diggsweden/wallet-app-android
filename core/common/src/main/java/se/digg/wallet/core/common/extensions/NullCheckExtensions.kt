@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.extensions
+package se.digg.wallet.core.common.extensions
 
 inline fun <A, B, R> letAll(a: A?, b: B?, block: (A, B) -> R): R? =
     if (a != null && b != null) block(a, b) else null

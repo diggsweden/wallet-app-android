@@ -28,8 +28,8 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import se.digg.wallet.BuildConfig
+import se.digg.wallet.core.common.utils.getAppVersion
 import se.digg.wallet.core.database.UserDao
-import se.digg.wallet.core.designsystem.utils.getAppVersion
 import se.digg.wallet.core.network.DeviceInfo
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin

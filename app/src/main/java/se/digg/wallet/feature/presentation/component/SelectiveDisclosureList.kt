@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.designsystem.component.claims
+package se.digg.wallet.feature.presentation.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
+import se.digg.wallet.core.designsystem.component.claims.ClaimItem
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.data.PresentationItem
 

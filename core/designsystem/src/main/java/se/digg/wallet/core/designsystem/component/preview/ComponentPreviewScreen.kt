@@ -58,7 +58,7 @@ private fun ComponentPreviewScreen() {
                 onValueChange = { },
                 label = { Text("Label") },
                 isError = false,
-                supportingText = { "Supporting text" },
+                supportingText = { Text("Supporting text") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -74,8 +74,10 @@ private fun ComponentPreviewScreen() {
 
 @Composable
 private fun PreviewCategoryDivider(categoryName: String) {
-    Text(categoryName, style = MaterialTheme.typography.bodySmall)
-    HorizontalDivider()
+    Column {
+        Text(categoryName, style = MaterialTheme.typography.bodySmall)
+        HorizontalDivider()
+    }
 }
 
 @Composable

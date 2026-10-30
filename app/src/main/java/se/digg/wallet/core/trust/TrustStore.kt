@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import se.digg.wallet.core.di.ApplicationScope
+import se.digg.wallet.core.common.di.ApplicationScope
 import se.digg.wallet.core.di.BaseHttpClient
 import se.digg.wallet.core.di.GatewayHttpClient
 import se.wallet.client.gateway.client.NetworkResult
