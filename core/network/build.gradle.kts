@@ -29,6 +29,7 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
+    implementation(project(":core:crypto"))
 
     api(libs.bundles.ktor)
     api(libs.kotlinx.serialization.json)

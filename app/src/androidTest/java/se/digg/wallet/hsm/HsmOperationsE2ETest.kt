@@ -28,12 +28,13 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import se.digg.wallet.access_mechanism.api.OpaqueClient
-import se.digg.wallet.core.crypto.HsmProofKeyManagerFactory
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.KeyAlias
+import se.digg.wallet.core.crypto.KeystoreManager
 import se.digg.wallet.core.crypto.ProofKeyId
+import se.digg.wallet.core.crypto.toECKey
 import se.digg.wallet.core.network.WalletOpaqueClient
-import se.digg.wallet.core.services.KeyAlias
-import se.digg.wallet.core.services.KeystoreManager
+import se.digg.wallet.data.HsmProofKeyManagerFactory
 import se.digg.wallet.data.KeyBindingJwtHeader
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.UserRepository

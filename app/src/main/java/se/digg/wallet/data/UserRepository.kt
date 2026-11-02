@@ -10,14 +10,14 @@ import io.ktor.client.HttpClient
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
-import se.digg.wallet.core.crypto.toEcJwkRequests
+import se.digg.wallet.core.crypto.KeystoreManager
 import se.digg.wallet.core.database.OpaqueSession
 import se.digg.wallet.core.database.User
 import se.digg.wallet.core.database.UserDao
 import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.extensions.getOrThrow
-import se.digg.wallet.core.services.KeystoreManager
+import se.digg.wallet.core.network.extensions.toEcJwkRequests
 import se.wallet.client.gateway.client.AttestationV0KeyAttestationsClient
 import se.wallet.client.gateway.client.UtilV0ClientConfigsClient
 import se.wallet.client.gateway.client.V0AccountsClient

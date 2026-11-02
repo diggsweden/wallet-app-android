@@ -10,10 +10,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import se.digg.wallet.core.crypto.JwtHeader
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.KeyAlias
+import se.digg.wallet.core.crypto.KeystoreManager
+import se.digg.wallet.core.crypto.toECKey
 import se.digg.wallet.core.database.UserDao
-import se.digg.wallet.core.extensions.toECKey
-import se.digg.wallet.core.services.KeyAlias
-import se.digg.wallet.core.services.KeystoreManager
 
 @Serializable
 data class ChallengeJwtHeader(

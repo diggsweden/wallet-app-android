@@ -25,7 +25,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.serializer
-import se.digg.wallet.core.extensions.toECKey
 
 object JwtUtils {
     @PublishedApi

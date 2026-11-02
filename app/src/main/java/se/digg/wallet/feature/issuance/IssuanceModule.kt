@@ -9,8 +9,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import se.digg.wallet.core.crypto.HsmProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
+import se.digg.wallet.data.HsmProofKeyManagerFactory
 
 @Module
 @InstallIn(ViewModelComponent::class)

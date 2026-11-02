@@ -4,17 +4,13 @@
 
 package se.digg.wallet.core.crypto
 
-import javax.inject.Inject
 import se.digg.wallet.access_mechanism.api.OpaqueClient
+import se.digg.wallet.access_mechanism.api.OpaqueTransport
 import se.digg.wallet.access_mechanism.model.ServerParameters
-import se.digg.wallet.core.network.WalletOpaqueClient
-import se.digg.wallet.core.services.KeyAlias
-import se.digg.wallet.core.services.KeystoreManager
-import se.digg.wallet.data.UserRepository
 
 class HsmProofSigner(
     private val serverParameters: suspend () -> ServerParameters,
-    private val opaqueTransport: WalletOpaqueClient,
+    private val opaqueTransport: OpaqueTransport,
     private val pin: String,
 ) : ProofKeyManager {
 
@@ -59,15 +55,4 @@ class HsmProofSigner(
         client.authenticate(pin = pin)
         return client
     }
-}
-
-class HsmProofKeyManagerFactory @Inject constructor(
-    private val userRepository: UserRepository,
-    private val opaqueTransport: WalletOpaqueClient,
-) : ProofKeyManagerFactory {
-    override fun create(pin: String): ProofKeyManager = HsmProofSigner(
-        serverParameters = userRepository::getServerParameters,
-        opaqueTransport = opaqueTransport,
-        pin = pin,
-    )
 }

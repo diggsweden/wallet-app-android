@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.crypto
+package se.digg.wallet.core.network
 
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
@@ -27,7 +27,7 @@ import java.security.Signature
 import java.time.Clock
 import java.util.Date
 import java.util.UUID
-import se.digg.wallet.core.network.DpopProofProvider
+import se.digg.wallet.core.crypto.WalletSigner
 
 private const val DPOP_JWT_TYPE = "dpop+jwt"
 private const val ES256_JAVA_ALGORITHM = "SHA256withECDSA"
