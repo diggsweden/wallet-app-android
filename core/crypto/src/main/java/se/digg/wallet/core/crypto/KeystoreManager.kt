@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
 //
 // SPDX-License-Identifier: EUPL-1.2
-package se.digg.wallet.core.services
+
+package se.digg.wallet.core.crypto
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
@@ -21,7 +22,6 @@ import timber.log.Timber
 enum class KeyAlias(val value: String) {
     DEVICE_KEY("device_key_alias"),
     WALLET_KEY("wallet_key_alias"),
-
     PIN_KEY("pin_key_alias"),
 }
 

@@ -13,6 +13,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
@@ -63,13 +64,14 @@ class JwtClaimsSerializer<T>(private val payloadSerializer: KSerializer<T>) :
         require(decoder is JsonDecoder)
 
         val obj = decoder.decodeJsonElement().jsonObject
+        val claimsJson = Json(decoder.json) { ignoreUnknownKeys = true }
 
-        val defaults = decoder.json.decodeFromJsonElement(
+        val defaults = claimsJson.decodeFromJsonElement(
             DefaultJwtClaims.serializer(),
             obj,
         )
 
-        val payload = decoder.json.decodeFromJsonElement(
+        val payload = claimsJson.decodeFromJsonElement(
             payloadSerializer,
             obj,
         )

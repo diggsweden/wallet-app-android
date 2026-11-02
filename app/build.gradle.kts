@@ -150,6 +150,7 @@ androidComponents {
 dependencies {
     implementation(project(":core:camera"))
     implementation(project(":core:common"))
+    implementation(project(":core:crypto"))
     implementation(project(":core:database"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))

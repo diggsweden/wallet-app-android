@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.crypto
+package se.digg.wallet.core.network.extensions
 
 import com.nimbusds.jose.jwk.ECKey
 import se.wallet.client.gateway.models.EcJwkRequest

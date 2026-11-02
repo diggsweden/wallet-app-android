@@ -34,13 +34,13 @@ import java.time.Clock
 import javax.inject.Inject
 import se.digg.wallet.core.common.extensions.letAll
 import se.digg.wallet.core.crypto.CryptoSpec
-import se.digg.wallet.core.crypto.DpopProofBuilder
 import se.digg.wallet.core.crypto.JwtUtils
+import se.digg.wallet.core.crypto.KeystoreManager
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.crypto.toECKey
 import se.digg.wallet.core.extensions.toClaimUiModels
-import se.digg.wallet.core.extensions.toECKey
 import se.digg.wallet.core.model.ClaimUiModel
 import se.digg.wallet.core.model.CredentialDisplayData
 import se.digg.wallet.core.model.CredentialRequestModel
@@ -50,10 +50,10 @@ import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.model.toJwkModel
+import se.digg.wallet.core.network.DpopProofBuilder
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.di.BaseHttpClient
-import se.digg.wallet.core.services.KeystoreManager
 import se.digg.wallet.data.KeyAttestationProvider
 
 private const val REDIRECT_SCHEME = "wallet-app"
