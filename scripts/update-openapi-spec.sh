@@ -5,12 +5,12 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 # Fetches the latest Wallet Client Gateway OpenAPI spec from the sandbox
-# and writes it to the app module.
+# and writes it to the core:network module.
 
 set -euo pipefail
 
 SPEC_URL="${SPEC_URL:-https://wallet.sandbox.digg.se/api/wallet-client-gateway-openapi-v0.yaml}"
-SPEC_PATH="app/src/main/openapi/client-gateway.yaml"
+SPEC_PATH="core/network/src/main/openapi/client-gateway.yaml"
 
 cd "$(dirname "$0")/.."
 
@@ -37,6 +37,7 @@ if [[ -f "$SPEC_PATH" ]] && cmp -s "$tmp" "$SPEC_PATH"; then
   exit 0
 fi
 
+mkdir -p "$(dirname "$SPEC_PATH")"
 mv "$tmp" "$SPEC_PATH"
 trap - EXIT
 

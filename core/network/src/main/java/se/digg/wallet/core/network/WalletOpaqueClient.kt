@@ -15,9 +15,9 @@ import se.digg.wallet.access_mechanism.api.HSMOperationType
 import se.digg.wallet.access_mechanism.api.OpaqueTransport
 import se.digg.wallet.access_mechanism.model.HSMRequest
 import se.digg.wallet.access_mechanism.model.StateResponse
-import se.digg.wallet.core.di.GatewayHttpClient
-import se.digg.wallet.core.extensions.getOrThrow
-import se.digg.wallet.core.extensions.toECKey
+import se.digg.wallet.core.network.di.GatewayHttpClient
+import se.digg.wallet.core.network.extensions.getOrThrow
+import se.digg.wallet.core.network.extensions.toECKey
 import se.wallet.client.gateway.client.HsmV0DeviceStatesClient
 import se.wallet.client.gateway.client.HsmV0RequestsClient
 import se.wallet.client.gateway.models.EcJwkRequest

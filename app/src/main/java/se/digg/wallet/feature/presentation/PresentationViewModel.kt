@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
-import se.digg.wallet.core.services.PresentationResult
+import se.digg.wallet.core.network.PresentationResult
 import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.feature.presentation.PresentationUiEffect.OpenUrl
 import timber.log.Timber

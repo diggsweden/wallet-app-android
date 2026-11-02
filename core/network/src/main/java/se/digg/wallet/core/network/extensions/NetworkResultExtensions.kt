@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.extensions
+package se.digg.wallet.core.network.extensions
 
-import se.digg.wallet.core.error.AppException
-import se.digg.wallet.core.error.toAppError
+import se.digg.wallet.core.network.error.AppException
+import se.digg.wallet.core.network.error.toAppError
 import se.wallet.client.gateway.client.NetworkResult
 
 fun <T> NetworkResult<T>.getOrThrow(): T = when (this) {

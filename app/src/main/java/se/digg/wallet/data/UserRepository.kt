@@ -14,9 +14,9 @@ import se.digg.wallet.core.crypto.toEcJwkRequests
 import se.digg.wallet.core.database.OpaqueSession
 import se.digg.wallet.core.database.User
 import se.digg.wallet.core.database.UserDao
-import se.digg.wallet.core.extensions.getOrThrow
 import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.network.extensions.getOrThrow
 import se.digg.wallet.core.services.KeystoreManager
 import se.wallet.client.gateway.client.AttestationV0KeyAttestationsClient
 import se.wallet.client.gateway.client.UtilV0ClientConfigsClient

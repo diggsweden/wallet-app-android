@@ -22,9 +22,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import se.digg.wallet.core.database.User
 import se.digg.wallet.core.database.UserDao
-import se.digg.wallet.core.error.AppException
 import se.digg.wallet.core.model.SavedCredential
+import se.digg.wallet.core.network.DeviceAuthenticator
 import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.network.error.AppException
 import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
@@ -85,7 +86,11 @@ class DefaultAppSetupServiceTest {
         val sessionManager = SessionManager(
             challengeClient = PublicAuthSessionChallengeClient(httpClient),
             validateClient = PublicAuthSessionResponseClient(httpClient),
-            userDao = userDao,
+            authenticator = object : DeviceAuthenticator {
+                override suspend fun getAccountId(): String = user?.accountId.orEmpty()
+                override suspend fun getDeviceKeyId(): String = "test-key-id"
+                override suspend fun signChallenge(nonce: String): String = "test-jwt"
+            },
         )
         return DefaultAppSetupService(UserRepository(userDao, httpClient, sessionManager))
     }

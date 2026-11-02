@@ -27,7 +27,7 @@ import se.digg.wallet.core.designsystem.component.ErrorDetail
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.error.AppError
+import se.digg.wallet.core.network.error.AppError
 
 @Composable
 fun WalletSetupRoute(

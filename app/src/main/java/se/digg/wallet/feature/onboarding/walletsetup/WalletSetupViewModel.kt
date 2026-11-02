@@ -19,8 +19,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.error.AppError
-import se.digg.wallet.core.error.AppException
+import se.digg.wallet.core.network.error.AppError
+import se.digg.wallet.core.network.error.AppException
 import timber.log.Timber
 
 @HiltViewModel

@@ -27,7 +27,7 @@ import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
-import se.digg.wallet.core.services.PresentationResult
+import se.digg.wallet.core.network.PresentationResult
 import se.digg.wallet.data.PresentationItem
 
 private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): PresentationItem =

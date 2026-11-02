@@ -4,6 +4,15 @@
 
 package se.digg.wallet.core.network
 
+import com.nimbusds.jose.JOSEObjectType
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jose.jwk.Curve
+import com.nimbusds.jose.jwk.ECKey
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator
+import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -15,19 +24,72 @@ import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
+import java.security.MessageDigest
+import java.util.Date
+import java.util.UUID
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import se.digg.wallet.core.crypto.DpopProofBuilder
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example.com/credential?format=vc"
 
+private class TestDpopProofProvider(
+    private val key: ECKey = ECKeyGenerator(Curve.P_256).generate(),
+) : DpopProofProvider {
+    override suspend fun proof(
+        endpoint: Url,
+        method: HttpMethod,
+        accessToken: String?,
+        nonce: String?,
+    ): String {
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+            .type(JOSEObjectType("dpop+jwt"))
+            .jwk(key.toPublicJWK())
+            .build()
+
+        val claims = JWTClaimsSet.Builder()
+            .jwtID(UUID.randomUUID().toString())
+            .claim("htm", method.value.uppercase())
+            .claim(
+                "htu",
+                buildString {
+                    append(endpoint.protocol.name)
+                    append("://")
+                    append(endpoint.host)
+                    if (endpoint.port != endpoint.protocol.defaultPort) {
+                        append(':')
+                        append(endpoint.port)
+                    }
+                    append(endpoint.encodedPath)
+                },
+            )
+            .issueTime(Date())
+            .apply {
+                if (accessToken != null) {
+                    val digest = MessageDigest.getInstance("SHA-256")
+                        .digest(accessToken.toByteArray(Charsets.US_ASCII))
+                    claim("ath", Base64URL.encode(digest).toString())
+                }
+                if (nonce != null) {
+                    claim("nonce", nonce)
+                }
+            }
+            .build()
+
+        return SignedJWT(header, claims).apply {
+            sign(ECDSASigner(key))
+        }.serialize()
+    }
+}
+
 class DpopPluginTest {
 
-    private val proofBuilder = DpopProofBuilder()
+    private val proofBuilder = TestDpopProofProvider()
     private val requests = mutableListOf<HttpRequestData>()
 
     private fun client(

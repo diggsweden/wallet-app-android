@@ -4,7 +4,7 @@
 
 package se.digg.wallet.feature.onboarding.walletsetup
 
-import se.digg.wallet.core.error.AppError
+import se.digg.wallet.core.network.error.AppError
 
 enum class SetupStep {
     CREATE_ACCOUNT,

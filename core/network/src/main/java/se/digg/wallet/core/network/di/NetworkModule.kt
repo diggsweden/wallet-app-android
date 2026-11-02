@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.di
+package se.digg.wallet.core.network.di
 
 import android.content.Context
 import android.os.Build
@@ -24,32 +24,19 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
-import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
-import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.common.utils.getAppVersion
-import se.digg.wallet.core.database.UserDao
+import se.digg.wallet.core.network.DeviceAuthenticator
 import se.digg.wallet.core.network.DeviceInfo
+import se.digg.wallet.core.network.NetworkConfig
+import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.SessionManager
 import se.digg.wallet.core.network.authPlugin
 import se.digg.wallet.core.network.deviceInfoPlugin
 import se.digg.wallet.core.network.dpopPlugin
-import se.digg.wallet.core.services.OpenIdNetworkService
 import se.wallet.client.gateway.client.PublicAuthSessionChallengeClient
 import se.wallet.client.gateway.client.PublicAuthSessionResponseClient
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class BaseHttpClient
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class GatewayHttpClient
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class UnsafeHttpClient
 
 private val networkJson = Json {
     ignoreUnknownKeys = true
@@ -60,32 +47,34 @@ private val problemJsonContentType = ContentType("application", "problem+json")
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
     @Provides
     @Singleton
     @BaseHttpClient
-    fun provideHttpClient(deviceInfo: DeviceInfo): HttpClient = HttpClient(OkHttp) {
-        install(ContentNegotiation) {
-            json(networkJson)
-            json(networkJson, contentType = problemJsonContentType)
-        }
+    fun provideHttpClient(networkConfig: NetworkConfig, deviceInfo: DeviceInfo): HttpClient =
+        HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(networkJson)
+                json(networkJson, contentType = problemJsonContentType)
+            }
 
-        install(HttpTimeout) {
-            requestTimeoutMillis = 20_000
-            connectTimeoutMillis = 20_000
-        }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 20_000
+                connectTimeoutMillis = 20_000
+            }
 
-        if (BuildConfig.DEBUG) {
-            install(Logging) {
-                logger = Logger.ANDROID
-                level = LogLevel.HEADERS
+            if (networkConfig.isDebug) {
+                install(Logging) {
+                    logger = Logger.ANDROID
+                    level = LogLevel.HEADERS
+                }
+            }
+
+            install(dpopPlugin)
+            install(deviceInfoPlugin) {
+                this.deviceInfo = deviceInfo
             }
         }
-
-        install(dpopPlugin)
-        install(deviceInfoPlugin) {
-            this.deviceInfo = deviceInfo
-        }
-    }
 
     @Provides
     @Singleton
@@ -101,20 +90,24 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideSessionManager(@BaseHttpClient base: HttpClient, userDao: UserDao): SessionManager {
+    fun provideSessionManager(
+        @BaseHttpClient base: HttpClient,
+        networkConfig: NetworkConfig,
+        authenticator: DeviceAuthenticator,
+    ): SessionManager {
         val client = base.config {
             defaultRequest {
                 url {
                     protocol = URLProtocol.HTTPS
-                    host = BuildConfig.BASE_URL
+                    host = networkConfig.baseUrl
                 }
-                header("X-API-KEY", BuildConfig.API_KEY)
+                header("X-API-KEY", networkConfig.apiKey)
             }
         }
         return SessionManager(
             challengeClient = PublicAuthSessionChallengeClient(client),
             validateClient = PublicAuthSessionResponseClient(client),
-            userDao = userDao,
+            authenticator = authenticator,
         )
     }
 
@@ -123,15 +116,16 @@ object NetworkModule {
     @GatewayHttpClient
     fun provideGatewayClient(
         @BaseHttpClient base: HttpClient,
+        networkConfig: NetworkConfig,
         sessionManager: SessionManager,
     ): HttpClient {
         val client = base.config {
             defaultRequest {
                 url {
                     protocol = URLProtocol.HTTPS
-                    host = BuildConfig.BASE_URL
+                    host = networkConfig.baseUrl
                 }
-                header("X-API-KEY", BuildConfig.API_KEY)
+                header("X-API-KEY", networkConfig.apiKey)
             }
         }
         return client.config {

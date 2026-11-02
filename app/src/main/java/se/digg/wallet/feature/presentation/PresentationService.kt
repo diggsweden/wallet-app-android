@@ -30,9 +30,9 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
-import se.digg.wallet.core.di.BaseHttpClient
-import se.digg.wallet.core.services.OpenIdNetworkService
-import se.digg.wallet.core.services.PresentationResult
+import se.digg.wallet.core.network.OpenIdNetworkService
+import se.digg.wallet.core.network.PresentationResult
+import se.digg.wallet.core.network.di.BaseHttpClient
 import se.digg.wallet.core.trust.CertificateValidator
 import se.digg.wallet.core.trust.ServiceType
 import se.digg.wallet.core.trust.TrustStore

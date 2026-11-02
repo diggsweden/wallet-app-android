@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import ch.acanda.gradle.fabrikt.FabriktGenerateTask
-import com.google.devtools.ksp.gradle.KspAATask
 import java.util.Properties
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import org.jmailen.gradle.kotlinter.tasks.LintTask
@@ -26,17 +24,12 @@ fun getVersionCode(): Int {
     }.standardOutput.asText.get().trim().toInt()
 }
 
-val fabriktGenerateTask = tasks.named<FabriktGenerateTask>("fabriktGenerate")
-val fabriktOutputDirectory =
-    layout.buildDirectory.dir("generated/sources/fabrikt/src/main")
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.fabrikt)
     alias(libs.plugins.kotlinter)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.aboutlibrariesAndroid)
@@ -143,10 +136,6 @@ android {
             )
         }
     }
-
-    sourceSets.named("main") {
-        kotlin.directories += fabriktOutputDirectory.get().asFile.path
-    }
 }
 androidComponents {
     onVariants { variant ->
@@ -164,6 +153,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:network"))
     implementation(project(":core:model"))
 
     implementation(platform(libs.androidx.compose.bom))
@@ -235,35 +225,4 @@ tasks.withType<LintTask> {
 
 tasks.withType<FormatTask> {
     exclude { it.file.path.contains("/build/generated") }
-}
-
-fabrikt {
-    generate("client-gateway") {
-        apiFile = file("src/main/openapi/client-gateway.yaml")
-        outputDirectory = fabriktOutputDirectory
-        basePackage = "se.wallet.client.gateway"
-        addFileDisclaimer = enabled
-        validationLibrary = NoValidation
-        typeOverrides {
-            uuid = String
-            date = String
-            datetime = String
-            uri = String
-        }
-        client {
-            generate = enabled
-            target = Ktor
-        }
-        model {
-            serializationLibrary = Kotlinx
-        }
-    }
-}
-
-tasks.withType<KspAATask>().configureEach {
-    dependsOn(fabriktGenerateTask)
-}
-
-tasks.named("preBuild") {
-    dependsOn(fabriktGenerateTask)
 }
