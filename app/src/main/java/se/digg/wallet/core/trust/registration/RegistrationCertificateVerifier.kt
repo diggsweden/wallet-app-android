@@ -9,12 +9,17 @@ import java.time.Instant
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.trust.CertificateValidator
 
+private const val REGISTRATION_CERTIFICATE_TYPE = "rc-wrp+jwt"
+
 internal fun verifyRegistrationCertificate(
     jws: String,
     trustAnchors: List<X509Certificate>,
     now: Instant,
 ): RegistrationCertificate {
-    val certificate = JwtUtils.verifyJws<RegistrationCertificate>(jws) { certChain ->
+    val certificate = JwtUtils.verifyJws<RegistrationCertificate>(
+        jwsString = jws,
+        expectedType = REGISTRATION_CERTIFICATE_TYPE,
+    ) { certChain ->
         CertificateValidator.validate(certChain = certChain, trustAnchors = trustAnchors)
     }
     check(!certificate.isExpired(now)) {

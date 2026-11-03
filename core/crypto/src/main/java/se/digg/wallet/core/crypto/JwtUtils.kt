@@ -106,9 +106,17 @@ object JwtUtils {
 
     inline fun <reified T> verifyJws(
         jwsString: String,
+        expectedType: String? = null,
         validateCertChain: (List<X509Certificate>) -> PublicKey,
     ): T {
         val jws = JWSObject.parse(compactSerialization(jwsString))
+        expectedType?.let {
+            val header = jws.header.type?.type
+            check(it == header) {
+                "Invalid JWS header type, expected: $it, got: $header"
+            }
+        }
+
         val certChain = checkNotNull(jws.header.x509CertChain) {
             "JWS has no certificate chain"
         }.map { X509Certificates.decode(it.toString()) }

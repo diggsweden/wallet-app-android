@@ -5,16 +5,32 @@
 package se.digg.wallet.core.crypto
 
 import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.JWSObject
+import com.nimbusds.jose.Payload
+import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
+import com.nimbusds.jose.util.Base64
+import java.math.BigInteger
+import java.security.cert.X509Certificate
+import java.time.Duration
+import java.time.Instant
+import java.util.Date
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import org.bouncycastle.asn1.x500.X500Name
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -32,6 +48,7 @@ class JwtUtilsTest {
 
     private val ecKey = ECKeyGenerator(Curve.P_256).generate()
     private val keyPair = ecKey.toKeyPair()
+    private val certificate = selfSignedCertificate()
 
     @Test
     fun `signJwt produces valid ES256 SignedJWT containing header, defaults, and payload`() {
@@ -104,5 +121,81 @@ class JwtUtilsTest {
 
         assertEquals("confidential-subject", decrypted.sub)
         assertEquals("secure-seed", decrypted.challenge)
+    }
+
+    @Test
+    fun `a jws of the expected type is verified`() {
+        val jws = signedJws(type = "rc-wrp+jwt")
+
+        val payload = JwtUtils.verifyJws<SamplePayload>(jws, expectedType = "rc-wrp+jwt") {
+            it.first().publicKey
+        }
+
+        assertEquals(SamplePayload(sub = "user-123", challenge = "nonce-abc"), payload)
+    }
+
+    @Test
+    fun `a jws of another type is rejected`() {
+        val jws = signedJws(type = "JWT")
+
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            JwtUtils.verifyJws<SamplePayload>(jws, expectedType = "rc-wrp+jwt") {
+                it.first().publicKey
+            }
+        }
+
+        assertEquals(
+            "Invalid JWS header type, expected: rc-wrp+jwt, got: JWT",
+            thrown.message,
+        )
+    }
+
+    @Test
+    fun `a jws without a type is rejected when a type is expected`() {
+        val jws = signedJws(type = null)
+
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            JwtUtils.verifyJws<SamplePayload>(jws, expectedType = "rc-wrp+jwt") {
+                it.first().publicKey
+            }
+        }
+
+        assertEquals(
+            "Invalid JWS header type, expected: rc-wrp+jwt, got: null",
+            thrown.message,
+        )
+    }
+
+    @Test
+    fun `a jws of any type is verified when no type is expected`() {
+        val jws = signedJws(type = "JWT")
+
+        val payload = JwtUtils.verifyJws<SamplePayload>(jws) { it.first().publicKey }
+
+        assertEquals(SamplePayload(sub = "user-123", challenge = "nonce-abc"), payload)
+    }
+
+    private fun signedJws(type: String?): String {
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+            .type(type?.let(::JOSEObjectType))
+            .x509CertChain(listOf(Base64.encode(certificate.encoded)))
+            .build()
+        return JWSObject(header, Payload("""{"sub":"user-123","challenge":"nonce-abc"}"""))
+            .apply { sign(ECDSASigner(ecKey)) }
+            .serialize()
+    }
+
+    private fun selfSignedCertificate(): X509Certificate {
+        val name = X500Name("CN=Signer")
+        val now = Instant.now()
+        val holder = JcaX509v3CertificateBuilder(
+            name,
+            BigInteger.ONE,
+            Date.from(now.minus(Duration.ofDays(1))),
+            Date.from(now.plus(Duration.ofDays(1))),
+            name,
+            keyPair.public,
+        ).build(JcaContentSignerBuilder("SHA256withECDSA").build(keyPair.private))
+        return JcaX509CertificateConverter().getCertificate(holder)
     }
 }

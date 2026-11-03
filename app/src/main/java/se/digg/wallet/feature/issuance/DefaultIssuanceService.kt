@@ -19,7 +19,6 @@ import eu.europa.ec.eudi.openid4vci.DPoPUsage
 import eu.europa.ec.eudi.openid4vci.Display
 import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
 import eu.europa.ec.eudi.openid4vci.Issuer
-import eu.europa.ec.eudi.openid4vci.IssuerMetadataPolicy
 import eu.europa.ec.eudi.openid4vci.MsoMdocCredential
 import eu.europa.ec.eudi.openid4vci.OpenId4VCIConfig
 import eu.europa.ec.eudi.openid4vci.ProofType
@@ -94,7 +93,7 @@ internal class DefaultIssuanceService @Inject constructor(
         ),
         dPoPUsage = DPoPUsage.IfSupported(DPoPConfig(dpopProofBuilder)),
         clock = clock,
-        issuerMetadataPolicy = IssuerMetadataPolicy.IgnoreSigned,
+        issuerMetadataPolicy = preferSignedMetadataPolicy(trustStore),
     )
 
     override suspend fun fetchOffer(credentialOfferUri: String): IssuerDisplay? {
