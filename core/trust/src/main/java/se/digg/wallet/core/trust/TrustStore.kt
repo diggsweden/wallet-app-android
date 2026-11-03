@@ -35,7 +35,7 @@ private val loteJson = Json { ignoreUnknownKeys = true }
 
 @Singleton
 class TrustStore @Inject constructor(
-    @param:GatewayHttpClient gatewayHttpClient: HttpClient,
+    @GatewayHttpClient gatewayHttpClient: HttpClient,
     @param:BaseHttpClient private val baseHttpClient: HttpClient,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
 ) {
