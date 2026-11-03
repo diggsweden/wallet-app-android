@@ -35,7 +35,7 @@ import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.webauth.WebAuthResult
-import se.digg.wallet.core.webauth.WebAuthenticator
+import se.digg.wallet.core.webauth.testing.FakeWebAuthenticator
 import se.digg.wallet.data.CredentialStore
 
 private const val OFFER_URI = "openid-credential-offer://offer"
@@ -107,19 +107,6 @@ private class FakeIssuanceService : IssuanceService {
         fetchGate?.await()
         fetchCredentialError?.let { throw it }
         return issued
-    }
-}
-
-private class FakeWebAuthenticator : WebAuthenticator {
-    var result: WebAuthResult =
-        WebAuthResult.Success("wallet-app://authorize?code=code&state=state")
-    var gate: CompletableDeferred<Unit>? = null
-    var count = 0
-
-    override suspend fun authenticate(url: String, callbackScheme: String): WebAuthResult {
-        count++
-        gate?.await()
-        return result
     }
 }
 

@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-@file:Suppress("ktlint:standard:filename")
-
-package se.digg.wallet.core
+package se.digg.wallet.core.webauth
 
 import android.content.Context
 import android.content.Intent
