@@ -54,8 +54,6 @@ import se.digg.wallet.core.network.DpopProofBuilder
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.di.BaseHttpClient
-import se.digg.wallet.core.network.error.AppError
-import se.digg.wallet.core.network.error.AppException
 import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.WalletInstanceAttestationProvider
@@ -105,7 +103,7 @@ internal class DefaultIssuanceService @Inject constructor(
             httpClient = httpClient,
             config = openId4VCIConfig,
             uri = credentialOfferUri,
-        ).getOrThrowException()
+        ).getOrThrow()
         credentialOffer.credentialIssuerMetadata.verifyRegistrationCertificates(
             now = clock.instant(),
         ) {
@@ -115,7 +113,7 @@ internal class DefaultIssuanceService @Inject constructor(
             config = configFor(credentialOffer),
             credentialOffer = credentialOffer,
             httpClient = httpClient,
-        ).getOrThrowException()
+        ).getOrThrow()
 
         val metadata = issuer.credentialOffer.credentialIssuerMetadata
         val offer = ResolvedOffer(
@@ -147,7 +145,7 @@ internal class DefaultIssuanceService @Inject constructor(
         preparedRequest = null
         authorizedSession = null
         proof = null
-        val prepared = with(issuer) { prepareAuthorizationRequest().getOrThrowException() }
+        val prepared = with(issuer) { prepareAuthorizationRequest().getOrThrow() }
         preparedRequest = prepared
         return prepared.authorizationCodeURL.toString()
     }
@@ -167,7 +165,7 @@ internal class DefaultIssuanceService @Inject constructor(
                 authorizeWithAuthorizationCode(
                     AuthorizationCode(code = authCode),
                     state,
-                ).getOrThrowException()
+                ).getOrThrow()
             }
         }
 
@@ -375,10 +373,6 @@ internal class DefaultIssuanceService @Inject constructor(
                 }
             }
             .toMap()
-}
-
-internal fun <T> Result<T>.getOrThrowException(): T = getOrElse { cause ->
-    throw cause as? Exception ?: AppException(AppError.Unexpected(cause))
 }
 
 internal fun authorizationCodeOf(
