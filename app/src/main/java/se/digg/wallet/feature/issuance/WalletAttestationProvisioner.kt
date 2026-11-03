@@ -22,13 +22,8 @@ private val ES256 = JwsAlgorithm("ES256")
 private const val ATTESTATION_CLIENT_AUTH_METHOD =
     AttestationBasedClientAuthenticationSpec.ATTESTATION_JWT_CLIENT_AUTHENTICATION_METHOD
 
-/**
- * Provisions the Wallet Instance Attestation used for attestation-based client authentication,
- * with a PoP signer for the key the attestation is bound to.
- */
 internal class WalletAttestationProvisioner(
     private val walletInstanceAttestationProvider: WalletInstanceAttestationProvider,
-    // The gateway requires a key ID on the attested key.
     private val key: ECKey = ECKeyGenerator(Curve.P_256).keyIDFromThumbprint(true).generate(),
 ) : ProvisionClientAttestation {
 
@@ -42,13 +37,10 @@ internal class WalletAttestationProvisioner(
         clientAttestation = ClientAttestationJWT(
             walletInstanceAttestationProvider.getWalletInstanceAttestation(key.toPublicJWK()),
         ),
-        // Any ES256 signer over the attested key will do; this one signs in the DER form
-        // the library expects.
         popSigner = DpopProofBuilder(key = key),
     )
 }
 
-/** Whether the authorization server accepts a Wallet Instance Attestation signed with ES256. */
 internal fun CIAuthorizationServerMetadata.supportsWalletAttestation(): Boolean =
     tokenEndpointAuthMethods.orEmpty().any { it.value == ATTESTATION_CLIENT_AUTH_METHOD } &&
         clientAttestationJWSAlgs.orEmpty().any { it.name == ES256.name }

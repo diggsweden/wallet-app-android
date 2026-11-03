@@ -44,16 +44,8 @@ data class CredentialQuery(
     val claimPaths: Set<ClaimPath>,
 )
 
-/**
- * A DCQL credential set: the wallet satisfies it by presenting every query id in any one of
- * [options].
- */
 data class CredentialSet(val options: List<Set<String>>, val required: Boolean)
 
-/**
- * The verifier as described by its registration certificate. [descriptions] and [purpose]
- * are keyed by language tag.
- */
 data class VerifierUiModel(
     val name: String,
     val country: String,

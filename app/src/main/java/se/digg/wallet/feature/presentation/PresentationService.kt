@@ -58,15 +58,8 @@ data class PresentationRequest(
 )
 
 interface PresentationService {
-    /**
-     * Resolves the authorization request behind [uri], verifies that the verifier is registered
-     * for what it asks for, and matches its DCQL query against the stored credentials.
-     */
     suspend fun resolve(uri: String): PresentationRequest
 
-    /**
-     * Builds a VP Token for [items], key-binds each with [pin], and posts it to the verifier.
-     */
     suspend fun present(
         request: PresentationRequest,
         items: List<PresentationItem>,

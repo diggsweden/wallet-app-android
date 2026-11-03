@@ -26,12 +26,6 @@ internal object CredentialMatcher {
 
     fun isSupported(query: CredentialQuery): Boolean = query.format == SD_JWT_VC_FORMAT
 
-    /**
-     * Matches [queries] against [credentials]. Queries in unsupported formats (e.g. mso_mdoc)
-     * or without a matching credential are skipped, as long as every required credential set
-     * still has an option the wallet can satisfy. Without credential sets, every query is
-     * required.
-     */
     fun match(
         queries: List<CredentialQuery>,
         credentials: List<SavedCredential>,
@@ -59,14 +53,10 @@ internal object CredentialMatcher {
         dcql.credentialSets?.value.orEmpty().map { credentialSet ->
             CredentialSet(
                 options = credentialSet.options.map { ids -> ids.value.map { it.value }.toSet() },
-                // Per OpenID4VP, a credential set is required unless it says otherwise.
                 required = credentialSet.required ?: true,
             )
         }
 
-    /**
-     * Picks, for each required credential set, the first option the wallet can satisfy.
-     */
     private fun requiredQueryIds(
         queries: List<CredentialQuery>,
         credentialSets: List<CredentialSet>,

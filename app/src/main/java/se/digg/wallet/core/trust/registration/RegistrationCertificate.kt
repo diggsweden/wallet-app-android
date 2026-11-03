@@ -9,10 +9,6 @@ import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * The payload of a relying party registration certificate (WRPRC), describing the verifier
- * and which credentials and claims it is registered to request.
- */
 @Serializable
 data class RegistrationCertificate(
     val name: String? = null,

@@ -39,11 +39,6 @@ sealed class RegistrationCertificateException(message: String) : Exception(messa
 
 internal object RegistrationCertificateValidator {
 
-    /**
-     * Extracts the registration certificates from [verifierInfo] and verifies each one against
-     * [trustAnchors]. Each certificate must be registered to the organization identified by
-     * [accessCertificate]. A request without any registration certificate is rejected.
-     */
     fun parse(
         verifierInfo: VerifierInfo?,
         accessCertificate: X509Certificate?,
@@ -72,10 +67,6 @@ internal object RegistrationCertificateValidator {
         return certificates
     }
 
-    /**
-     * Ensures that every query in [queries] only asks for formats, credential types and claims
-     * that the verifier has registered in [certificate].
-     */
     fun authorize(queries: List<CredentialQuery>, certificate: RegistrationCertificate) {
         val registered = certificate.credentials.orEmpty().map { it.toRequestableCredential() }
 

@@ -129,7 +129,6 @@ internal class DefaultIssuanceService @Inject constructor(
         return offer.issuerDisplay
     }
 
-    /** Uses the Wallet Instance Attestation when the authorization server accepts it. */
     private fun configFor(credentialOffer: CredentialOffer): OpenId4VCIConfig =
         if (credentialOffer.authorizationServerMetadata.supportsWalletAttestation()) {
             openId4VCIConfig.copy(
@@ -379,10 +378,6 @@ internal class DefaultIssuanceService @Inject constructor(
             .toMap()
 }
 
-/**
- * Like [getOrThrow], but always throws an [Exception]: the OpenID4VCI library reports issuer
- * errors as [eu.europa.ec.eudi.openid4vci.CredentialIssuanceError], which is a [Throwable] only.
- */
 internal fun <T> Result<T>.getOrThrowException(): T = getOrElse { cause ->
     throw cause as? Exception ?: AppException(AppError.Unexpected(cause))
 }
