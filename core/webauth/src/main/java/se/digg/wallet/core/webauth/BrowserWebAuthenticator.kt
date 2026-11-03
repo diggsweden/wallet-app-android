@@ -16,7 +16,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
-import se.digg.wallet.core.getCustomTabsProvider
 import timber.log.Timber
 
 @Singleton

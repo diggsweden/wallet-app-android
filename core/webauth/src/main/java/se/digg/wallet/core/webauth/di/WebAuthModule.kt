@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.di
+package se.digg.wallet.core.webauth.di
 
 import dagger.Binds
 import dagger.Module
