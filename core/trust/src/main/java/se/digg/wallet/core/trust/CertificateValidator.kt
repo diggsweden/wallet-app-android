@@ -4,6 +4,7 @@
 
 package se.digg.wallet.core.trust
 
+import java.security.PublicKey
 import java.security.cert.CertPathValidator
 import java.security.cert.CertificateFactory
 import java.security.cert.PKIXCertPathValidatorResult
@@ -12,8 +13,20 @@ import java.security.cert.TrustAnchor
 import java.security.cert.X509Certificate
 
 object CertificateValidator {
-    fun validate(certChain: List<X509Certificate>, trustAnchors: List<X509Certificate>) {
+    /**
+     * When false, any chain is accepted and its leaf key is trusted without checking it against
+     * the trust anchors.
+     */
+    var isChainValidationEnabled = false
+
+    /**
+     * Validates [certChain] (leaf first) against [trustAnchors] and returns the leaf's public key.
+     */
+    fun validate(certChain: List<X509Certificate>, trustAnchors: List<X509Certificate>): PublicKey {
         require(certChain.isNotEmpty()) { "Certificate chain is empty" }
+        if (!isChainValidationEnabled) {
+            return certChain.first().publicKey
+        }
         require(trustAnchors.isNotEmpty()) { "Trust anchors are empty" }
 
         val anchors = trustAnchors
@@ -21,13 +34,32 @@ object CertificateValidator {
             .toSet()
 
         val path = CertificateFactory.getInstance("X.509")
-            .generateCertPath(certChain)
+            .generateCertPath(chainFromLeaf(certChain))
 
         val parameters = PKIXParameters(anchors).apply {
             isRevocationEnabled = false
         }
 
-        CertPathValidator.getInstance("PKIX")
+        val result = CertPathValidator.getInstance("PKIX")
             .validate(path, parameters) as PKIXCertPathValidatorResult
+        return result.publicKey
     }
+
+    /**
+     * Keeps the leaf and the certificates that actually chain from it, dropping anything after
+     * the first break. Some verifiers put unrelated certificates (e.g. an mdoc reader
+     * certificate) in x5c after the chain.
+     */
+    private fun chainFromLeaf(certChain: List<X509Certificate>): List<X509Certificate> {
+        val chain = mutableListOf(certChain.first())
+        for (next in certChain.drop(1)) {
+            if (!chain.last().isIssuedBy(next)) break
+            chain += next
+        }
+        return chain
+    }
+
+    private fun X509Certificate.isIssuedBy(issuer: X509Certificate): Boolean =
+        issuerX500Principal == issuer.subjectX500Principal &&
+            runCatching { verify(issuer.publicKey) }.isSuccess
 }

@@ -11,6 +11,7 @@ import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
+import com.nimbusds.jose.util.X509CertUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -36,20 +37,25 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 private const val PROVIDERS_URL = "https://gateway.test/trust/v0/lote-providers"
 private const val LOTE_A_URL = "https://lote-a.test/lote"
 private const val LOTE_B_URL = "https://lote-b.test/lote"
 
-private val WRPAC = ServiceType.WrpacIssuance.uri
-private val WRPRC = ServiceType.WrprcIssuance.uri
+private val WRPAC = ServiceType.Access.uri
+private val WRPRC = ServiceType.Registration.uri
 
 private typealias Route = MockRequestHandleScope.() -> HttpResponseData
 
 class TrustStoreTest {
+
+    @get:Rule
+    val chainValidation = ChainValidationRule()
 
     private val wrpacCa = TestCa.root("CN=WRPAC CA")
     private val otherWrpacCa = TestCa.root("CN=Other WRPAC CA")
@@ -226,6 +232,29 @@ class TrustStoreTest {
     }
 
     @Test
+    fun `pem certificates are decoded`() = runTest {
+        val pem = X509CertUtils.toPEMString(wrpacCa.certificate)
+        serveProviders(LOTE_A_URL)
+        serveLote(LOTE_A_URL, lote(entity(service(WRPAC, base64Certificates = listOf(pem)))))
+
+        val anchors = trustStore().getTrustAnchors(WRPAC)
+
+        assertEquals(listOf(wrpacCa.certificate), anchors)
+    }
+
+    @Test
+    fun `base64url certificates are decoded`() = runTest {
+        val base64Url = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(wrpacCa.certificate.encoded)
+        serveProviders(LOTE_A_URL)
+        serveLote(LOTE_A_URL, lote(entity(service(WRPAC, base64Certificates = listOf(base64Url)))))
+
+        val anchors = trustStore().getTrustAnchors(WRPAC)
+
+        assertEquals(listOf(wrpacCa.certificate), anchors)
+    }
+
+    @Test
     fun `a service type missing from every list throws`() {
         serveProviders(LOTE_A_URL)
         serveLote(LOTE_A_URL, lote(entity(service(WRPRC, wrprcCa.certificate))))
@@ -343,6 +372,83 @@ class TrustStoreTest {
     }
 
     @Test
+    fun `all anchors are returned across lists and service types without duplicates`() = runTest {
+        serveProviders(LOTE_A_URL, LOTE_B_URL)
+        serveLote(
+            LOTE_A_URL,
+            lote(entity(service(WRPAC, wrpacCa.certificate), service(WRPRC, wrprcCa.certificate))),
+        )
+        serveLote(
+            LOTE_B_URL,
+            lote(entity(service(WRPAC, otherWrpacCa.certificate, wrpacCa.certificate))),
+        )
+
+        val anchors = trustStore().getAllTrustAnchors()
+
+        assertEquals(
+            setOf(wrpacCa.certificate, otherWrpacCa.certificate, wrprcCa.certificate),
+            anchors.toSet(),
+        )
+        assertEquals(3, anchors.size)
+    }
+
+    @Test
+    fun `all anchors share the cache with lookups by service type`() = runTest {
+        serveProviders(LOTE_A_URL)
+        serveLote(
+            LOTE_A_URL,
+            lote(entity(service(WRPAC, wrpacCa.certificate), service(WRPRC, wrprcCa.certificate))),
+        )
+        val trustStore = trustStore()
+
+        trustStore.getTrustAnchors(WRPAC)
+        val anchors = trustStore.getAllTrustAnchors()
+
+        assertEquals(setOf(wrpacCa.certificate, wrprcCa.certificate), anchors.toSet())
+        assertEquals(1, requestCount(PROVIDERS_URL))
+        assertEquals(1, requestCount(LOTE_A_URL))
+    }
+
+    @Test
+    fun `all anchors throws when the lists cannot be loaded`() {
+        failWith(PROVIDERS_URL, HttpStatusCode.InternalServerError)
+
+        val trustStore = trustStore()
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                trustStore.getAllTrustAnchors()
+            }
+        }
+    }
+
+    @Test
+    fun `a chain issued by a trust anchor is trusted`() = runTest {
+        serveProviders(LOTE_A_URL)
+        serveLote(LOTE_A_URL, lote(entity(service(WRPAC, wrpacCa.certificate))))
+        val leaf = wrpacCa.issueLeaf("CN=Issuer")
+
+        assertTrue(trustStore().isTrusted(listOf(leaf)))
+    }
+
+    @Test
+    fun `a chain issued by an unknown anchor is not trusted`() = runTest {
+        serveProviders(LOTE_A_URL)
+        serveLote(LOTE_A_URL, lote(entity(service(WRPAC, wrpacCa.certificate))))
+        val leaf = TestCa.root("CN=Untrusted CA").issueLeaf("CN=Issuer")
+
+        assertFalse(trustStore().isTrusted(listOf(leaf)))
+    }
+
+    @Test
+    fun `a chain is not trusted when the anchors cannot be loaded`() = runTest {
+        failWith(PROVIDERS_URL, HttpStatusCode.InternalServerError)
+        val leaf = wrpacCa.issueLeaf("CN=Issuer")
+
+        assertFalse(trustStore().isTrusted(listOf(leaf)))
+    }
+
+    @Test
     fun `prefetching warms the cache`() = runTest {
         serveProviders(LOTE_A_URL)
         serveLote(LOTE_A_URL, lote(entity(service(WRPAC, wrpacCa.certificate))))
@@ -418,7 +524,7 @@ private fun service(type: String, vararg certificates: X509Certificate): String 
 
 private fun service(type: String, base64Certificates: List<String>): String {
     val certificates = base64Certificates.joinToString {
-        """{"val": "${it.replace("\r\n", "\\r\\n")}"}"""
+        """{"val": "${it.replace("\r", "\\r").replace("\n", "\\n")}"}"""
     }
     return """
     {

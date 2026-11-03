@@ -10,15 +10,19 @@ import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDHEncrypter
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.security.KeyPair
+import java.security.PublicKey
+import java.security.cert.X509Certificate
 import java.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
@@ -32,6 +36,9 @@ object JwtUtils {
         encodeDefaults = true
         explicitNulls = false
     }
+
+    @PublishedApi
+    internal val payloadFormat = Json { ignoreUnknownKeys = true }
 
     @PublishedApi
     internal inline fun <reified T> encodeClaims(payload: T): String {
@@ -57,9 +64,6 @@ object JwtUtils {
         return JWSHeader.parse(headerJson.toString())
     }
 
-    /**
-     * Signs an ES256 JWT with a locally held [keyPair] (e.g. an Android Keystore key).
-     */
     inline fun <reified H : JwtHeader, reified T> signJwt(
         keyPair: KeyPair,
         header: H,
@@ -71,11 +75,6 @@ object JwtUtils {
         return signedJwt
     }
 
-    /**
-     * Signs an ES256 JWT with an external signer (e.g. an HSM key): builds the
-     * `header.payload` signing input and delegates the signature to [sign], which
-     * must return the base64url-encoded signature.
-     */
     suspend inline fun <reified H : JwtHeader, reified T> signJwtWith(
         header: H,
         payload: T,
@@ -95,12 +94,37 @@ object JwtUtils {
         encryptionMethod: EncryptionMethod,
         algorithm: JWEAlgorithm = JWEAlgorithm.ECDH_ES,
     ): String {
-        val jweHeader = JWEHeader.Builder(algorithm, encryptionMethod).build()
+        val jweHeader =
+            JWEHeader.Builder(algorithm, encryptionMethod).keyID(recipientKey.keyID)
+                .build()
         val json = Json.encodeToString(payload)
         val jweBody = JWEObject(jweHeader, Payload(json))
         val encrypter = ECDHEncrypter(recipientKey.toECKey())
         jweBody.encrypt(encrypter)
         return jweBody.serialize()
+    }
+
+    inline fun <reified T> verifyJws(
+        jwsString: String,
+        validateCertChain: (List<X509Certificate>) -> PublicKey,
+    ): T {
+        val jws = JWSObject.parse(compactSerialization(jwsString))
+        val certChain = checkNotNull(jws.header.x509CertChain) {
+            "JWS has no certificate chain"
+        }.map { X509Certificates.decode(it.toString()) }
+        val publicKey = validateCertChain(certChain)
+        val verifier = DefaultJWSVerifierFactory().createJWSVerifier(jws.header, publicKey)
+        check(jws.verify(verifier)) {
+            "JWS signature is invalid"
+        }
+        return payloadFormat.decodeFromString<T>(jws.payload.toString())
+    }
+
+    @PublishedApi
+    internal fun compactSerialization(jws: String): String = if (jws.contains('.')) {
+        jws
+    } else {
+        Base64URL(jws).decodeToString()
     }
 
     inline fun <reified T> decryptJwe(compactString: String, decryptionKeyPair: KeyPair): T {

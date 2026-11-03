@@ -17,6 +17,7 @@ dependencies {
 
     api(libs.nimbus)
     api(libs.eudi.openid4vci)
+    implementation(libs.bouncycastle.pkix)
     implementation(libs.timber)
     implementation(libs.accessMechanism)
     implementation(libs.kotlinx.serialization.json)

@@ -5,8 +5,6 @@
 package se.digg.wallet.core.trust
 
 enum class ServiceType(val uri: String) {
-    WrpacIssuance("http://uri.etsi.org/19602/SvcType/WRPAC/Issuance"),
-    WrpacRevocation("http://uri.etsi.org/19602/SvcType/WRPAC/Revocation"),
-    WrprcIssuance("http://uri.etsi.org/19602/SvcType/WRPRC/Issuance"),
-    WrprcRevocation("http://uri.etsi.org/19602/SvcType/WRPRC/Revocation"),
+    Access("http://uri.etsi.org/19602/SvcType/WRPAC/Issuance"),
+    Registration("http://uri.etsi.org/19602/SvcType/WRPRC/Issuance"),
 }

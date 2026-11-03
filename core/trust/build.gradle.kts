@@ -10,10 +10,15 @@ plugins {
 
 android {
     namespace = "se.digg.wallet.core.trust"
+
+    testFixtures {
+        enable = true
+    }
 }
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:crypto"))
     implementation(project(":core:network"))
 
     api(libs.nimbus)
@@ -26,6 +31,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.mock)
     testImplementation(libs.bouncycastle.pkix)
+
+    testFixturesApi(libs.junit)
+    testFixturesImplementation(libs.bouncycastle.pkix)
 }
 
 tasks.withType<Test> {

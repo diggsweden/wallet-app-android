@@ -9,10 +9,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.contentType
-import java.io.ByteArrayInputStream
-import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
-import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -25,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import se.digg.wallet.core.common.di.ApplicationScope
+import se.digg.wallet.core.crypto.X509Certificates
 import se.digg.wallet.core.network.di.BaseHttpClient
 import se.digg.wallet.core.network.di.GatewayHttpClient
 import se.wallet.client.gateway.client.NetworkResult
@@ -40,9 +38,9 @@ class TrustStore @Inject constructor(
     @param:ApplicationScope private val applicationScope: CoroutineScope,
 ) {
     private val loteProviderClient = TrustV0LoteProvidersClient(gatewayHttpClient)
-    private val certificateFactory = CertificateFactory.getInstance("X.509")
     private val cacheMutex = Mutex()
     private var serviceTrustAnchorsCache: Map<String, List<X509Certificate>> = emptyMap()
+    private var allTrustAnchorsCache: List<X509Certificate> = emptyList()
 
     fun prefetchTrustAnchors() {
         applicationScope.launch {
@@ -61,10 +59,32 @@ class TrustStore @Inject constructor(
         return trustAnchors
     }
 
+    suspend fun getAllTrustAnchors(): List<X509Certificate> {
+        loadTrustAnchors()
+        check(allTrustAnchorsCache.isNotEmpty()) {
+            "No trust anchors found"
+        }
+        return allTrustAnchorsCache
+    }
+
+    suspend fun isTrusted(certChain: List<X509Certificate>): Boolean = try {
+        CertificateValidator.validate(
+            certChain = certChain,
+            trustAnchors = getAllTrustAnchors(),
+        )
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.d(e, "Certificate chain is not trusted")
+        false
+    }
+
     private suspend fun loadTrustAnchors(): Map<String, List<X509Certificate>> =
         cacheMutex.withLock {
             if (serviceTrustAnchorsCache.isEmpty()) {
                 serviceTrustAnchorsCache = fetchTrustedLists()
+                allTrustAnchorsCache = serviceTrustAnchorsCache.values.flatten().distinct()
             }
             serviceTrustAnchorsCache
         }
@@ -125,9 +145,8 @@ class TrustStore @Inject constructor(
         certificates.flatten().mapNotNull { parseCertificateOrNull(it.x509CertificateVal) }
     }
 
-    private fun parseCertificateOrNull(base64: String): X509Certificate? = try {
-        val bytes = Base64.getMimeDecoder().decode(base64)
-        certificateFactory.generateCertificate(ByteArrayInputStream(bytes)) as X509Certificate
+    private fun parseCertificateOrNull(encoded: String): X509Certificate? = try {
+        X509Certificates.decode(encoded)
     } catch (e: Exception) {
         Timber.w(e, "Skipping malformed trust anchor certificate")
         null

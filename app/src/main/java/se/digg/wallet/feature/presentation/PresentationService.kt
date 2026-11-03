@@ -6,6 +6,7 @@ package se.digg.wallet.feature.presentation
 
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
+import eu.europa.ec.eudi.openid4vp.Client
 import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig
 import eu.europa.ec.eudi.openid4vp.OpenId4VPConfig.Companion.SelfIssued
 import eu.europa.ec.eudi.openid4vp.OpenId4Vp
@@ -23,9 +24,10 @@ import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serialize
 import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serializeWithKeyBinding
 import io.ktor.client.HttpClient
 import java.security.MessageDigest
+import java.security.cert.X509Certificate
+import java.time.Clock
 import java.util.Base64
 import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofKeyId
@@ -33,15 +35,13 @@ import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.PresentationResult
 import se.digg.wallet.core.network.di.BaseHttpClient
-import se.digg.wallet.core.trust.CertificateValidator
-import se.digg.wallet.core.trust.ServiceType
 import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.KeyBindingJwtHeader
 import se.digg.wallet.data.KeybindingPayload
 import se.digg.wallet.data.PresentationItem
 import se.digg.wallet.data.UserRepository
+import se.digg.wallet.data.VerifierUiModel
 import se.digg.wallet.data.VpTokenResponse
-import timber.log.Timber
 
 /**
  * A resolved OpenID4VP authorization request, matched against the wallet's credentials.
@@ -52,14 +52,15 @@ data class PresentationRequest(
     val nonce: String,
     val state: String?,
     val encryption: CryptoSpec?,
+    val verifier: VerifierUiModel,
     val requiredItems: List<PresentationItem>,
     val optionalItems: List<PresentationItem>,
 )
 
 interface PresentationService {
     /**
-     * Resolves the authorization request behind [uri] and matches its DCQL query
-     * against the stored credentials.
+     * Resolves the authorization request behind [uri], verifies that the verifier is registered
+     * for what it asks for, and matches its DCQL query against the stored credentials.
      */
     suspend fun resolve(uri: String): PresentationRequest
 
@@ -77,22 +78,12 @@ internal class DefaultPresentationService @Inject constructor(
     private val userRepository: UserRepository,
     private val openIdNetworkService: OpenIdNetworkService,
     private val trustStore: TrustStore,
+    private val clock: Clock,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : PresentationService {
 
     private val certificateTrust: X509CertificateTrust = { certChain ->
-        try {
-            CertificateValidator.validate(
-                certChain = certChain,
-                trustAnchors = trustStore.getTrustAnchors(ServiceType.WrpacIssuance.uri),
-            )
-            true
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.d(e, "Failed to validate certificate chain")
-            false
-        }
+        trustStore.isTrusted(certChain = certChain)
     }
 
     private val walletConfig = OpenId4VPConfig(
@@ -110,6 +101,7 @@ internal class DefaultPresentationService @Inject constructor(
         supportedTransactionDataTypes = emptyList(),
         supportedClientIdPrefixes = listOf<SupportedClientIdPrefix>(
             SupportedClientIdPrefix.X509SanDns(certificateTrust),
+            SupportedClientIdPrefix.X509Hash(certificateTrust),
         ),
     )
 
@@ -130,9 +122,25 @@ internal class DefaultPresentationService @Inject constructor(
             }
         }
 
+        val registrationCertificates = RegistrationCertificateValidator.parse(
+            verifierInfo = requestObject.verifierInfo,
+            accessCertificate = requestObject.client.accessCertificate(),
+            trustAnchors = trustStore.getAllTrustAnchors(),
+            now = clock.instant(),
+        )
+        val queries = CredentialMatcher.toQueries(requestObject.query)
+        val supportedQueries = queries.filter(CredentialMatcher::isSupported)
+        registrationCertificates.forEach { certificate ->
+            RegistrationCertificateValidator.authorize(
+                queries = supportedQueries,
+                certificate = certificate,
+            )
+        }
+
         val items = CredentialMatcher.match(
-            dcql = requestObject.query,
+            queries = queries,
             credentials = userRepository.getCredentials(),
+            credentialSets = CredentialMatcher.toCredentialSets(requestObject.query),
         )
         val (requiredItems, optionalItems) = items.partition { it.isRequired }
 
@@ -142,6 +150,7 @@ internal class DefaultPresentationService @Inject constructor(
             nonce = requestObject.nonce,
             state = requestObject.state,
             encryption = requestObject.responseEncryptionSpecification?.toCryptoSpec(),
+            verifier = registrationCertificates.first().toVerifierUiModel(),
             requiredItems = requiredItems,
             optionalItems = optionalItems,
         )
@@ -218,3 +227,9 @@ internal class DefaultPresentationService @Inject constructor(
 
 fun ResponseEncryptionSpecification.toCryptoSpec() =
     CryptoSpec(this.recipientKey, this.encryptionMethod, this.encryptionAlgorithm)
+
+private fun Client.accessCertificate(): X509Certificate? = when (this) {
+    is Client.X509SanDns -> cert
+    is Client.X509Hash -> cert
+    else -> null
+}

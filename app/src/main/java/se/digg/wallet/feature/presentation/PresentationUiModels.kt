@@ -9,6 +9,7 @@ import se.digg.wallet.data.PresentationItem
 sealed interface PresentationUiState {
     object Loading : PresentationUiState
     data class PresentClaims(
+        val verifierName: String,
         val requiredClaims: List<PresentationItem>,
         val optionalClaims: List<PresentationItem>,
     ) : PresentationUiState
