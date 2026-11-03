@@ -37,9 +37,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
-import org.junit.Rule
 import org.junit.Test
-import se.digg.wallet.core.trust.ChainValidationRule
 import se.digg.wallet.core.trust.SigningLeaf
 import se.digg.wallet.core.trust.TestCa
 import se.digg.wallet.core.trust.TrustStore
@@ -94,9 +92,6 @@ private fun signedCertificate(leaf: SigningLeaf): String {
 }
 
 class IssuerTrustTest {
-
-    @get:Rule
-    val chainValidation = ChainValidationRule()
 
     private val registrationCa = TestCa.root("CN=WRPRC CA")
     private var anchorLookups = 0

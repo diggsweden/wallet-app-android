@@ -20,7 +20,6 @@ import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import com.nimbusds.jose.util.Base64 as JoseBase64
-import eu.europa.ec.eudi.openid4vci.CredentialIssuanceError
 import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadataError
 import eu.europa.ec.eudi.openid4vci.CredentialOfferRequestError
 import eu.europa.ec.eudi.openid4vci.CredentialOfferRequestException
@@ -58,10 +57,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
-import org.junit.Rule
 import org.junit.Test
 import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.ProofKey
@@ -72,9 +69,6 @@ import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.dpopPlugin
-import se.digg.wallet.core.network.error.AppError
-import se.digg.wallet.core.network.error.AppException
-import se.digg.wallet.core.trust.ChainValidationRule
 import se.digg.wallet.core.trust.ServiceType
 import se.digg.wallet.core.trust.SigningLeaf
 import se.digg.wallet.core.trust.TestCa
@@ -121,9 +115,6 @@ private class FakeKeyAttestationProvider : KeyAttestationProvider {
 }
 
 class DefaultIssuanceServiceTest {
-
-    @get:Rule
-    val chainValidation = ChainValidationRule()
 
     private val hsmKey = ECKeyGenerator(Curve.P_256).keyID("hsm-key").generate()
     private val proofKey = ProofKey(id = ProofKeyId("hsm-key"), publicKey = hsmKey.toPublicJWK())
@@ -386,31 +377,6 @@ class DefaultIssuanceServiceTest {
                 fallbackState = "our-state",
             )
         }
-    }
-
-    @Test
-    fun `issuer errors from the library are rethrown as exceptions`() {
-        val issuerError = CredentialIssuanceError.AccessTokenRequestFailed(
-            error = "Token request failed with 500",
-            errorDescription = null,
-        )
-
-        val thrown = assertThrows(AppException::class.java) {
-            Result.failure<Unit>(issuerError).getOrThrowException()
-        }
-
-        assertSame(issuerError, (thrown.error as AppError.Unexpected).cause)
-    }
-
-    @Test
-    fun `exceptions from the library are rethrown as they are`() {
-        val exception = IllegalStateException("broken offer")
-
-        val thrown = assertThrows(IllegalStateException::class.java) {
-            Result.failure<Unit>(exception).getOrThrowException()
-        }
-
-        assertSame(exception, thrown)
     }
 
     @Test

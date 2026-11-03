@@ -9,13 +9,9 @@ import java.time.Duration
 import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
-import org.junit.Rule
 import org.junit.Test
 
 class CertificateValidatorTest {
-
-    @get:Rule
-    val chainValidation = ChainValidationRule()
 
     private val anchor = TestCa.root("CN=Trusted Root")
 

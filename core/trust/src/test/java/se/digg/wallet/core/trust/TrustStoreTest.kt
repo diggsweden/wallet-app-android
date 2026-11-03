@@ -40,7 +40,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
-import org.junit.Rule
 import org.junit.Test
 
 private const val PROVIDERS_URL = "https://gateway.test/trust/v0/lote-providers"
@@ -53,9 +52,6 @@ private val WRPRC = ServiceType.Registration.uri
 private typealias Route = MockRequestHandleScope.() -> HttpResponseData
 
 class TrustStoreTest {
-
-    @get:Rule
-    val chainValidation = ChainValidationRule()
 
     private val wrpacCa = TestCa.root("CN=WRPAC CA")
     private val otherWrpacCa = TestCa.root("CN=Other WRPAC CA")

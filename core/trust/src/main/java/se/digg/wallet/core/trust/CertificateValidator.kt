@@ -13,14 +13,9 @@ import java.security.cert.TrustAnchor
 import java.security.cert.X509Certificate
 
 object CertificateValidator {
-    var isChainValidationEnabled = false
-
     fun validate(certChain: List<X509Certificate>, trustAnchors: List<X509Certificate>): PublicKey {
-        require(certChain.isNotEmpty()) { "Certificate chain is empty" }
-        if (!isChainValidationEnabled) {
-            return certChain.first().publicKey
-        }
-        require(trustAnchors.isNotEmpty()) { "Trust anchors are empty" }
+        require(value = certChain.isNotEmpty()) { "Certificate chain is empty" }
+        require(value = trustAnchors.isNotEmpty()) { "Trust anchors are empty" }
 
         val anchors = trustAnchors
             .map { TrustAnchor(it, null) }

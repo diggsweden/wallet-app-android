@@ -32,7 +32,6 @@ dependencies {
     testImplementation(libs.ktor.mock)
     testImplementation(libs.bouncycastle.pkix)
 
-    testFixturesApi(libs.junit)
     testFixturesImplementation(libs.bouncycastle.pkix)
 }
 

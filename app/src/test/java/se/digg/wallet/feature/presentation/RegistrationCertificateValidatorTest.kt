@@ -28,9 +28,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
-import org.junit.Rule
 import org.junit.Test
-import se.digg.wallet.core.trust.ChainValidationRule
 import se.digg.wallet.core.trust.SigningLeaf
 import se.digg.wallet.core.trust.TestCa
 import se.digg.wallet.core.trust.registration.RegistrationCertificate
@@ -117,9 +115,6 @@ private fun query(
 )
 
 class RegistrationCertificateValidatorTest {
-
-    @get:Rule
-    val chainValidation = ChainValidationRule()
 
     private val json = Json { ignoreUnknownKeys = true }
     private val registrationCa = TestCa.root("CN=WRPRC CA")
