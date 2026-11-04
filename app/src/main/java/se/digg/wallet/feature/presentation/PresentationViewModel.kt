@@ -45,6 +45,7 @@ class PresentationViewModel @Inject constructor(
                 val resolved = presentationService.resolve(fullUri)
                 request = resolved
                 _uiState.value = PresentationUiState.PresentClaims(
+                    verifierName = resolved.verifier.name,
                     requiredClaims = resolved.requiredItems,
                     optionalClaims = resolved.optionalItems,
                 )

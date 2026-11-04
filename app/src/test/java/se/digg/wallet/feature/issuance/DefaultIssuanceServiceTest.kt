@@ -5,10 +5,13 @@
 package se.digg.wallet.feature.issuance
 
 import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
 import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDHEncrypter
@@ -16,22 +19,32 @@ import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
+import com.nimbusds.jose.util.Base64 as JoseBase64
+import eu.europa.ec.eudi.openid4vci.CredentialIssuerMetadataError
+import eu.europa.ec.eudi.openid4vci.CredentialOfferRequestError
+import eu.europa.ec.eudi.openid4vci.CredentialOfferRequestException
 import eu.europa.ec.eudi.sdjwt.NimbusSdJwtOps
 import eu.europa.ec.eudi.sdjwt.dsl.values.sdJwt
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.engine.mock.respondError
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.utils.buildHeaders
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.content.TextContent
 import io.ktor.serialization.kotlinx.json.json
+import java.security.cert.X509Certificate
+import java.security.interfaces.ECPrivateKey
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.Base64
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -56,10 +69,26 @@ import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.dpopPlugin
+import se.digg.wallet.core.trust.ServiceType
+import se.digg.wallet.core.trust.SigningLeaf
+import se.digg.wallet.core.trust.TestCa
+import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.KeyAttestationProvider
+import se.digg.wallet.data.WalletInstanceAttestationProvider
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
 private const val NONCE_ENDPOINT = "https://issuer.example/nonce"
+private const val LOTE_URL = "https://lote.example/lote"
+private const val UNTRUSTED_CHAIN = "certificate chain in 'x5c' header claim is not trusted"
+
+private const val AUTHORIZATION_SERVER_METADATA = """{
+    "issuer":"https://issuer.example",
+    "authorization_endpoint":"https://issuer.example/authorize",
+    "token_endpoint":"https://issuer.example/token",
+    "response_types_supported":["code"],
+    "grant_types_supported":["authorization_code"],
+    "code_challenge_methods_supported":["S256"]
+}"""
 
 private class FakeProofSigner : ProofSigner {
     var keyId: ProofKeyId? = null
@@ -116,9 +145,50 @@ class DefaultIssuanceServiceTest {
         install(dpopPlugin)
     }
 
+    private var trustAnchor: X509Certificate? = null
+
+    private val trustClient = HttpClient(
+        MockEngine { request ->
+            val anchor = trustAnchor
+                ?: return@MockEngine respondError(HttpStatusCode.ServiceUnavailable)
+            val body = when {
+                request.url.toString() == LOTE_URL -> {
+                    lote(anchor)
+                }
+
+                request.url.encodedPath.endsWith("/lote-providers") -> {
+                    """{"items":[{"id":"provider","url":"$LOTE_URL"}]}"""
+                }
+
+                else -> {
+                    error("Unexpected trust request: ${request.url}")
+                }
+            }
+            respond(
+                content = body,
+                headers = buildHeaders {
+                    append(HttpHeaders.ContentType, "application/json")
+                },
+            )
+        },
+    ) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
+        }
+    }
+
     private val service = DefaultIssuanceService(
         keyAttestationProvider = wuaProvider,
+        walletInstanceAttestationProvider = object : WalletInstanceAttestationProvider {
+            override suspend fun getWalletInstanceAttestation(key: ECKey): String =
+                error("Unexpected wallet instance attestation")
+        },
         openIdNetworkService = OpenIdNetworkService(httpClient),
+        trustStore = TrustStore(
+            gatewayHttpClient = trustClient,
+            baseHttpClient = trustClient,
+            applicationScope = CoroutineScope(Job()),
+        ),
         clock = clock,
         httpClient = httpClient,
     )
@@ -179,7 +249,7 @@ class DefaultIssuanceServiceTest {
     }
 
     @Test
-    fun `the attestation and its nonce are attached when the issuer requires one`() = runTest {
+    fun `the attestation, nonce and key are attached when the issuer requires one`() = runTest {
         handle = { _ ->
             """{"c_nonce":"nonce-abc"}""" to "application/json"
         }
@@ -196,7 +266,10 @@ class DefaultIssuanceServiceTest {
         assertEquals(listOf(proofKey.publicKey), wuaProvider.keys)
         assertEquals("wua.jwt", headerOf(jwt)["key_attestation"]?.jsonPrimitive?.content)
         assertEquals("0", headerOf(jwt)["kid"]?.jsonPrimitive?.content)
-        assertNull(headerOf(jwt)["jwk"])
+        assertEquals(
+            hsmKey.toPublicJWK().toJSONString(),
+            headerOf(jwt)["jwk"]?.jsonObject.toString(),
+        )
         assertEquals("nonce-abc", payloadOf(jwt)["nonce"]?.jsonPrimitive?.content)
     }
 
@@ -344,14 +417,7 @@ class DefaultIssuanceServiceTest {
                 "/.well-known/openid-configuration",
                 "/.well-known/oauth-authorization-server",
                 -> {
-                    """{
-                    "issuer":"https://issuer.example",
-                    "authorization_endpoint":"https://issuer.example/authorize",
-                    "token_endpoint":"https://issuer.example/token",
-                    "response_types_supported":["code"],
-                    "grant_types_supported":["authorization_code"],
-                    "code_challenge_methods_supported":["S256"]
-                }"""
+                    AUTHORIZATION_SERVER_METADATA
                 }
 
                 "/token" -> {
@@ -403,6 +469,86 @@ class DefaultIssuanceServiceTest {
     }
 
     @Test
+    fun `an offer from an issuer with an unverifiable registration certificate is rejected`() {
+        handle = { request ->
+            val response = when (request.url.encodedPath) {
+                "/offer" -> {
+                    """{
+                    "credential_issuer":"https://issuer.example",
+                    "credential_configuration_ids":["pid-sd-jwt"],
+                    "grants":{"authorization_code":{}}
+                }"""
+                }
+
+                "/.well-known/openid-credential-issuer" -> {
+                    """{
+                    "credential_issuer":"https://issuer.example",
+                    "credential_endpoint":"$CREDENTIAL_ENDPOINT",
+                    "issuer_info":[{"format":"registration_cert","data":"registration.jwt"}],
+                    "credential_configurations_supported":{
+                        "pid-sd-jwt":{"format":"dc+sd-jwt","vct":"urn:eudi:pid:1"}
+                    }
+                }"""
+                }
+
+                "/.well-known/openid-configuration",
+                "/.well-known/oauth-authorization-server",
+                -> {
+                    AUTHORIZATION_SERVER_METADATA
+                }
+
+                else -> {
+                    error("Unexpected request: ${request.url}")
+                }
+            }
+            response to "application/json"
+        }
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                service.fetchOffer(
+                    "openid-credential-offer://?credential_offer_uri=" +
+                        "https%3A%2F%2Fissuer.example%2Foffer",
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `an offer from an issuer whose signed metadata chains to a trust anchor is accepted`() =
+        runTest {
+            val ca = TestCa.root("CN=WRPAC CA")
+            trustAnchor = ca.certificate
+
+            val issuerDisplay = fetchOfferWithSignedMetadata(ca.issueSigningLeaf("CN=Issuer"))
+
+            assertEquals("Signed Issuer", issuerDisplay?.name)
+        }
+
+    @Test
+    fun `an offer from an issuer whose signed metadata chains to no trust anchor is rejected`() {
+        trustAnchor = TestCa.root("CN=WRPAC CA").certificate
+        val leaf = TestCa.root("CN=Untrusted CA").issueSigningLeaf("CN=Issuer")
+
+        val thrown = assertThrows(CredentialOfferRequestException::class.java) {
+            runBlocking { fetchOfferWithSignedMetadata(leaf) }
+        }
+
+        assertEquals(UNTRUSTED_CHAIN, signedMetadataRejectionOf(thrown))
+    }
+
+    @Test
+    fun `an offer with signed metadata is rejected when no trust anchors can be loaded`() {
+        val leaf = TestCa.root("CN=WRPAC CA").issueSigningLeaf("CN=Issuer")
+
+        val thrown = assertThrows(CredentialOfferRequestException::class.java) {
+            runBlocking { fetchOfferWithSignedMetadata(leaf) }
+        }
+
+        assertEquals(UNTRUSTED_CHAIN, signedMetadataRejectionOf(thrown))
+    }
+
+    @Test
     fun `session operations reject calls before authorization`() = runTest {
         assertThrows(IllegalStateException::class.java) {
             runBlocking { service.authorizationUrl() }
@@ -419,6 +565,102 @@ class DefaultIssuanceServiceTest {
         assertTrue(requests.isEmpty())
         assertNull(proofSigner.signedInput)
     }
+
+    private suspend fun fetchOfferWithSignedMetadata(leaf: SigningLeaf): IssuerDisplay? {
+        handle = { request ->
+            when (request.url.encodedPath) {
+                "/offer" -> {
+                    """{
+                    "credential_issuer":"https://issuer.example",
+                    "credential_configuration_ids":["pid-sd-jwt"],
+                    "grants":{"authorization_code":{}}
+                }""" to "application/json"
+                }
+
+                "/.well-known/openid-credential-issuer" -> {
+                    signedMetadata(leaf) to "application/jwt"
+                }
+
+                "/.well-known/openid-configuration",
+                "/.well-known/oauth-authorization-server",
+                -> {
+                    AUTHORIZATION_SERVER_METADATA to "application/json"
+                }
+
+                else -> {
+                    error("Unexpected request: ${request.url}")
+                }
+            }
+        }
+        return service.fetchOffer(
+            "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffer",
+        )
+    }
+
+    private fun signedMetadata(leaf: SigningLeaf): String {
+        val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+            .type(JOSEObjectType("openidvci-issuer-metadata+jwt"))
+            .x509CertChain(listOf(JoseBase64.encode(leaf.certificate.encoded)))
+            .build()
+        val claims = """{
+            "sub":"https://issuer.example",
+            "iat":${clock.instant().epochSecond},
+            "credential_issuer":"https://issuer.example",
+            "credential_endpoint":"$CREDENTIAL_ENDPOINT",
+            "display":[{"name":"Signed Issuer"}],
+            "credential_configurations_supported":{
+                "pid-sd-jwt":{"format":"dc+sd-jwt","vct":"urn:eudi:pid:1"}
+            }
+        }"""
+        return JWSObject(header, Payload(claims))
+            .apply { sign(ECDSASigner(leaf.keyPair.private as ECPrivateKey)) }
+            .serialize()
+    }
+
+    private fun signedMetadataRejectionOf(exception: CredentialOfferRequestException): String? {
+        val error = exception.error
+            as CredentialOfferRequestError.UnableToResolveCredentialIssuerMetadata
+        val reason = error.reason as CredentialIssuerMetadataError.InvalidSignedMetadata
+        return reason.cause?.message
+    }
+
+    private fun lote(anchor: X509Certificate): String = """{
+        "LoTE":{
+            "ListAndSchemeInformation":{
+                "LoTEVersionIdentifier":1,
+                "LoTESequenceNumber":1,
+                "LoTEType":"http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList",
+                "SchemeOperatorName":[{"lang":"en","value":"Test Operator"}],
+                "SchemeName":[{"lang":"en","value":"Test Scheme"}],
+                "SchemeTerritory":"SE",
+                "ListIssueDateTime":"2026-01-01T00:00:00Z",
+                "NextUpdate":"2026-07-01T00:00:00Z"
+            },
+            "TrustedEntitiesList":[{
+                "TrustedEntityInformation":{
+                    "TEName":[{"lang":"en","value":"Test Entity"}],
+                    "TEAddress":{
+                        "TEPostalAddress":[{"lang":"en","StreetAddress":"Street 1","Country":"SE"}],
+                        "TEElectronicAddress":[{"lang":"en","uriValue":"mailto:test@example.com"}]
+                    },
+                    "TEInformationURI":[{"lang":"en","uriValue":"https://example.com"}]
+                },
+                "TrustedEntityServices":[{
+                    "ServiceInformation":{
+                        "ServiceName":[{"lang":"en","value":"Test Service"}],
+                        "ServiceDigitalIdentity":{
+                            "X509Certificates":[
+                                {"val":"${Base64.getEncoder().encodeToString(anchor.encoded)}"}
+                            ]
+                        },
+                        "ServiceTypeIdentifier":"${ServiceType.Access.uri}",
+                        "ServiceStatus":"http://uri.etsi.org/19602/SvcStatus/granted",
+                        "StatusStartingTime":"2026-01-01T00:00:00Z"
+                    }
+                }]
+            }]
+        }
+    }"""
 
     private fun bodyOf(request: HttpRequestData): String = (request.body as TextContent).text
 

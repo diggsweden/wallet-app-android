@@ -54,7 +54,9 @@ import se.digg.wallet.core.network.DpopProofBuilder
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.di.BaseHttpClient
+import se.digg.wallet.core.trust.TrustStore
 import se.digg.wallet.data.KeyAttestationProvider
+import se.digg.wallet.data.WalletInstanceAttestationProvider
 
 private const val REDIRECT_SCHEME = "wallet-app"
 private const val REDIRECT_URI = "$REDIRECT_SCHEME://authorize"
@@ -64,12 +66,15 @@ private const val PROOF_ISSUER = "wallet-app"
 
 internal class DefaultIssuanceService @Inject constructor(
     private val keyAttestationProvider: KeyAttestationProvider,
+    walletInstanceAttestationProvider: WalletInstanceAttestationProvider,
     private val openIdNetworkService: OpenIdNetworkService,
+    private val trustStore: TrustStore,
     private val clock: Clock,
     @param:BaseHttpClient private val httpClient: HttpClient,
 ) : IssuanceService {
 
     private val dpopProofBuilder = DpopProofBuilder(clock = clock)
+    private val walletAttestation = WalletAttestationProvisioner(walletInstanceAttestationProvider)
 
     private var resolvedOffer: ResolvedOffer? = null
     private var preparedRequest: AuthorizationRequestPrepared? = null
@@ -86,6 +91,7 @@ internal class DefaultIssuanceService @Inject constructor(
         ),
         dPoPUsage = DPoPUsage.IfSupported(DPoPConfig(dpopProofBuilder)),
         clock = clock,
+        issuerMetadataPolicy = preferSignedMetadataPolicy(trustStore),
     )
 
     override suspend fun fetchOffer(credentialOfferUri: String): IssuerDisplay? {
@@ -93,10 +99,20 @@ internal class DefaultIssuanceService @Inject constructor(
         preparedRequest = null
         authorizedSession = null
         proof = null
-        val (issuer, _) = Issuer.make(
-            config = openId4VCIConfig,
+        val credentialOffer = CredentialOffer.resolve(
             httpClient = httpClient,
-            credentialOfferUri = credentialOfferUri,
+            config = openId4VCIConfig,
+            uri = credentialOfferUri,
+        ).getOrThrow()
+        credentialOffer.credentialIssuerMetadata.verifyRegistrationCertificates(
+            now = clock.instant(),
+        ) {
+            trustStore.getAllTrustAnchors()
+        }
+        val (issuer, _) = Issuer.make(
+            config = configFor(credentialOffer),
+            credentialOffer = credentialOffer,
+            httpClient = httpClient,
         ).getOrThrow()
 
         val metadata = issuer.credentialOffer.credentialIssuerMetadata
@@ -109,6 +125,18 @@ internal class DefaultIssuanceService @Inject constructor(
 
         return offer.issuerDisplay
     }
+
+    private fun configFor(credentialOffer: CredentialOffer): OpenId4VCIConfig =
+        if (credentialOffer.authorizationServerMetadata.supportsWalletAttestation()) {
+            openId4VCIConfig.copy(
+                clientAuthentication = ClientAuthentication.AttestationBased(
+                    id = CLIENT_ID,
+                    provisionClientAttestation = walletAttestation,
+                ),
+            )
+        } else {
+            openId4VCIConfig
+        }
 
     override suspend fun authorizationUrl(): String {
         val issuer = checkNotNull(resolvedOffer) {
@@ -142,12 +170,17 @@ internal class DefaultIssuanceService @Inject constructor(
         }
 
         val metadata = issuer.credentialOffer.credentialIssuerMetadata
-        val configurationId = issuer.credentialOffer.credentialConfigurationIdentifiers.first()
-        val credentialConfig = checkNotNull(
-            metadata.credentialConfigurationsSupported[configurationId] as? SdJwtVcCredential,
+        val configurationId = checkNotNull(
+            issuer.credentialOffer.credentialConfigurationIdentifiers.firstOrNull { id ->
+                metadata.credentialConfigurationsSupported[id] is SdJwtVcCredential
+            },
         ) {
             "Unsupported credential configuration"
         }
+        val credentialConfig =
+            metadata.credentialConfigurationsSupported.getValue(
+                configurationId,
+            ) as SdJwtVcCredential
         val proofTypeJwt = checkNotNull(
             credentialConfig.proofTypesSupported[ProofType.JWT] as? ProofTypeMeta.Jwt,
         ) {
@@ -161,7 +194,7 @@ internal class DefaultIssuanceService @Inject constructor(
             credentialConfigurationId = configurationId.toString(),
             credentialType = credentialConfig.type,
             credentialName = credentialConfig.credentialMetadata?.display?.firstOrNull()?.name,
-            requiresKeyAttestation = proofTypeJwt.keyAttestationRequirement?.hasConstrains ?: false,
+            requiresKeyAttestation = proofTypeJwt.keyAttestationRequirement != null,
             requestEncryption = getCryptoSpec(metadata.credentialRequestEncryption),
             authorization = authorizedRequest.accessToken.toRequestAuthorization(dpopProofBuilder),
             issuerDisplay = offer.issuerDisplay,
@@ -191,6 +224,7 @@ internal class DefaultIssuanceService @Inject constructor(
                     keys = listOf(proofKey.publicKey),
                     nonce = nonce,
                 ),
+                key = proofKey.publicKey,
             )
         } else {
             ProofJwtHeader.withJwk(proofKey.publicKey)

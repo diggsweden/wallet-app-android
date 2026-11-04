@@ -39,9 +39,18 @@ data class KeyBindingJwtHeader(
 
 data class CredentialQuery(
     val id: String,
-    val required: Boolean = true,
-    val vctValues: List<String>,
+    val format: String,
+    val vctValues: Set<String>,
     val claimPaths: Set<ClaimPath>,
+)
+
+data class CredentialSet(val options: List<Set<String>>, val required: Boolean)
+
+data class VerifierUiModel(
+    val name: String,
+    val country: String,
+    val descriptions: Map<String, String>,
+    val purpose: Map<String, String>,
 )
 
 data class PresentationItem(

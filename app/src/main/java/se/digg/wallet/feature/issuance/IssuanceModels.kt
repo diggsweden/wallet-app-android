@@ -30,9 +30,10 @@ data class ProofJwtHeader(
             jwk = Json.parseToJsonElement(key.toPublicJWK().toJSONString()).jsonObject,
         )
 
-        fun withKeyAttestation(keyAttestation: String) = ProofJwtHeader(
+        fun withKeyAttestation(keyAttestation: String, key: JWK) = ProofJwtHeader(
             kid = "0",
             keyAttestation = keyAttestation,
+            jwk = Json.parseToJsonElement(key.toPublicJWK().toJSONString()).jsonObject,
         )
     }
 }

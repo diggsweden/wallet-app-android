@@ -7,9 +7,6 @@ package se.digg.wallet.data
 import com.nimbusds.jose.jwk.ECKey
 import se.digg.wallet.core.model.SavedCredential
 
-/**
- * The slice of the user's stored credentials that the issuance and presentation flows need.
- */
 interface CredentialStore {
     suspend fun getCredentials(): List<SavedCredential>
 
@@ -17,6 +14,9 @@ interface CredentialStore {
 }
 
 interface KeyAttestationProvider {
-    /** Fetches a Wallet Unit Attestation, bound to [nonce] when one is given. */
     suspend fun getKeyAttestation(keys: List<ECKey>, nonce: String?): String
+}
+
+interface WalletInstanceAttestationProvider {
+    suspend fun getWalletInstanceAttestation(key: ECKey): String
 }

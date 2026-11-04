@@ -16,6 +16,7 @@ import se.digg.wallet.core.network.di.GatewayHttpClient
 import se.digg.wallet.data.CredentialStore
 import se.digg.wallet.data.KeyAttestationProvider
 import se.digg.wallet.data.UserRepository
+import se.digg.wallet.data.WalletInstanceAttestationProvider
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -38,4 +39,8 @@ object RepositoryModule {
 
     @Provides
     fun provideWuaProvider(userRepository: UserRepository): KeyAttestationProvider = userRepository
+
+    @Provides
+    fun provideWiaProvider(userRepository: UserRepository): WalletInstanceAttestationProvider =
+        userRepository
 }

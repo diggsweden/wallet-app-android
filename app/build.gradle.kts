@@ -173,7 +173,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.mock)
-    testImplementation(libs.bouncycastle.pkix)
+    testImplementation(testFixtures(project(":core:trust")))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -183,6 +183,7 @@ dependencies {
     debugImplementation(libs.leakcanary)
 
     implementation(libs.nimbus)
+    implementation(libs.bouncycastle.pkix)
     implementation(libs.timber)
     implementation(libs.bundles.images)
     implementation(libs.bundles.eudi)
