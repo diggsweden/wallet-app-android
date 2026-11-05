@@ -29,10 +29,10 @@ import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import se.digg.wallet.core.data.model.CredentialQuery
 import se.digg.wallet.core.trust.SigningLeaf
 import se.digg.wallet.core.trust.TestCa
 import se.digg.wallet.core.trust.registration.RegistrationCertificate
-import se.digg.wallet.data.CredentialQuery
 
 private const val PID_TYPE = "urn:eudi:pid:1"
 private const val ORGANIZATION_IDENTIFIER = "verifier.example"

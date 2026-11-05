@@ -21,7 +21,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import se.digg.wallet.data.WalletInstanceAttestationProvider
+import se.digg.wallet.core.data.WalletInstanceAttestationProvider
 
 private class FakeWalletInstanceAttestationProvider : WalletInstanceAttestationProvider {
     var key: ECKey? = null

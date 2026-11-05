@@ -32,16 +32,16 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.JwtUtils
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.data.UserRepository
+import se.digg.wallet.core.data.model.KeyBindingJwtHeader
+import se.digg.wallet.core.data.model.KeybindingPayload
+import se.digg.wallet.core.data.model.PresentationItem
+import se.digg.wallet.core.data.model.VerifierUiModel
+import se.digg.wallet.core.data.model.VpTokenResponse
 import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.PresentationResult
 import se.digg.wallet.core.network.di.BaseHttpClient
 import se.digg.wallet.core.trust.TrustStore
-import se.digg.wallet.data.KeyBindingJwtHeader
-import se.digg.wallet.data.KeybindingPayload
-import se.digg.wallet.data.PresentationItem
-import se.digg.wallet.data.UserRepository
-import se.digg.wallet.data.VerifierUiModel
-import se.digg.wallet.data.VpTokenResponse
 
 /**
  * A resolved OpenID4VP authorization request, matched against the wallet's credentials.

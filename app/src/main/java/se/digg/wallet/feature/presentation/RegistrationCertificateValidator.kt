@@ -10,11 +10,11 @@ import java.security.cert.X509Certificate
 import java.time.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import se.digg.wallet.core.crypto.organizationIdentifier
+import se.digg.wallet.core.data.model.CredentialQuery
+import se.digg.wallet.core.data.model.VerifierUiModel
 import se.digg.wallet.core.trust.registration.REGISTRATION_CERTIFICATE_FORMATS
 import se.digg.wallet.core.trust.registration.RegistrationCertificate
 import se.digg.wallet.core.trust.registration.verifyRegistrationCertificate
-import se.digg.wallet.data.CredentialQuery
-import se.digg.wallet.data.VerifierUiModel
 
 sealed class RegistrationCertificateException(message: String) : Exception(message) {
     class Missing : RegistrationCertificateException("No registration certificate provided")

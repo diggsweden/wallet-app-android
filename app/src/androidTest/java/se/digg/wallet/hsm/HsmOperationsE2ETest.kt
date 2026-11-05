@@ -33,11 +33,11 @@ import se.digg.wallet.core.crypto.KeyAlias
 import se.digg.wallet.core.crypto.KeystoreManager
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.toECKey
+import se.digg.wallet.core.data.HsmProofKeyManagerFactory
+import se.digg.wallet.core.data.UserRepository
+import se.digg.wallet.core.data.model.KeyBindingJwtHeader
+import se.digg.wallet.core.data.model.KeybindingPayload
 import se.digg.wallet.core.network.WalletOpaqueClient
-import se.digg.wallet.data.HsmProofKeyManagerFactory
-import se.digg.wallet.data.KeyBindingJwtHeader
-import se.digg.wallet.data.KeybindingPayload
-import se.digg.wallet.data.UserRepository
 import se.digg.wallet.feature.onboarding.walletsetup.DefaultWalletSetupService
 
 @HiltAndroidTest

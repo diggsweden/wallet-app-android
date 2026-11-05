@@ -64,6 +64,8 @@ import se.digg.wallet.core.crypto.CryptoSpec
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
+import se.digg.wallet.core.data.KeyAttestationProvider
+import se.digg.wallet.core.data.WalletInstanceAttestationProvider
 import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.model.Proof
 import se.digg.wallet.core.network.OpenIdNetworkService
@@ -73,8 +75,6 @@ import se.digg.wallet.core.trust.ServiceType
 import se.digg.wallet.core.trust.SigningLeaf
 import se.digg.wallet.core.trust.TestCa
 import se.digg.wallet.core.trust.TrustStore
-import se.digg.wallet.data.KeyAttestationProvider
-import se.digg.wallet.data.WalletInstanceAttestationProvider
 
 private const val CREDENTIAL_ENDPOINT = "https://issuer.example/credential"
 private const val NONCE_ENDPOINT = "https://issuer.example/nonce"

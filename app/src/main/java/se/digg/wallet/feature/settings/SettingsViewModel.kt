@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.data.UserRepository
+import se.digg.wallet.core.data.UserRepository
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val userRepository: UserRepository) :

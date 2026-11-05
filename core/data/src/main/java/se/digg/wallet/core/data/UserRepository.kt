@@ -2,12 +2,13 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.data
+package se.digg.wallet.core.data
 
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import io.ktor.client.HttpClient
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.access_mechanism.model.ServerParameters
 import se.digg.wallet.core.crypto.KeystoreManager
@@ -16,6 +17,7 @@ import se.digg.wallet.core.database.User
 import se.digg.wallet.core.database.UserDao
 import se.digg.wallet.core.model.SavedCredential
 import se.digg.wallet.core.network.SessionManager
+import se.digg.wallet.core.network.di.GatewayHttpClient
 import se.digg.wallet.core.network.extensions.getOrThrow
 import se.digg.wallet.core.network.extensions.toEcJwkRequest
 import se.digg.wallet.core.network.extensions.toEcJwkRequests
@@ -28,13 +30,28 @@ import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.KeyAttestationRequest
 import se.wallet.client.gateway.models.WalletInstanceAttestationRequest
 
-class UserRepository @Inject constructor(
+@Singleton
+class UserRepository(
     private val userDao: UserDao,
-    private val gatewayClient: HttpClient,
+    gatewayClient: HttpClient,
     private val sessionManager: SessionManager,
+    private val wipeKeystore: () -> Unit = { KeystoreManager.removeKey() },
 ) : CredentialStore,
     KeyAttestationProvider,
     WalletInstanceAttestationProvider {
+
+    @Inject
+    constructor(
+        userDao: UserDao,
+        @GatewayHttpClient gatewayClient: HttpClient,
+        sessionManager: SessionManager,
+    ) : this(
+        userDao = userDao,
+        gatewayClient = gatewayClient,
+        sessionManager = sessionManager,
+        wipeKeystore = { KeystoreManager.removeKey() },
+    )
+
     val user: Flow<User?> = userDao.observe()
     private val accountsClient = V0AccountsClient(gatewayClient)
     private val attestationsClient = AttestationV0KeyAttestationsClient(gatewayClient)
@@ -61,14 +78,14 @@ class UserRepository @Inject constructor(
     suspend fun getClientConfig(): ClientConfigResponse =
         clientConfigsClient.getClientConfig().getOrThrow()
 
-    suspend fun getUser() = userDao.get()
+    suspend fun getUser(): User? = userDao.get()
 
     override suspend fun getCredentials(): List<SavedCredential> =
         userDao.get()?.credentials ?: emptyList()
 
     suspend fun getCredential(id: String): SavedCredential {
         val matchingCredential = getCredentials().firstOrNull { it.id == id }
-        checkNotNull(value = matchingCredential) {
+        checkNotNull(matchingCredential) {
             "Cant find credential matching id"
         }
         return matchingCredential
@@ -108,7 +125,7 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun wipeAll() {
-        KeystoreManager.removeKey()
+        wipeKeystore()
         sessionManager.reset()
         userDao.clear()
     }

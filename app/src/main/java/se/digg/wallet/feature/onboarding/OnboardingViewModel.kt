@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import se.digg.wallet.data.UserRepository
+import se.digg.wallet.core.data.UserRepository
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(private val userRepository: UserRepository) :

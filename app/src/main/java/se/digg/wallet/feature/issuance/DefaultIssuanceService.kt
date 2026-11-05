@@ -40,7 +40,9 @@ import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.crypto.toECKey
-import se.digg.wallet.core.extensions.toClaimUiModels
+import se.digg.wallet.core.data.KeyAttestationProvider
+import se.digg.wallet.core.data.WalletInstanceAttestationProvider
+import se.digg.wallet.core.data.extensions.toClaimUiModels
 import se.digg.wallet.core.model.ClaimUiModel
 import se.digg.wallet.core.model.CredentialDisplayData
 import se.digg.wallet.core.model.CredentialRequestModel
@@ -55,8 +57,6 @@ import se.digg.wallet.core.network.OpenIdNetworkService
 import se.digg.wallet.core.network.RequestAuthorization
 import se.digg.wallet.core.network.di.BaseHttpClient
 import se.digg.wallet.core.trust.TrustStore
-import se.digg.wallet.data.KeyAttestationProvider
-import se.digg.wallet.data.WalletInstanceAttestationProvider
 
 private const val REDIRECT_SCHEME = "wallet-app"
 private const val REDIRECT_URI = "$REDIRECT_SCHEME://authorize"
