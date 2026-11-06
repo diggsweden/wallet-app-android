@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":core:network"))
 
     api(libs.nimbus)
+    api(libs.eudi.openid4vp)
     implementation(libs.timber)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
