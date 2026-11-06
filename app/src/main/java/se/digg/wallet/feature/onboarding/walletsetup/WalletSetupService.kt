@@ -9,8 +9,8 @@ import se.digg.wallet.access_mechanism.api.OpaqueClient
 import se.digg.wallet.core.crypto.KeyAlias
 import se.digg.wallet.core.crypto.KeystoreManager
 import se.digg.wallet.core.crypto.toECKey
+import se.digg.wallet.core.data.UserRepository
 import se.digg.wallet.core.network.WalletOpaqueClient
-import se.digg.wallet.data.UserRepository
 import se.wallet.client.gateway.models.CreateAccountRequest
 import se.wallet.client.gateway.models.EcJwkRequest
 

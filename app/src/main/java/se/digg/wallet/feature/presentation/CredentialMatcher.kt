@@ -14,11 +14,11 @@ import eu.europa.ec.eudi.sdjwt.vc.ClaimPathElement as SdJwtClaimPathElement
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import se.digg.wallet.core.crypto.ProofKeyId
-import se.digg.wallet.core.extensions.toClaimUiModels
+import se.digg.wallet.core.data.extensions.toClaimUiModels
+import se.digg.wallet.core.data.model.CredentialQuery
+import se.digg.wallet.core.data.model.CredentialSet
+import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.model.SavedCredential
-import se.digg.wallet.data.CredentialQuery
-import se.digg.wallet.data.CredentialSet
-import se.digg.wallet.data.PresentationItem
 
 internal object CredentialMatcher {
 

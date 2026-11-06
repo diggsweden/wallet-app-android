@@ -16,8 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import se.digg.wallet.core.data.UserRepository
 import se.digg.wallet.core.model.SavedCredential
-import se.digg.wallet.data.UserRepository
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(private val userRepository: UserRepository) :

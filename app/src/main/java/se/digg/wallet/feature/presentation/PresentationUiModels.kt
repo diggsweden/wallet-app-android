@@ -4,7 +4,7 @@
 
 package se.digg.wallet.feature.presentation
 
-import se.digg.wallet.data.PresentationItem
+import se.digg.wallet.core.data.model.PresentationItem
 
 sealed interface PresentationUiState {
     object Loading : PresentationUiState

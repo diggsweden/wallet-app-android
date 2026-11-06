@@ -15,8 +15,8 @@ import eu.europa.ec.eudi.openid4vci.JwsAlgorithm
 import eu.europa.ec.eudi.openid4vci.PositiveDuration
 import eu.europa.ec.eudi.openid4vci.ProvisionClientAttestation
 import eu.europa.ec.eudi.openid4vci.clientAttestationJWSAlgs
+import se.digg.wallet.core.data.WalletInstanceAttestationProvider
 import se.digg.wallet.core.network.DpopProofBuilder
-import se.digg.wallet.data.WalletInstanceAttestationProvider
 
 private val ES256 = JwsAlgorithm("ES256")
 private const val ATTESTATION_CLIENT_AUTH_METHOD =

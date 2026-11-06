@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.extensions.getClaimUiModels
-import se.digg.wallet.data.UserRepository
+import se.digg.wallet.core.data.UserRepository
+import se.digg.wallet.core.data.extensions.getClaimUiModels
 import timber.log.Timber
 
 @HiltViewModel
