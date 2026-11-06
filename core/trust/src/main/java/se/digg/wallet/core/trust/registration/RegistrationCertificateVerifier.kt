@@ -11,7 +11,7 @@ import se.digg.wallet.core.trust.CertificateValidator
 
 private const val REGISTRATION_CERTIFICATE_TYPE = "rc-wrp+jwt"
 
-internal fun verifyRegistrationCertificate(
+fun verifyRegistrationCertificate(
     jws: String,
     trustAnchors: List<X509Certificate>,
     now: Instant,

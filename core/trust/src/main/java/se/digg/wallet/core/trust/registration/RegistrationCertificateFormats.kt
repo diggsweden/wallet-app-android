@@ -4,4 +4,4 @@
 
 package se.digg.wallet.core.trust.registration
 
-internal val REGISTRATION_CERTIFICATE_FORMATS = setOf("registration_cert", "jwt")
+val REGISTRATION_CERTIFICATE_FORMATS = setOf("registration_cert", "jwt")
