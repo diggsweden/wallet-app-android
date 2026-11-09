@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import se.digg.wallet.core.navigation.toNavKey
 
@@ -18,7 +19,7 @@ import se.digg.wallet.core.navigation.toNavKey
 class QrScannerViewModel @Inject constructor() : ViewModel() {
 
     private val _events = MutableSharedFlow<QrScannerUiEvent>()
-    val events: SharedFlow<QrScannerUiEvent> = _events
+    val events: SharedFlow<QrScannerUiEvent> = _events.asSharedFlow()
 
     fun onQrCodeScan(uri: Uri) {
         val key = uri.toNavKey() ?: return

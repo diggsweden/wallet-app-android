@@ -161,6 +161,7 @@ dependencies {
     implementation(project(":core:webauth"))
     implementation(project(":feature:dashboard"))
     implementation(project(":feature:credentialdetails"))
+    implementation(project(":feature:qrscanner"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
