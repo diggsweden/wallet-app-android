@@ -160,6 +160,7 @@ dependencies {
     implementation(project(":core:trust"))
     implementation(project(":core:webauth"))
     implementation(project(":feature:dashboard"))
+    implementation(project(":feature:credentialdetails"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)

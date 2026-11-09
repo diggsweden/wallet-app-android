@@ -13,6 +13,10 @@ interface CredentialStore {
 
     suspend fun getCredentials(): List<SavedCredential>
 
+    suspend fun getCredential(id: String): SavedCredential =
+        getCredentials().firstOrNull { it.id == id }
+            ?: throw NoSuchElementException("Credential with id: $id not found")
+
     suspend fun addCredentials(credentials: List<SavedCredential>)
 }
 

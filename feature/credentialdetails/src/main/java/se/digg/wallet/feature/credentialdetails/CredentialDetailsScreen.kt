@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for digital government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -25,6 +25,8 @@ import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.ClaimValue
 
 @Composable
 fun CredentialDetailsRoute(
@@ -34,7 +36,7 @@ fun CredentialDetailsRoute(
     viewModel: CredentialDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) { viewModel.toUiModel(credentialId) }
+    LaunchedEffect(credentialId) { viewModel.loadCredential(credentialId) }
 
     CredentialDetailsScreen(
         uiState = uiState,
@@ -43,9 +45,8 @@ fun CredentialDetailsRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CredentialDetailsScreen(
+internal fun CredentialDetailsScreen(
     uiState: CredentialDetailsState,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -82,10 +83,47 @@ private fun CredentialDetailsScreen(
 
 @Composable
 @PreviewsWallet
-private fun CredentialDetailsScreenPreview() {
+private fun CredentialDetailsScreenSuccessPreview() {
+    WalletPreview {
+        CredentialDetailsScreen(
+            uiState = CredentialDetailsState.Credential(
+                claims = listOf(
+                    ClaimUiModel(
+                        id = "given_name",
+                        displayName = "Förnamn",
+                        value = ClaimValue.TextValue("Anna"),
+                    ),
+                    ClaimUiModel(
+                        id = "family_name",
+                        displayName = "Efternamn",
+                        value = ClaimValue.TextValue("Svensson"),
+                    ),
+                ),
+                issuer = "Digg - Agency for Digital Government",
+                issuerImgUrl = "",
+            ),
+            onBackClick = {},
+        )
+    }
+}
+
+@Composable
+@PreviewsWallet
+private fun CredentialDetailsScreenLoadingPreview() {
     WalletPreview {
         CredentialDetailsScreen(
             uiState = CredentialDetailsState.Loading,
+            onBackClick = {},
+        )
+    }
+}
+
+@Composable
+@PreviewsWallet
+private fun CredentialDetailsScreenErrorPreview() {
+    WalletPreview {
+        CredentialDetailsScreen(
+            uiState = CredentialDetailsState.Error("Failed to load credential"),
             onBackClick = {},
         )
     }
