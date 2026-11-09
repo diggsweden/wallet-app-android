@@ -4,20 +4,17 @@
 
 package se.digg.wallet.navigation
 
-import android.content.Intent
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.navigation.AboutKey
 import se.digg.wallet.core.navigation.AppSetupKey
 import se.digg.wallet.core.navigation.CredentialDetailsKey
@@ -99,14 +96,7 @@ fun WalletNavDisplay(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
                     onSettingsClick = { navigator.navigate(SettingsKey()) },
                     onScanQrCodeClick = { navigator.navigate(QrScannerKey) },
-                    onAddIdDocumentClick = {
-                        val intent =
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                "https://${BuildConfig.PID_ISSUER_URL}".toUri(),
-                            )
-                        context.startActivity(intent)
-                    },
+                    onAddIdDocumentClick = { context.openPidIssuer() },
                 )
             }
             entry<QrScannerKey> {
