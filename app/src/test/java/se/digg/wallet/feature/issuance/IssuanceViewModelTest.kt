@@ -11,6 +11,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -115,6 +117,8 @@ private class FakeCredentialStore : CredentialStore {
     var gate: CompletableDeferred<Unit>? = null
     var count = 0
     val stored = mutableListOf<SavedCredential>()
+
+    override val credentials: Flow<List<SavedCredential>> = flow { emit(stored) }
 
     override suspend fun getCredentials(): List<SavedCredential> = stored
 

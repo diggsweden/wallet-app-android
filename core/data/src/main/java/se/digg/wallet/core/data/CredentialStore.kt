@@ -5,9 +5,12 @@
 package se.digg.wallet.core.data
 
 import com.nimbusds.jose.jwk.ECKey
+import kotlinx.coroutines.flow.Flow
 import se.digg.wallet.core.model.SavedCredential
 
 interface CredentialStore {
+    val credentials: Flow<List<SavedCredential>>
+
     suspend fun getCredentials(): List<SavedCredential>
 
     suspend fun addCredentials(credentials: List<SavedCredential>)

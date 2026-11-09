@@ -10,6 +10,7 @@ import io.ktor.client.HttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import se.digg.wallet.access_mechanism.model.ServerParameters
 import se.digg.wallet.core.crypto.KeystoreManager
 import se.digg.wallet.core.database.OpaqueSession
@@ -53,6 +54,7 @@ class UserRepository(
     )
 
     val user: Flow<User?> = userDao.observe()
+    override val credentials: Flow<List<SavedCredential>> = user.map { it?.credentials.orEmpty() }
     private val accountsClient = V0AccountsClient(gatewayClient)
     private val attestationsClient = AttestationV0KeyAttestationsClient(gatewayClient)
     private val walletInstanceAttestationsClient =

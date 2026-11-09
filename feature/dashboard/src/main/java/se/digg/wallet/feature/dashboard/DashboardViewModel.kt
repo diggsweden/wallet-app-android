@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for digital government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -16,21 +16,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import se.digg.wallet.core.data.UserRepository
+import se.digg.wallet.core.data.CredentialStore
 import se.digg.wallet.core.model.SavedCredential
 
 @HiltViewModel
-class DashboardViewModel @Inject constructor(private val userRepository: UserRepository) :
+class DashboardViewModel @Inject constructor(private val credentialStore: CredentialStore) :
     ViewModel() {
 
     val uiState: StateFlow<DashboardUiModel> =
-        userRepository.user.map { user ->
-            val credentials = user?.credentials ?: emptyList()
-            DashboardUiModel(
-                pid = credentials.firstOrNull(),
-                credentials = credentials.drop(1),
-            )
-        }
+        credentialStore.credentials
+            .map { credentials ->
+                DashboardUiModel(
+                    pid = credentials.firstOrNull(),
+                    credentials = credentials.drop(1),
+                )
+            }
             .distinctUntilChanged()
             .stateIn(
                 viewModelScope,

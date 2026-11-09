@@ -34,6 +34,12 @@ internal fun Project.configureKotlinAndroid(
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
+
+        packaging {
+            resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+            resources.excludes.add("META-INF/LICENSE.md")
+            resources.excludes.add("META-INF/NOTICE.md")
+        }
     }
 
     configure<KotlinAndroidProjectExtension> {

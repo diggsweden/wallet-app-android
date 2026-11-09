@@ -1,10 +1,9 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for digital government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
 package se.digg.wallet.feature.dashboard
 
-import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,15 +24,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import se.digg.wallet.BuildConfig
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.DocumentCard
 import se.digg.wallet.core.designsystem.component.FabMenu
 import se.digg.wallet.core.designsystem.component.FabMenuItem
@@ -51,6 +46,7 @@ fun DashboardRoute(
     onCredentialClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onScanQrCodeClick: () -> Unit,
+    onAddIdDocumentClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
@@ -61,6 +57,7 @@ fun DashboardRoute(
         onCredentialClick = onCredentialClick,
         onSettingsClick = onSettingsClick,
         onScanQrCodeClick = onScanQrCodeClick,
+        onAddIdDocumentClick = onAddIdDocumentClick,
         modifier = modifier,
     )
 }
@@ -72,9 +69,9 @@ private fun DashboardScreen(
     onCredentialClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onScanQrCodeClick: () -> Unit,
+    onAddIdDocumentClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     BackHandler(enabled = fabMenuExpanded) {
@@ -92,9 +89,7 @@ private fun DashboardScreen(
                 onExpandedChange = { fabMenuExpanded = it },
                 onAddIdDocumentClick = {
                     fabMenuExpanded = false
-                    val intent =
-                        Intent(Intent.ACTION_VIEW, "https://${BuildConfig.PID_ISSUER_URL}".toUri())
-                    context.startActivity(intent)
+                    onAddIdDocumentClick()
                 },
                 onScanQrCodeClick = {
                     fabMenuExpanded = false
@@ -221,6 +216,7 @@ private fun DashboardScreenPreview() {
             onCredentialClick = {},
             onSettingsClick = {},
             onScanQrCodeClick = {},
+            onAddIdDocumentClick = {},
         )
     }
 }
