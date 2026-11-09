@@ -14,5 +14,5 @@ dependencies {
     implementation(project(":core:data"))
 
     testImplementation(libs.androidx.junit)
-    testImplementation(libs.robolectric)
+    testImplementation(libs.turbine)
 }

@@ -5,15 +5,15 @@
 package se.digg.wallet.feature.dashboard
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -23,9 +23,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +41,7 @@ import se.digg.wallet.core.designsystem.theme.Brown100
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
+import se.digg.wallet.core.model.CredentialDisplayData
 import se.digg.wallet.core.model.SavedCredential
 
 @Composable
@@ -50,10 +53,10 @@ fun DashboardRoute(
     modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
-    val credentialDetails by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     DashboardScreen(
-        credentialDetails = credentialDetails,
+        uiState = uiState,
         onCredentialClick = onCredentialClick,
         onSettingsClick = onSettingsClick,
         onScanQrCodeClick = onScanQrCodeClick,
@@ -62,10 +65,9 @@ fun DashboardRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DashboardScreen(
-    credentialDetails: DashboardUiModel,
+internal fun DashboardScreen(
+    uiState: DashboardUiState,
     onCredentialClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onScanQrCodeClick: () -> Unit,
@@ -99,7 +101,7 @@ private fun DashboardScreen(
         },
     ) { innerPadding ->
         DashboardContent(
-            credentialDetails = credentialDetails,
+            uiState = uiState,
             onCredentialClick = onCredentialClick,
             modifier = Modifier.padding(innerPadding),
         )
@@ -147,30 +149,78 @@ private fun DashboardFabMenu(
 
 @Composable
 private fun DashboardContent(
-    credentialDetails: DashboardUiModel,
+    uiState: DashboardUiState,
     onCredentialClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 30.dp)
-            .padding(bottom = 16.dp),
-    ) {
-        WalletTitle()
-        Spacer(modifier = Modifier.height(36.dp))
-        credentialDetails.pid?.let { pid ->
-            PidSection(
-                pid = pid,
-                onCredentialClick = onCredentialClick,
-            )
+    when (uiState) {
+        is DashboardUiState.Loading -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = Brown100)
+            }
         }
-        if (credentialDetails.credentials.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(30.dp))
-            CredentialsSection(
-                credentials = credentialDetails.credentials,
-                onCredentialClick = onCredentialClick,
-            )
+
+        is DashboardUiState.Error -> {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 30.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = uiState.message ?: stringResource(R.string.dashboard_error_fallback),
+                    style = WalletTextStyle.BodyMD,
+                    color = Brown100,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+
+        is DashboardUiState.Success -> {
+            LazyColumn(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 30.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
+            ) {
+                item {
+                    WalletTitle()
+                    Spacer(modifier = Modifier.height(36.dp))
+                }
+                if (uiState.pid != null) {
+                    item {
+                        PidSection(
+                            pid = uiState.pid,
+                            onCredentialClick = onCredentialClick,
+                        )
+                    }
+                }
+                if (uiState.credentials.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(30.dp))
+                        Text(
+                            stringResource(R.string.dashboard_credentials_header),
+                            style = WalletTextStyle.H2,
+                            color = Brown100,
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                    items(
+                        items = uiState.credentials,
+                        key = { it.id },
+                    ) { credential ->
+                        DocumentCard(
+                            title = credential.displayData?.name
+                                ?: stringResource(R.string.dashboard_credential_fallback_title),
+                            onClick = { onCredentialClick(credential.id) },
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+            }
         }
     }
 }
@@ -183,36 +233,78 @@ private fun PidSection(pid: SavedCredential, onCredentialClick: (String) -> Unit
     )
 }
 
+private val previewPid = SavedCredential(
+    id = "pid-1",
+    compactSerialized = "",
+    claimDisplayNames = emptyMap(),
+    issuer = null,
+    displayData = CredentialDisplayData("Personal Identity Document"),
+    keyId = "key-1",
+)
+
+private val previewCredential = SavedCredential(
+    id = "doc-1",
+    compactSerialized = "",
+    claimDisplayNames = emptyMap(),
+    issuer = null,
+    displayData = CredentialDisplayData("Driver License"),
+    keyId = "key-2",
+)
+
 @Composable
-private fun CredentialsSection(
-    credentials: List<SavedCredential>,
-    onCredentialClick: (String) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text(
-            stringResource(R.string.dashboard_credentials_header),
-            style = WalletTextStyle.H2,
-            color = Brown100,
+@PreviewsWallet
+private fun DashboardScreenSuccessPreview() {
+    WalletPreview {
+        DashboardScreen(
+            uiState = DashboardUiState.Success(
+                pid = previewPid,
+                credentials = listOf(previewCredential),
+            ),
+            onCredentialClick = {},
+            onSettingsClick = {},
+            onScanQrCodeClick = {},
+            onAddIdDocumentClick = {},
         )
-        for (credential in credentials) {
-            DocumentCard(
-                title = credential.displayData?.name
-                    ?: stringResource(R.string.dashboard_credential_fallback_title),
-                onClick = { onCredentialClick(credential.id) },
-            )
-        }
     }
 }
 
 @Composable
 @PreviewsWallet
-private fun DashboardScreenPreview() {
+private fun DashboardScreenEmptyPreview() {
     WalletPreview {
         DashboardScreen(
-            credentialDetails = DashboardUiModel(
+            uiState = DashboardUiState.Success(
                 pid = null,
                 credentials = emptyList(),
             ),
+            onCredentialClick = {},
+            onSettingsClick = {},
+            onScanQrCodeClick = {},
+            onAddIdDocumentClick = {},
+        )
+    }
+}
+
+@Composable
+@PreviewsWallet
+private fun DashboardScreenLoadingPreview() {
+    WalletPreview {
+        DashboardScreen(
+            uiState = DashboardUiState.Loading,
+            onCredentialClick = {},
+            onSettingsClick = {},
+            onScanQrCodeClick = {},
+            onAddIdDocumentClick = {},
+        )
+    }
+}
+
+@Composable
+@PreviewsWallet
+private fun DashboardScreenErrorPreview() {
+    WalletPreview {
+        DashboardScreen(
+            uiState = DashboardUiState.Error("Unable to connect to wallet store"),
             onCredentialClick = {},
             onSettingsClick = {},
             onScanQrCodeClick = {},

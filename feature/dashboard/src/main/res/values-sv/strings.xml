@@ -3,4 +3,5 @@
     <string name="dashboard_credential_fallback_title">Handling</string>
     <string name="dashboard_fab_add_document">Lägg till dokument</string>
     <string name="dashboard_fab_scan_qr_code">Skanna QR-kod</string>
+    <string name="dashboard_error_fallback">Kunde inte läsa in handlingar</string>
 </resources>

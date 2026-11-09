@@ -3,4 +3,5 @@
     <string name="dashboard_credential_fallback_title">Document</string>
     <string name="dashboard_fab_add_document">Add document</string>
     <string name="dashboard_fab_scan_qr_code">Scan QR code</string>
+    <string name="dashboard_error_fallback">Failed to load credentials</string>
 </resources>

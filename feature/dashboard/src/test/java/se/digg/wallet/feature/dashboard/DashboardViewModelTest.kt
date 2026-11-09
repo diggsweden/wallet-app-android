@@ -4,50 +4,52 @@
 
 package se.digg.wallet.feature.dashboard
 
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Date
+import app.cash.turbine.test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import se.digg.wallet.core.data.CredentialStore
 import se.digg.wallet.core.model.CredentialDisplayData
 import se.digg.wallet.core.model.SavedCredential
 
 @OptIn(ExperimentalCoroutinesApi::class)
+class MainDispatcherRule(val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()) :
+    TestWatcher() {
+    override fun starting(description: Description) {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    override fun finished(description: Description) {
+        Dispatchers.resetMain()
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModelTest {
 
-    private val dispatcher = StandardTestDispatcher()
-    private val credentialsFlow = MutableStateFlow<List<SavedCredential>>(emptyList())
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val credentialsFlow = MutableSharedFlow<List<SavedCredential>>(replay = 1)
     private val fakeCredentialStore = object : CredentialStore {
         override val credentials: Flow<List<SavedCredential>> = credentialsFlow
-        override suspend fun getCredentials(): List<SavedCredential> = credentialsFlow.value
-        override suspend fun addCredentials(credentials: List<SavedCredential>) {
-            credentialsFlow.value += credentials
-        }
-    }
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
+        override suspend fun getCredentials(): List<SavedCredential> = emptyList()
+        override suspend fun addCredentials(credentials: List<SavedCredential>) {}
     }
 
     private fun createCredential(id: String, name: String): SavedCredential = SavedCredential(
@@ -60,30 +62,37 @@ class DashboardViewModelTest {
     )
 
     @Test
-    fun initialUiState_whenEmpty_emitsNullPidAndEmptyCredentials() = runTest {
+    fun initialUiState_isInitiallyLoading() {
         val viewModel = DashboardViewModel(fakeCredentialStore)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect {}
-        }
-        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(DashboardUiState.Loading, viewModel.uiState.value)
+    }
 
-        assertNull(viewModel.uiState.value.pid)
-        assertEquals(emptyList<SavedCredential>(), viewModel.uiState.value.credentials)
+    @Test
+    fun uiState_whenStoreEmitsEmpty_transitionsFromLoadingToEmptySuccess() = runTest {
+        val viewModel = DashboardViewModel(fakeCredentialStore)
+        viewModel.uiState.test {
+            assertEquals(DashboardUiState.Loading, awaitItem())
+
+            credentialsFlow.emit(emptyList())
+            val success = awaitItem() as DashboardUiState.Success
+            assertNull(success.pid)
+            assertTrue(success.credentials.isEmpty())
+        }
     }
 
     @Test
     fun uiState_withSingleCredential_emitsPidAndEmptyCredentials() = runTest {
         val cred1 = createCredential("pid-1", "Personal Identity")
-        credentialsFlow.value = listOf(cred1)
-
         val viewModel = DashboardViewModel(fakeCredentialStore)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect {}
-        }
-        dispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(cred1, viewModel.uiState.value.pid)
-        assertEquals(emptyList<SavedCredential>(), viewModel.uiState.value.credentials)
+        viewModel.uiState.test {
+            assertEquals(DashboardUiState.Loading, awaitItem())
+
+            credentialsFlow.emit(listOf(cred1))
+            val success = awaitItem() as DashboardUiState.Success
+            assertEquals(cred1, success.pid)
+            assertTrue(success.credentials.isEmpty())
+        }
     }
 
     @Test
@@ -91,44 +100,54 @@ class DashboardViewModelTest {
         val pid = createCredential("pid-1", "PID")
         val cred1 = createCredential("doc-1", "Driver License")
         val cred2 = createCredential("doc-2", "Diploma")
-        credentialsFlow.value = listOf(pid, cred1, cred2)
-
         val viewModel = DashboardViewModel(fakeCredentialStore)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect {}
-        }
-        dispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(pid, viewModel.uiState.value.pid)
-        assertEquals(listOf(cred1, cred2), viewModel.uiState.value.credentials)
+        viewModel.uiState.test {
+            assertEquals(DashboardUiState.Loading, awaitItem())
+
+            credentialsFlow.emit(listOf(pid, cred1, cred2))
+            val success = awaitItem() as DashboardUiState.Success
+            assertEquals(pid, success.pid)
+            assertEquals(listOf(cred1, cred2), success.credentials)
+        }
     }
 
     @Test
     fun uiState_updatesDynamicallyWhenCredentialsChange() = runTest {
         val viewModel = DashboardViewModel(fakeCredentialStore)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect {}
+
+        viewModel.uiState.test {
+            assertEquals(DashboardUiState.Loading, awaitItem())
+
+            credentialsFlow.emit(emptyList())
+            val emptySuccess = awaitItem() as DashboardUiState.Success
+            assertNull(emptySuccess.pid)
+
+            val pid = createCredential("pid-1", "PID")
+            val cred = createCredential("doc-1", "Passport")
+            credentialsFlow.emit(listOf(pid, cred))
+
+            val updatedSuccess = awaitItem() as DashboardUiState.Success
+            assertEquals(pid, updatedSuccess.pid)
+            assertEquals(listOf(cred), updatedSuccess.credentials)
         }
-        dispatcher.scheduler.advanceUntilIdle()
-
-        assertNull(viewModel.uiState.value.pid)
-
-        val pid = createCredential("pid-1", "PID")
-        val cred = createCredential("doc-1", "Passport")
-        credentialsFlow.value = listOf(pid, cred)
-        dispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(pid, viewModel.uiState.value.pid)
-        assertEquals(listOf(cred), viewModel.uiState.value.credentials)
     }
 
     @Test
-    fun formatDate_formatsDateCorrectly() {
-        val localDate = LocalDate.of(2026, 11, 6)
-        val date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
-        val formatted = formatDate(date)
+    fun uiState_whenUpstreamThrows_emitsError() = runTest {
+        val failingStore = object : CredentialStore {
+            override val credentials: Flow<List<SavedCredential>> = flow {
+                throw IllegalStateException("Database read failure")
+            }
 
-        assertTrue(formatted.startsWith("06 "))
-        assertTrue(formatted.endsWith(" 2026"))
+            override suspend fun getCredentials(): List<SavedCredential> = emptyList()
+            override suspend fun addCredentials(credentials: List<SavedCredential>) {}
+        }
+
+        val viewModel = DashboardViewModel(failingStore)
+        viewModel.uiState.test {
+            val error = awaitItem() as DashboardUiState.Error
+            assertEquals("Database read failure", error.message)
+        }
     }
 }
