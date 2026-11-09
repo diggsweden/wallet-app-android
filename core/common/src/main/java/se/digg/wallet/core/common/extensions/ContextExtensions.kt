@@ -4,6 +4,7 @@
 
 package se.digg.wallet.core.common.extensions
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -15,4 +16,11 @@ fun Context.openAppSettings() {
         Uri.fromParts("package", packageName, null),
     )
     startActivity(intent)
+}
+
+fun Context.openWebUrl(url: String): Boolean = try {
+    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    true
+} catch (_: ActivityNotFoundException) {
+    false
 }

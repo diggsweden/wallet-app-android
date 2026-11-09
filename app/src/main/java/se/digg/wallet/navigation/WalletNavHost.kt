@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -90,10 +91,12 @@ fun WalletNavDisplay(
                 )
             }
             entry<DashboardKey> {
+                val context = LocalContext.current
                 DashboardRoute(
                     onCredentialClick = { navigator.navigate(CredentialDetailsKey(it)) },
                     onSettingsClick = { navigator.navigate(SettingsKey()) },
                     onScanQrCodeClick = { navigator.navigate(QrScannerKey) },
+                    onAddIdDocumentClick = { context.openPidIssuer() },
                 )
             }
             entry<QrScannerKey> {
