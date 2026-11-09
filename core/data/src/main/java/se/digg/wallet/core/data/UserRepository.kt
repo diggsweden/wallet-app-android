@@ -85,7 +85,7 @@ class UserRepository(
     override suspend fun getCredentials(): List<SavedCredential> =
         userDao.get()?.credentials ?: emptyList()
 
-    suspend fun getCredential(id: String): SavedCredential {
+    override suspend fun getCredential(id: String): SavedCredential {
         val matchingCredential = getCredentials().firstOrNull { it.id == id }
         checkNotNull(matchingCredential) {
             "Cant find credential matching id"

@@ -2,14 +2,15 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-@file:Suppress("ktlint:standard:filename")
-
 package se.digg.wallet.feature.credentialdetails
 
+import androidx.compose.runtime.Immutable
 import se.digg.wallet.core.model.ClaimUiModel
 
+@Immutable
 sealed interface CredentialDetailsState {
-    object Loading : CredentialDetailsState
+    data object Loading : CredentialDetailsState
+
     data class Credential(
         val claims: List<ClaimUiModel>,
         val issuer: String?,
