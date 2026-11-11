@@ -15,6 +15,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import se.digg.wallet.BuildConfig
 import se.digg.wallet.core.navigation.AboutKey
 import se.digg.wallet.core.navigation.AppSetupKey
 import se.digg.wallet.core.navigation.CredentialDetailsKey
@@ -30,8 +31,6 @@ import se.digg.wallet.core.navigation.QrScannerKey
 import se.digg.wallet.core.navigation.SettingsKey
 import se.digg.wallet.core.navigation.ThemeKey
 import se.digg.wallet.core.navigation.WalletNavigator
-import se.digg.wallet.feature.about.AboutRoute
-import se.digg.wallet.feature.about.LicensesRoute
 import se.digg.wallet.feature.appsetup.AppSetupRoute
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsRoute
 import se.digg.wallet.feature.dashboard.DashboardRoute
@@ -40,8 +39,10 @@ import se.digg.wallet.feature.onboarding.OnboardingRoute
 import se.digg.wallet.feature.onboarding.intro.IntroRoute
 import se.digg.wallet.feature.presentation.PresentationRoute
 import se.digg.wallet.feature.qrscanner.QrScannerRoute
+import se.digg.wallet.feature.settings.AboutRoute
 import se.digg.wallet.feature.settings.HelpRoute
 import se.digg.wallet.feature.settings.LanguageRoute
+import se.digg.wallet.feature.settings.LicensesRoute
 import se.digg.wallet.feature.settings.SettingsRoute
 import se.digg.wallet.feature.settings.ThemeRoute
 
@@ -129,6 +130,8 @@ fun WalletNavDisplay(
                 AboutRoute(
                     onBack = { navigator.goBack() },
                     onLicensesClick = { navigator.navigate(LicensesKey) },
+                    isDebug = BuildConfig.DEBUG,
+                    appFlavor = BuildConfig.FLAVOR,
                 )
             }
             entry<LicensesKey> {

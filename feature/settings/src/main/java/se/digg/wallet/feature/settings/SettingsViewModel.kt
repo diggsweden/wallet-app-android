@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.data.UserRepository
+import se.digg.wallet.core.data.AccountManager
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(private val userRepository: UserRepository) :
+class SettingsViewModel @Inject constructor(private val accountManager: AccountManager) :
     ViewModel() {
 
     private val _events = MutableSharedFlow<SettingsUiEvent>()
@@ -23,7 +23,7 @@ class SettingsViewModel @Inject constructor(private val userRepository: UserRepo
 
     fun onLogout() {
         viewModelScope.launch {
-            userRepository.wipeAll()
+            accountManager.wipeAll()
             _events.emit(SettingsUiEvent.LocalStorageCleared)
         }
     }

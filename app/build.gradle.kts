@@ -162,6 +162,7 @@ dependencies {
     implementation(project(":feature:dashboard"))
     implementation(project(":feature:credentialdetails"))
     implementation(project(":feature:qrscanner"))
+    implementation(project(":feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)

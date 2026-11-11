@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletListItem
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
@@ -25,7 +24,7 @@ fun HelpRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun HelpScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun HelpScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
 
     CollapsingTitleScaffold(
@@ -34,7 +33,7 @@ private fun HelpScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier,
     ) {
         WalletListItem(
-            leadingIconRes = R.drawable.open_in_browser_24px,
+            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.open_in_browser_24px,
             title = stringResource(R.string.help_developer_portal),
             onClick = { openDeveloperPortal(context) },
         )

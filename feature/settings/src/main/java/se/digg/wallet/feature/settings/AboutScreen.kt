@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.feature.about
+package se.digg.wallet.feature.settings
 
 import android.content.ClipData
 import androidx.compose.foundation.Image
@@ -26,8 +26,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import se.digg.wallet.BuildConfig
-import se.digg.wallet.R
 import se.digg.wallet.core.common.utils.getDeviceInfo
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletListItem
@@ -38,27 +36,41 @@ import se.digg.wallet.core.designsystem.utils.WalletPreview
 private const val CLIPBOARD_LABEL = "app version"
 
 @Composable
-fun AboutRoute(onBack: () -> Unit, onLicensesClick: () -> Unit, modifier: Modifier = Modifier) {
-    AboutScreen(onBackClick = onBack, onLicensesClick = onLicensesClick, modifier = modifier)
+fun AboutRoute(
+    onBack: () -> Unit,
+    onLicensesClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isDebug: Boolean = false,
+    appFlavor: String? = null,
+) {
+    AboutScreen(
+        onBackClick = onBack,
+        onLicensesClick = onLicensesClick,
+        modifier = modifier,
+        isDebug = isDebug,
+        appFlavor = appFlavor,
+    )
 }
 
 @Composable
-private fun AboutScreen(
+internal fun AboutScreen(
     onBackClick: () -> Unit,
     onLicensesClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isDebug: Boolean = false,
+    appFlavor: String? = null,
 ) {
     val context = LocalContext.current
     val deviceInfo = remember { getDeviceInfo(context) }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
-    val appVersionDescription = if (BuildConfig.DEBUG) {
+    val appVersionDescription = if (isDebug && !appFlavor.isNullOrEmpty()) {
         stringResource(
             R.string.about_app_version_description_variant,
             deviceInfo.appVersionName,
             deviceInfo.appVersionCode,
-            BuildConfig.FLAVOR,
+            appFlavor,
         )
     } else {
         stringResource(
@@ -75,7 +87,7 @@ private fun AboutScreen(
     ) {
         AboutHeader()
         WalletListItem(
-            leadingIconRes = R.drawable.info_24px,
+            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.info_24px,
             title = stringResource(R.string.about_app_version_title),
             description = appVersionDescription,
             onClick = {
@@ -85,11 +97,11 @@ private fun AboutScreen(
                     )
                 }
             },
-            trailingIconRes = R.drawable.copy_icon,
+            trailingIconRes = se.digg.wallet.core.designsystem.R.drawable.copy_icon,
         )
         HorizontalDivider()
         WalletListItem(
-            leadingIconRes = R.drawable.handshake,
+            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.handshake,
             title = stringResource(R.string.about_acknowledgements),
             onClick = onLicensesClick,
         )

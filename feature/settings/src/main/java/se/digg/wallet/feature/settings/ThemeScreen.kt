@@ -13,13 +13,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import se.digg.wallet.R
+import se.digg.wallet.core.common.theme.ThemeOption
+import se.digg.wallet.core.common.theme.ThemePreference
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletRadioRow
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.theme.ThemeOption
-import se.digg.wallet.core.theme.ThemePreference
 
 @Composable
 fun ThemeRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
@@ -27,7 +26,7 @@ fun ThemeRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ThemeScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ThemeScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     CollapsingTitleScaffold(
         title = stringResource(R.string.settings_theme),
         onBackClick = onBackClick,
