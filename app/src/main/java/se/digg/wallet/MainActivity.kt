@@ -26,8 +26,6 @@ import javax.inject.Inject
 import se.digg.wallet.core.common.locale.LocaleOverride
 import se.digg.wallet.core.common.theme.ThemeOption
 import se.digg.wallet.core.common.theme.ThemePreference
-import se.digg.wallet.core.deeplink.DeepLinkHandler
-import se.digg.wallet.core.deeplink.DeepLinkResult
 import se.digg.wallet.core.designsystem.theme.WalletTheme
 import se.digg.wallet.core.navigation.AppSetupKey
 import se.digg.wallet.core.navigation.WalletNavigator
@@ -35,6 +33,8 @@ import se.digg.wallet.core.navigation.toNavKey
 import se.digg.wallet.core.permission.requestLocalNetworkAccess
 import se.digg.wallet.core.webauth.BrowserWebAuthenticator
 import se.digg.wallet.core.webauth.hostWebAuthenticator
+import se.digg.wallet.navigation.DeepLinkHandler
+import se.digg.wallet.navigation.DeepLinkResult
 import se.digg.wallet.navigation.WalletNavDisplay
 import timber.log.Timber
 

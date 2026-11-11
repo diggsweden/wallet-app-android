@@ -4,13 +4,11 @@
 
 package se.digg.wallet.feature.appsetup
 
-sealed interface AppSetupUiState {
-    object Loading : AppSetupUiState
-    data class Error(val message: String?) : AppSetupUiState
-    object Reset : AppSetupUiState
-}
+import androidx.compose.runtime.Immutable
 
-sealed interface AppSetupUiEffect {
-    object NavigateToIntro : AppSetupUiEffect
-    object NavigateToDashboard : AppSetupUiEffect
+@Immutable
+sealed interface AppSetupUiState {
+    data object Loading : AppSetupUiState
+    data class Error(val message: String?) : AppSetupUiState
+    data object Reset : AppSetupUiState
 }
