@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.feature.about
+package se.digg.wallet.feature.settings
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
 
@@ -26,8 +25,8 @@ fun LicensesRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LicensesScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
-    val libraries by produceLibraries(R.raw.aboutlibraries)
+internal fun LicensesScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+    val libraries by produceLibraries()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

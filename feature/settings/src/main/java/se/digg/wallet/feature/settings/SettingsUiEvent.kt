@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-@file:Suppress("ktlint:standard:filename")
-
 package se.digg.wallet.feature.settings
 
 sealed interface SettingsUiEvent {

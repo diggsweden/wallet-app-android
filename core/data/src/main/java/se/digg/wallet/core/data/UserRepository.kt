@@ -39,7 +39,8 @@ class UserRepository(
     private val wipeKeystore: () -> Unit = { KeystoreManager.removeKey() },
 ) : CredentialStore,
     KeyAttestationProvider,
-    WalletInstanceAttestationProvider {
+    WalletInstanceAttestationProvider,
+    AccountManager {
 
     @Inject
     constructor(
@@ -126,7 +127,7 @@ class UserRepository(
         )
     }
 
-    suspend fun wipeAll() {
+    override suspend fun wipeAll() {
         wipeKeystore()
         sessionManager.reset()
         userDao.clear()

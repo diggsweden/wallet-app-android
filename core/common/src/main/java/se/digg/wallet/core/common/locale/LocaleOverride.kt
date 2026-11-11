@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.core.locale
+package se.digg.wallet.core.common.locale
 
 import android.content.Context
 import android.content.res.Configuration

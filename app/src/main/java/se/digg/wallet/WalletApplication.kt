@@ -7,8 +7,8 @@ package se.digg.wallet
 import android.app.Application
 import android.content.Context
 import dagger.hilt.android.HiltAndroidApp
-import se.digg.wallet.core.locale.LocaleOverride
-import se.digg.wallet.core.theme.ThemePreference
+import se.digg.wallet.core.common.locale.LocaleOverride
+import se.digg.wallet.core.common.theme.ThemePreference
 import timber.log.Timber
 
 @HiltAndroidApp

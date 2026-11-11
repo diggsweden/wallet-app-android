@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
+import se.digg.wallet.core.data.AccountManager
 import se.digg.wallet.core.data.CredentialStore
 import se.digg.wallet.core.data.HsmProofKeyManagerFactory
 import se.digg.wallet.core.data.KeyAttestationProvider
@@ -29,6 +30,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindCredentialStore(impl: UserRepository): CredentialStore
+
+    @Binds
+    @Singleton
+    abstract fun bindAccountManager(impl: UserRepository): AccountManager
 
     @Binds
     @Singleton

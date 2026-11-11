@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Digg - Agency for Digital Government
+// SPDX-FileCopyrightText: 2026 Digg - Agency for digital government
 //
 // SPDX-License-Identifier: EUPL-1.2
 
@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
-import se.digg.wallet.R
 import se.digg.wallet.core.common.extensions.openAppSettings
 import se.digg.wallet.core.common.utils.getDeviceInfo
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
@@ -105,7 +104,7 @@ private fun openFeedbackEmail(context: Context) {
 }
 
 @Composable
-private fun SettingsScreen(
+internal fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onFeedbackClick: () -> Unit,
@@ -148,15 +147,15 @@ private fun SettingsMenu(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         WalletListItem(
-            leadingIconRes = R.drawable.feedback_24px,
+            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.feedback_24px,
             title = stringResource(R.string.settings_feedback_title),
             description = stringResource(R.string.settings_feedback_description),
             onClick = onFeedbackClick,
-            trailingIconRes = R.drawable.mail_24px,
+            trailingIconRes = se.digg.wallet.core.designsystem.R.drawable.mail_24px,
         )
         HorizontalDivider()
         WalletListItem(
-            leadingIconRes = R.drawable.admin_panel_settings_24px,
+            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.admin_panel_settings_24px,
             title = stringResource(R.string.settings_app_info_title),
             description = stringResource(R.string.settings_app_info_description),
             onClick = onAppInfoClick,
@@ -165,12 +164,12 @@ private fun SettingsMenu(
         SettingsRows(
             listOf(
                 SettingsRowSpec(
-                    iconRes = R.drawable.language_24px,
+                    iconRes = se.digg.wallet.core.designsystem.R.drawable.language_24px,
                     label = stringResource(R.string.settings_language),
                     onClick = onLanguageClick,
                 ),
                 SettingsRowSpec(
-                    iconRes = R.drawable.contrast_24px,
+                    iconRes = se.digg.wallet.core.designsystem.R.drawable.contrast_24px,
                     label = stringResource(R.string.settings_theme),
                     onClick = onThemeClick,
                 ),
@@ -180,12 +179,12 @@ private fun SettingsMenu(
         SettingsRows(
             listOf(
                 SettingsRowSpec(
-                    iconRes = R.drawable.help_24px,
+                    iconRes = se.digg.wallet.core.designsystem.R.drawable.help_24px,
                     label = stringResource(R.string.settings_help),
                     onClick = onHelpClick,
                 ),
                 SettingsRowSpec(
-                    iconRes = R.drawable.info_24px,
+                    iconRes = se.digg.wallet.core.designsystem.R.drawable.info_24px,
                     label = stringResource(R.string.settings_about),
                     onClick = onAboutClick,
                 ),

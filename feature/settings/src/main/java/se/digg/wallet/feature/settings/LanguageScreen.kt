@@ -17,12 +17,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import se.digg.wallet.R
+import se.digg.wallet.core.common.locale.LocaleOverride
 import se.digg.wallet.core.designsystem.component.CollapsingTitleScaffold
 import se.digg.wallet.core.designsystem.component.WalletRadioRow
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.core.locale.LocaleOverride
 
 @Composable
 fun LanguageRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
@@ -30,7 +29,7 @@ fun LanguageRoute(onBack: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LanguageScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun LanguageScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     CollapsingTitleScaffold(
         title = stringResource(R.string.settings_language),
         onBackClick = onBackClick,
