@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_setup_reset_title">Din plånbok har återställts</string>
+    <string name="app_setup_reset_description">Appen är under utveckling. En uppdatering gjorde att din plånbok behövde återställas.</string>
+    <string name="app_setup_reset_removed_title">Borttaget från den här enheten</string>
+    <string name="app_setup_reset_removed_description">Dina uppgifter och dokument har raderats.</string>
+    <string name="app_setup_reset_register_again">Du behöver registrera plånboken igen.</string>
+    <string name="app_setup_reset_button">Jag förstår</string>
+</resources>

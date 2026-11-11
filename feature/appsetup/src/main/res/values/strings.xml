@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_setup_reset_title">Your wallet has been reset</string>
+    <string name="app_setup_reset_description">The app is under development. An update required your wallet to be reset.</string>
+    <string name="app_setup_reset_removed_title">Removed from this device</string>
+    <string name="app_setup_reset_removed_description">Your information and documents have been deleted.</string>
+    <string name="app_setup_reset_register_again">You need to register the wallet again.</string>
+    <string name="app_setup_reset_button">I understand</string>
+</resources>

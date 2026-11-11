@@ -38,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
 import se.digg.wallet.core.designsystem.component.InfoCard
@@ -85,7 +84,7 @@ fun AppSetupRoute(
 }
 
 @Composable
-fun AppSetupScreen(
+internal fun AppSetupScreen(
     uiState: AppSetupUiState,
     onAcknowledgeReset: () -> Unit,
     onRetry: () -> Unit,
