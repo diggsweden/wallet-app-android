@@ -87,7 +87,7 @@ internal fun AboutScreen(
     ) {
         AboutHeader()
         WalletListItem(
-            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.info_24px,
+            leadingIconRes = R.drawable.info_24px,
             title = stringResource(R.string.about_app_version_title),
             description = appVersionDescription,
             onClick = {
@@ -97,11 +97,11 @@ internal fun AboutScreen(
                     )
                 }
             },
-            trailingIconRes = se.digg.wallet.core.designsystem.R.drawable.copy_icon,
+            trailingIconRes = R.drawable.copy_icon,
         )
         HorizontalDivider()
         WalletListItem(
-            leadingIconRes = se.digg.wallet.core.designsystem.R.drawable.handshake,
+            leadingIconRes = R.drawable.handshake,
             title = stringResource(R.string.about_acknowledgements),
             onClick = onLicensesClick,
         )
