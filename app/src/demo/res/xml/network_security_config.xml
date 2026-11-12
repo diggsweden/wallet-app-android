@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <debug-overrides>
+        <!-- Detta tillåter appen att ignorera certifikatfel, men ENBART i debug-builds -->
+        <trust-anchors>
+            <certificates src="user" />
+            <certificates src="system" />
+        </trust-anchors>
+    </debug-overrides>
 </network-security-config>

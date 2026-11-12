@@ -108,16 +108,16 @@ android {
         create("demo") {
             dimension = "version"
             applicationIdSuffix = ".demo"
-            buildConfigField("String", "API_KEY", "\"${getSecret("SANDBOX_API_KEY")}\"")
+            buildConfigField("String", "API_KEY", "\"${getSecret("TEST_API_KEY")}\"")
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"wallet.sandbox.digg.se/api\"",
+                "\"client-gateway.provider.pub.testplattformen.wallet.digg.se\"",
             )
             buildConfigField(
                 "String",
                 "PID_ISSUER_URL",
-                "\"wallet.sandbox.digg.se/pid-issuer\"",
+                "\"pid-issuer.provider.pub.testplattformen.wallet.digg.se/pid-issuer\"",
             )
         }
         create("local") {
