@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.eudi.openid4vp)
     implementation(libs.eudi.sdjwt)
     implementation(libs.nimbus)
+    implementation(libs.accessMechanism)
     implementation(libs.bundles.ktor)
 
     testImplementation(libs.androidx.junit)
