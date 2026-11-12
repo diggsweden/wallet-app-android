@@ -14,10 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.R
 import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.designsystem.component.claims.ClaimItem
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
+import se.digg.wallet.feature.presentation.R
 
 @Composable
 fun SelectiveDisclosureList(

@@ -164,6 +164,7 @@ dependencies {
     implementation(project(":feature:qrscanner"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:appsetup"))
+    implementation(project(":feature:presentation"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)

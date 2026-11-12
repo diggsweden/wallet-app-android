@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">ID-plånboken</string>
     <string name="credential_offer_issuer">Issuer:</string>
     <string name="error_contact_support">Contact support</string>
     <string name="generic_error_screen_title">"Oops! Something went wrong."</string>
@@ -29,6 +30,17 @@
     <string name="generic_no">No</string>
     <string name="generic_retry">Retry</string>
     <string name="generic_yes">Yes</string>
+    <string name="generic_ok">Okay</string>
+    <string name="generic_continue">Continue</string>
+    <string name="generic_next">Next</string>
+    <string name="generic_confirm">Confirm</string>
+    <string name="generic_skip">Skip</string>
+    <string name="generic_cancel">Cancel</string>
+    <string name="generic_close">Close</string>
+    <string name="generic_share">Share</string>
+    <string name="generic_loading">Loading</string>
+    <string name="generic_login">Sign in</string>
+    <string name="generic_error_retry">Something went wrong, try again.</string>
     <string name="onboarding_intro_subtitle">Sweden’s digital identity wallet</string>
     <string name="onboarding_intro_title">Wallet</string>
     <string name="settings_app_version">App version: %1$s (%2$d)</string>

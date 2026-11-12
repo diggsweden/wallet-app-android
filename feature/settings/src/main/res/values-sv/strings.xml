@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ID-plånboken</string>
-    <string name="generic_cancel">Avbryt</string>
     <string name="settings_title">Inställningar</string>
     <string name="settings_feedback_title">Skicka feedback</string>
     <string name="settings_feedback_description">Klicka här för att skicka feedback till utvecklaren.</string>
