@@ -165,6 +165,7 @@ dependencies {
     implementation(project(":feature:settings"))
     implementation(project(":feature:appsetup"))
     implementation(project(":feature:presentation"))
+    implementation(project(":feature:issuance"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)

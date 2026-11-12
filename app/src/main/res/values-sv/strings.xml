@@ -9,7 +9,6 @@
     <string name="onboarding_pin_verify_description">Skriv samma PIN-kod igen för att bekräfta den.</string>
     <string name="onboarding_pin_title">Skapa PIN-kod</string>
     <string name="onboarding_pin_description_1">Skapa en sexsiffrig PIN-kod som du använder för att identifiera dig.</string>
-    <string name="issuance_app_bar_title">Hämta attributsintyg</string>
     <string name="onboarding_step_title">Steg %1$d av %2$d</string>
     <string name="onboarding_intro_button">Kom igång med plånboken</string>
     <string name="error_screen_failed_description">%1$s misslyckades</string>
@@ -29,6 +28,4 @@
     <string name="error_detail_instance">Instans</string>
     <string name="error_detail_transaction_id">Transaktions-ID</string>
     <string name="error_detail_invalid_parameter">Ogiltig parameter</string>
-    <string name="onboarding_issuance_ready_to_sign_confirm_button">Begär personuppgifter</string>
-    <string name="onboarding_issuance_ready_to_sign_description">Skriv in din PIN-kod för att begära hämtning av dina personuppgifter.</string>
 </resources>

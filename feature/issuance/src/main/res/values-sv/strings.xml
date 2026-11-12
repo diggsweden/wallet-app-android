@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="issuance_app_bar_title">Hämta attributsintyg</string>
+    <string name="onboarding_issuance_ready_to_sign_confirm_button">Begär personuppgifter</string>
+    <string name="onboarding_issuance_ready_to_sign_description">Skriv in din PIN-kod för att begära hämtning av dina personuppgifter.</string>
+</resources>

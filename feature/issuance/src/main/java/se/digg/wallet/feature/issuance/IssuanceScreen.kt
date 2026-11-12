@@ -23,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.BaseScreen
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
@@ -35,6 +34,7 @@ import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.model.IssuerDisplay
+import se.digg.wallet.feature.issuance.R
 
 @Composable
 fun IssuanceRoute(

@@ -17,9 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
+import se.digg.wallet.feature.issuance.R
 
 @Composable
 fun DeepLinkedIssuanceRoute(
