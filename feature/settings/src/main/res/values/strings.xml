@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">ID-plånboken</string>
-    <string name="generic_cancel">Cancel</string>
     <string name="settings_title">Settings</string>
     <string name="settings_feedback_title">Send feedback</string>
     <string name="settings_feedback_description">Click here to send feedback to the developer.</string>

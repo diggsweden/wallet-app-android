@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">ID-plånboken</string>
     <string name="generic_yes">Ja</string>
     <string name="generic_no">Nej</string>
+    <string name="generic_ok">Ok</string>
+    <string name="generic_continue">Fortsätt</string>
+    <string name="generic_next">Nästa</string>
+    <string name="generic_confirm">Bekräfta</string>
+    <string name="generic_skip">Hoppa över</string>
+    <string name="generic_cancel">Avbryt</string>
+    <string name="generic_close">Stäng</string>
+    <string name="generic_share">Dela</string>
+    <string name="generic_loading">Laddar</string>
+    <string name="generic_login">Logga in</string>
+    <string name="generic_error_retry">Något gick fel, försök igen.</string>
     <string name="generic_home">Till startsidan</string>
     <string name="generic_navigate_back">Navigera bakåt</string>
     <string name="generic_retry">Försök igen</string>
