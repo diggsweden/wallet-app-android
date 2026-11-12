@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="issuance_app_bar_title">Fetch credential</string>
+    <string name="onboarding_issuance_ready_to_sign_confirm_button">Request personal data</string>
+    <string name="onboarding_issuance_ready_to_sign_description">Enter your PIN code to request the retrieval of your personal data.</string>
+</resources>
