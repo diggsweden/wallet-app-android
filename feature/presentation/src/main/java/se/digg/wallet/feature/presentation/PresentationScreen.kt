@@ -9,6 +9,8 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +43,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import java.util.Locale
 import se.digg.wallet.core.designsystem.component.BottomActionBar
 import se.digg.wallet.core.designsystem.component.BottomBarAction
@@ -55,6 +60,9 @@ import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.presentation.R
+import se.digg.wallet.feature.presentation.component.pin.ApprovalPinContent
+
+private const val USE_PIN_POC = true
 
 @Composable
 fun PresentationRoute(
@@ -68,6 +76,7 @@ fun PresentationRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val currentOnPopBack by rememberUpdatedState(onPopBack)
+    val backStack = rememberNavBackStack(PresentationDestination.Request)
 
     LaunchedEffect(Unit) {
         viewModel.init(fullUri)
@@ -81,28 +90,70 @@ fun PresentationRoute(
             }
         }
     }
-    AnimatedContent(
-        targetState = uiState,
+    NavDisplay(
+        backStack = backStack,
         modifier = modifier,
         transitionSpec = {
-            fadeIn(tween(durationMillis = 220)) togetherWith fadeOut(snap(delayMillis = 220))
+            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
         },
-        contentKey = { it::class },
-        label = "presentationStep",
-    ) { state ->
-        PresentationTheme(uiState = state) {
-            PresentationScreen(
-                uiState = state,
-                onBackClick = onBack,
-                onShareClick = viewModel::onAccept,
-                onFinishClick = onFinish,
-                onSubmitPin = viewModel::sendData,
-                onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
-                onRecipientClick = {},
-                onSharedSummaryClick = {},
-            )
-        }
-    }
+        popTransitionSpec = {
+            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        },
+        predictivePopTransitionSpec = {
+            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        },
+        entryProvider = entryProvider {
+            entry<PresentationDestination.Request> {
+                AnimatedContent(
+                    targetState = uiState,
+                    transitionSpec = {
+                        fadeIn(tween(durationMillis = 220)) togetherWith
+                            fadeOut(snap(delayMillis = 220))
+                    },
+                    contentKey = { it::class },
+                    label = "presentationStep",
+                ) { state ->
+                    PresentationTheme(uiState = state) {
+                        PresentationScreen(
+                            uiState = state,
+                            onBackClick = onBack,
+                            onShareClick = viewModel::onAccept,
+                            onFinishClick = onFinish,
+                            onSubmitPin = viewModel::sendData,
+                            onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
+                            onRecipientClick = {
+                                backStack.add(PresentationDestination.Verification)
+                            },
+                            onSharedSummaryClick = {
+                                backStack.add(PresentationDestination.SharedData)
+                            },
+                        )
+                    }
+                }
+            }
+            entry<PresentationDestination.SharedData> {
+                SharedDataRoute(
+                    uiState = uiState,
+                    onBackClick = { backStack.removeLastOrNull() },
+                )
+            }
+            entry<PresentationDestination.Verification> {
+                VerificationRoute(
+                    uiState = uiState,
+                    onTechnicalDetailsClick = {
+                        backStack.add(PresentationDestination.TechnicalDetails)
+                    },
+                    onBackClick = { backStack.removeLastOrNull() },
+                )
+            }
+            entry<PresentationDestination.TechnicalDetails> {
+                TechnicalDetailsRoute(
+                    uiState = uiState,
+                    onBackClick = { backStack.removeLastOrNull() },
+                )
+            }
+        },
+    )
 }
 
 @Composable
@@ -113,7 +164,8 @@ private fun PresentationTheme(uiState: PresentationUiState, content: @Composable
         is PresentationUiState.ShareSuccess,
         -> true
 
-        is PresentationUiState.EnterPin,
+        is PresentationUiState.EnterPin -> USE_PIN_POC
+
         PresentationUiState.Sharing,
         is PresentationUiState.Error,
         -> false
@@ -165,7 +217,7 @@ private fun PresentationTopBar(uiState: PresentationUiState, onBackClick: () -> 
     when (uiState) {
         PresentationUiState.Loading,
         is PresentationUiState.PresentClaims,
-            -> {
+        -> {
             RequestTopAppBar(onCloseClick = onBackClick)
         }
 
@@ -253,7 +305,11 @@ private fun PresentationContent(
             }
 
             is PresentationUiState.EnterPin -> {
-                EnterPinContent(onSubmitPin = onSubmitPin)
+                if (USE_PIN_POC) {
+                    ApprovalPinContent(isWrongPin = uiState.isWrongPin, onSubmit = onSubmitPin)
+                } else {
+                    EnterPinContent(onSubmitPin = onSubmitPin)
+                }
             }
 
             is PresentationUiState.PresentClaims -> {
@@ -387,7 +443,7 @@ private fun PresentationScreenPreview(uiState: PresentationUiState) {
 @PreviewsWallet
 @Composable
 private fun PresentationPreview() {
-    PresentationScreenPreview(uiState = PresentationUiState.EnterPin)
+    PresentationScreenPreview(uiState = PresentationUiState.EnterPin())
 }
 
 @PreviewsWallet

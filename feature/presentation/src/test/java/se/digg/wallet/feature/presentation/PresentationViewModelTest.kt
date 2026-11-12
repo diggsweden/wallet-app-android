@@ -19,9 +19,11 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import se.digg.wallet.access_mechanism.exception.OpaqueException
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
@@ -90,14 +92,21 @@ private class FakePresentationService : PresentationService {
     }
 }
 
-private class FakeProofKeyManager(val pin: String) : ProofKeyManager {
+private class FakeProofKeyManager(
+    val pin: String,
+    private val authenticateError: Exception? = null,
+) : ProofKeyManager {
     override suspend fun sign(keyId: ProofKeyId, data: ByteArray): String = "signature"
 
     override suspend fun createKey(): ProofKey = error("Presentation never creates keys")
 
     override suspend fun deleteKey(keyId: ProofKeyId) = Unit
 
-    override suspend fun authenticate() = Unit
+    override suspend fun authenticate() {
+        authenticateError?.let { error ->
+            throw error
+        }
+    }
 }
 
 private fun credential(id: String, isChecked: Boolean = false) = CredentialUiModel(
@@ -202,7 +211,7 @@ class PresentationViewModelTest {
 
             viewModel.onOptionalClaimCheckedChanged("address", isSelected = true)
             viewModel.onAccept()
-            assertEquals(PresentationUiState.EnterPin, viewModel.uiState.value)
+            assertEquals(PresentationUiState.EnterPin(), viewModel.uiState.value)
 
             viewModel.sendData("123456")
             assertEquals(PresentationUiState.Sharing, viewModel.uiState.value)
@@ -277,5 +286,25 @@ class PresentationViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is PresentationUiState.Error)
+    }
+
+    @Test
+    fun `wrong pin returns to pin entry marked wrong without presenting`() = runTest(dispatcher) {
+        val wrongPinFactory = ProofKeyManagerFactory { pin ->
+            FakeProofKeyManager(
+                pin = pin,
+                authenticateError = OpaqueException.CryptoException("Native login finish failed"),
+            )
+        }
+        val viewModel = PresentationViewModel(service, wrongPinFactory)
+        viewModel.init("openid4vp://request")
+        advanceUntilIdle()
+        viewModel.onAccept()
+
+        viewModel.sendData("000000")
+        advanceUntilIdle()
+
+        assertEquals(PresentationUiState.EnterPin(isWrongPin = true), viewModel.uiState.value)
+        assertNull(service.presentedItems)
     }
 }

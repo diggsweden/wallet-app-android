@@ -20,7 +20,7 @@ sealed interface PresentationUiState {
             get() = requiredCredentials + optionalCredentials.filter { it.isChecked }
     }
 
-    object EnterPin : PresentationUiState
+    data class EnterPin(val isWrongPin: Boolean = false) : PresentationUiState
     object Sharing : PresentationUiState
     data class ShareSuccess(
         val verifierName: String,

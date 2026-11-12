@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import se.digg.wallet.access_mechanism.exception.OpaqueException
 import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.network.PresentationResult
@@ -83,7 +84,7 @@ class PresentationViewModel @Inject constructor(
         val sharedIds = sharedCredentials.map { it.id }.toSet()
         itemsToDisclose = (request.requiredItems + request.optionalItems)
             .filter { it.id in sharedIds }
-        _uiState.value = PresentationUiState.EnterPin
+        _uiState.value = PresentationUiState.EnterPin()
     }
 
     fun sendData(pin: String) {
@@ -94,10 +95,13 @@ class PresentationViewModel @Inject constructor(
                     "Presentation request not resolved"
                 }
 
+                val proofSigner = proofKeyManagerFactory.create(pin = pin)
+                proofSigner.authenticate()
+
                 val result = presentationService.present(
                     request = request,
                     items = itemsToDisclose,
-                    proofSigner = proofKeyManagerFactory.create(pin = pin),
+                    proofSigner = proofSigner,
                 )
 
                 when (result) {
@@ -112,6 +116,9 @@ class PresentationViewModel @Inject constructor(
                         )
                     }
                 }
+            } catch (e: OpaqueException.CryptoException) {
+                Timber.d("PresentationViewModel - Wrong PIN: ${e.message}")
+                _uiState.value = PresentationUiState.EnterPin(isWrongPin = true)
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel - Presentation error: ${e.message}")
                 _uiState.value = PresentationUiState.Error(message = e.message)
