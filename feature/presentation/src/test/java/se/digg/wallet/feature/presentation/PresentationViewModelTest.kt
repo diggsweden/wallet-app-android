@@ -29,6 +29,7 @@ import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.data.model.VerifierUiModel
+import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.network.PresentationResult
 
 private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): PresentationItem =
@@ -51,7 +52,7 @@ private class FakePresentationService : PresentationService {
     var presentedItems: List<PresentationItem>? = null
     var presentedSigner: ProofSigner? = null
 
-    val request = PresentationRequest(
+    var request = PresentationRequest(
         responseUri = "https://verifier.example/response",
         clientId = "verifier.example",
         nonce = "nonce",
@@ -99,6 +100,15 @@ private class FakeProofKeyManager(val pin: String) : ProofKeyManager {
     override suspend fun authenticate() = Unit
 }
 
+private fun credential(id: String, isChecked: Boolean = false) = CredentialUiModel(
+    id = id,
+    name = "Credential $id",
+    issuerName = null,
+    logoUrl = null,
+    claims = emptyList(),
+    isChecked = isChecked,
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class PresentationViewModelTest {
 
@@ -135,9 +145,11 @@ class PresentationViewModelTest {
 
         assertEquals(
             PresentationUiState.PresentClaims(
-                verifierName = "Verifier",
-                requiredClaims = service.request.requiredItems,
-                optionalClaims = service.request.optionalItems,
+                verifier = service.request.verifier,
+                certificate = service.request.accessCertificate,
+                requiredCredentials = listOf(credential("pid")),
+                optionalCredentials = listOf(credential("age"), credential("address")),
+                isEncrypted = false,
             ),
             viewModel.uiState.value,
         )
@@ -177,7 +189,7 @@ class PresentationViewModelTest {
         val state = viewModel.uiState.value as PresentationUiState.PresentClaims
         assertEquals(
             listOf(true, false),
-            state.optionalClaims.map { it.isChecked },
+            state.optionalCredentials.map { it.isChecked },
         )
     }
 
@@ -193,12 +205,51 @@ class PresentationViewModelTest {
             assertEquals(PresentationUiState.EnterPin, viewModel.uiState.value)
 
             viewModel.sendData("123456")
+            assertEquals(PresentationUiState.Sharing, viewModel.uiState.value)
             advanceUntilIdle()
 
             assertEquals(listOf("pid", "address"), service.presentedItems?.map { it.id })
             assertEquals("123456", (service.presentedSigner as? FakeProofKeyManager)?.pin)
-            assertEquals(PresentationUiState.ShareSuccess, viewModel.uiState.value)
+            assertEquals(
+                PresentationUiState.ShareSuccess(
+                    verifierName = "Verifier",
+                    sharedCredentials = listOf(
+                        credential("pid"),
+                        credential("address", isChecked = true),
+                    ),
+                ),
+                viewModel.uiState.value,
+            )
         }
+
+    @Test
+    fun `credential without a display name is titled by its issuer`() = runTest(dispatcher) {
+        val issuer = IssuerDisplay(
+            name = "Issuer",
+            logo = IssuerDisplay.Logo(uri = java.net.URI.create("https://issuer.example/logo.png")),
+        )
+        service.request = service.request.copy(
+            requiredItems = listOf(
+                item("pid", isRequired = true, credentialName = null, issuer = issuer),
+            ),
+        )
+        val viewModel = PresentationViewModel(service, managerFactory)
+
+        viewModel.init("openid4vp://request")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as PresentationUiState.PresentClaims
+        assertEquals(
+            CredentialUiModel(
+                id = "pid",
+                name = "Issuer",
+                issuerName = "Issuer",
+                logoUrl = "https://issuer.example/logo.png",
+                claims = emptyList(),
+            ),
+            state.requiredCredentials.single(),
+        )
+    }
 
     @Test
     fun `redirect result emits OpenUrl effect`() = runTest(dispatcher) {

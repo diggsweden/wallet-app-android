@@ -29,6 +29,7 @@ class PresentationViewModel @Inject constructor(
 ) : ViewModel() {
     private var request: PresentationRequest? = null
     private var itemsToDisclose: List<PresentationItem> = emptyList()
+    private var sharedCredentials: List<CredentialUiModel> = emptyList()
 
     private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Loading)
     val uiState: StateFlow<PresentationUiState> = _uiState.asStateFlow()
@@ -45,9 +46,11 @@ class PresentationViewModel @Inject constructor(
                 val resolved = presentationService.resolve(fullUri)
                 request = resolved
                 _uiState.value = PresentationUiState.PresentClaims(
-                    verifierName = resolved.verifier.name,
-                    requiredClaims = resolved.requiredItems,
-                    optionalClaims = resolved.optionalItems,
+                    verifier = resolved.verifier,
+                    certificate = resolved.accessCertificate,
+                    requiredCredentials = resolved.requiredItems.map { it.toCredentialUiModel() },
+                    optionalCredentials = resolved.optionalItems.map { it.toCredentialUiModel() },
+                    isEncrypted = resolved.encryption != null,
                 )
             } catch (e: Exception) {
                 Timber.d("PresentationViewModel - Resolve error: ${e.message}")
@@ -62,7 +65,7 @@ class PresentationViewModel @Inject constructor(
                 return@update current
             }
             current.copy(
-                optionalClaims = current.optionalClaims.map { item ->
+                optionalCredentials = current.optionalCredentials.map { item ->
                     if (item.id == itemId) {
                         item.copy(isChecked = isSelected)
                     } else {
@@ -75,12 +78,16 @@ class PresentationViewModel @Inject constructor(
 
     fun onAccept() {
         val claims = _uiState.value as? PresentationUiState.PresentClaims ?: return
-        itemsToDisclose = claims.requiredClaims + claims.optionalClaims.filter { it.isChecked }
+        val request = request ?: return
+        sharedCredentials = claims.sharedCredentials
+        val sharedIds = sharedCredentials.map { it.id }.toSet()
+        itemsToDisclose = (request.requiredItems + request.optionalItems)
+            .filter { it.id in sharedIds }
         _uiState.value = PresentationUiState.EnterPin
     }
 
     fun sendData(pin: String) {
-        _uiState.value = PresentationUiState.Loading
+        _uiState.value = PresentationUiState.Sharing
         viewModelScope.launch {
             try {
                 val request = checkNotNull(request) {
@@ -99,7 +106,10 @@ class PresentationViewModel @Inject constructor(
                     }
 
                     is PresentationResult.Success -> {
-                        _uiState.value = PresentationUiState.ShareSuccess
+                        _uiState.value = PresentationUiState.ShareSuccess(
+                            verifierName = request.verifier.name,
+                            sharedCredentials = sharedCredentials,
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -109,3 +119,12 @@ class PresentationViewModel @Inject constructor(
         }
     }
 }
+
+private fun PresentationItem.toCredentialUiModel() = CredentialUiModel(
+    id = id,
+    name = credentialName ?: issuer?.name ?: id,
+    issuerName = issuer?.name,
+    logoUrl = issuer?.logo?.uri?.toString(),
+    claims = claims,
+    isChecked = isChecked,
+)
