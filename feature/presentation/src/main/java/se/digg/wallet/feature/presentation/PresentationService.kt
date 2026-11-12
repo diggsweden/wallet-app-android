@@ -53,6 +53,7 @@ data class PresentationRequest(
     val state: String?,
     val encryption: CryptoSpec?,
     val verifier: VerifierUiModel,
+    val accessCertificate: CertificateDetails,
     val requiredItems: List<PresentationItem>,
     val optionalItems: List<PresentationItem>,
 )
@@ -115,9 +116,10 @@ internal class DefaultPresentationService @Inject constructor(
             }
         }
 
+        val accessCertificate = requestObject.client.accessCertificate()
         val registrationCertificates = RegistrationCertificateValidator.parse(
             verifierInfo = requestObject.verifierInfo,
-            accessCertificate = requestObject.client.accessCertificate(),
+            accessCertificate = accessCertificate,
             trustAnchors = trustStore.getAllTrustAnchors(),
             now = clock.instant(),
         )
@@ -144,6 +146,9 @@ internal class DefaultPresentationService @Inject constructor(
             state = requestObject.state,
             encryption = requestObject.responseEncryptionSpecification?.toCryptoSpec(),
             verifier = registrationCertificates.first().toVerifierUiModel(),
+            accessCertificate = checkNotNull(accessCertificate) {
+                "Access certificate missing"
+            }.toCertificateDetails(),
             requiredItems = requiredItems,
             optionalItems = optionalItems,
         )
