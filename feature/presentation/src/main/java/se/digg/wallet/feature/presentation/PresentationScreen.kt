@@ -59,7 +59,6 @@ import se.digg.wallet.core.designsystem.theme.ApprovalTheme
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.feature.presentation.R
 import se.digg.wallet.feature.presentation.component.pin.ApprovalPinContent
 
 private const val USE_PIN_POC = true
@@ -224,7 +223,7 @@ private fun PresentationTopBar(uiState: PresentationUiState, onBackClick: () -> 
         is PresentationUiState.EnterPin,
         PresentationUiState.Sharing,
         is PresentationUiState.Error,
-            -> {
+        -> {
             WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
         }
 
@@ -271,7 +270,7 @@ private fun PresentationBottomBar(
         is PresentationUiState.EnterPin,
         PresentationUiState.Sharing,
         is PresentationUiState.Error,
-            -> {
+        -> {
         }
     }
 }
