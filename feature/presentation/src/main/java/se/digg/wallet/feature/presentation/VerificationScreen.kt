@@ -23,7 +23,6 @@ import se.digg.wallet.core.designsystem.component.LinkButton
 import se.digg.wallet.core.designsystem.theme.ApprovalTheme
 import se.digg.wallet.core.designsystem.utils.ApprovalPreview
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
-import se.digg.wallet.feature.presentation.R
 import se.digg.wallet.feature.presentation.component.DetailScaffold
 import se.digg.wallet.feature.presentation.component.VerificationStep
 
@@ -69,17 +68,17 @@ internal fun VerificationScreen(
     ) {
         Column(modifier = Modifier.padding(start = 8.dp, top = 28.dp, end = 8.dp)) {
             VerificationStep(
-                eyebrow = stringResource(R.string.presentation_verification_trust_list_label),
-                title = stringResource(R.string.presentation_trust_list_name),
-                description = stringResource(
+                overline = stringResource(R.string.presentation_verification_trust_list_label),
+                headline = stringResource(R.string.presentation_trust_list_name),
+                supportingText = stringResource(
                     R.string.presentation_verification_trust_list_description,
                 ),
                 revealDelayMillis = revealDelay(0),
             )
             VerificationStep(
-                eyebrow = stringResource(R.string.presentation_verification_recipient_label),
-                title = verifierName,
-                description = if (purpose != null) {
+                overline = stringResource(R.string.presentation_verification_recipient_label),
+                headline = verifierName,
+                supportingText = if (purpose != null) {
                     stringResource(R.string.presentation_verification_recipient_purpose, purpose)
                 } else {
                     stringResource(R.string.presentation_verification_recipient_description)
