@@ -5,6 +5,7 @@
 package se.digg.wallet.core.designsystem.component.claims
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,10 +57,17 @@ fun ClaimItem(
 }
 
 @Composable
-private fun ClaimContent(value: ClaimValue) {
+fun ClaimValueContent(value: ClaimValue, modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
+        ClaimContent(value = value, textStyle = LocalTextStyle.current)
+    }
+}
+
+@Composable
+private fun ClaimContent(value: ClaimValue, textStyle: TextStyle = WalletTextStyle.BodyMD) {
     when (value) {
         is ClaimValue.TextValue -> {
-            Text(text = value.value, style = WalletTextStyle.BodyMD)
+            Text(text = value.value, style = textStyle)
         }
 
         is ClaimValue.ImageValue -> {
@@ -78,31 +87,31 @@ private fun ClaimContent(value: ClaimValue) {
             val formatted = value.value.format(
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG),
             )
-            Text(text = formatted, style = WalletTextStyle.BodyMD)
+            Text(text = formatted, style = textStyle)
         }
 
         is ClaimValue.IntValue -> {
-            Text(text = value.value.toString(), style = WalletTextStyle.BodyMD)
+            Text(text = value.value.toString(), style = textStyle)
         }
 
         is ClaimValue.DoubleValue -> {
-            Text(text = value.value.toString(), style = WalletTextStyle.BodyMD)
+            Text(text = value.value.toString(), style = textStyle)
         }
 
         is ClaimValue.BooleanValue -> {
-            BooleanClaim(value = value.value)
+            BooleanClaim(value = value.value, textStyle = textStyle)
         }
 
         is ClaimValue.NullValue -> {
             Text(
                 text = stringResource(R.string.claim_item_missing_value),
-                style = WalletTextStyle.BodyMD,
+                style = textStyle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         is ClaimValue.ArrayValue -> {
-            ArrayClaim(items = value.items)
+            ArrayClaim(items = value.items, textStyle = textStyle)
         }
 
         is ClaimValue.ObjectValue -> {
@@ -112,7 +121,7 @@ private fun ClaimContent(value: ClaimValue) {
 }
 
 @Composable
-private fun BooleanClaim(value: Boolean) {
+private fun BooleanClaim(value: Boolean, textStyle: TextStyle) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -124,18 +133,18 @@ private fun BooleanClaim(value: Boolean) {
         )
         Text(
             text = stringResource(if (value) R.string.generic_yes else R.string.generic_no),
-            style = WalletTextStyle.BodyMD,
+            style = textStyle,
         )
     }
 }
 
 @Composable
-private fun ArrayClaim(items: List<ClaimUiModel>) {
+private fun ArrayClaim(items: List<ClaimUiModel>, textStyle: TextStyle) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         items.forEach { item ->
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(text = "\u2022", style = WalletTextStyle.BodyMD)
-                ClaimContent(value = item.value)
+                Text(text = "\u2022", style = textStyle)
+                ClaimContent(value = item.value, textStyle = textStyle)
             }
         }
     }
