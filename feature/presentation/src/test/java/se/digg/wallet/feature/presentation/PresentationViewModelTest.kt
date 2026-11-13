@@ -19,9 +19,11 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import se.digg.wallet.access_mechanism.exception.OpaqueException
 import se.digg.wallet.core.crypto.ProofKey
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.crypto.ProofKeyManager
@@ -29,6 +31,7 @@ import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.data.model.VerifierUiModel
+import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.network.PresentationResult
 
 private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): PresentationItem =
@@ -51,7 +54,7 @@ private class FakePresentationService : PresentationService {
     var presentedItems: List<PresentationItem>? = null
     var presentedSigner: ProofSigner? = null
 
-    val request = PresentationRequest(
+    var request = PresentationRequest(
         responseUri = "https://verifier.example/response",
         clientId = "verifier.example",
         nonce = "nonce",
@@ -89,15 +92,31 @@ private class FakePresentationService : PresentationService {
     }
 }
 
-private class FakeProofKeyManager(val pin: String) : ProofKeyManager {
+private class FakeProofKeyManager(
+    val pin: String,
+    private val authenticateError: Exception? = null,
+) : ProofKeyManager {
     override suspend fun sign(keyId: ProofKeyId, data: ByteArray): String = "signature"
 
     override suspend fun createKey(): ProofKey = error("Presentation never creates keys")
 
     override suspend fun deleteKey(keyId: ProofKeyId) = Unit
 
-    override suspend fun authenticate() = Unit
+    override suspend fun authenticate() {
+        authenticateError?.let { error ->
+            throw error
+        }
+    }
 }
+
+private fun credential(id: String, isChecked: Boolean = false) = CredentialUiModel(
+    id = id,
+    name = "Credential $id",
+    issuerName = null,
+    logoUrl = null,
+    claims = emptyList(),
+    isChecked = isChecked,
+)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PresentationViewModelTest {
@@ -135,9 +154,11 @@ class PresentationViewModelTest {
 
         assertEquals(
             PresentationUiState.PresentClaims(
-                verifierName = "Verifier",
-                requiredClaims = service.request.requiredItems,
-                optionalClaims = service.request.optionalItems,
+                verifier = service.request.verifier,
+                certificate = service.request.accessCertificate,
+                requiredCredentials = listOf(credential("pid")),
+                optionalCredentials = listOf(credential("age"), credential("address")),
+                isEncrypted = false,
             ),
             viewModel.uiState.value,
         )
@@ -177,7 +198,7 @@ class PresentationViewModelTest {
         val state = viewModel.uiState.value as PresentationUiState.PresentClaims
         assertEquals(
             listOf(true, false),
-            state.optionalClaims.map { it.isChecked },
+            state.optionalCredentials.map { it.isChecked },
         )
     }
 
@@ -190,15 +211,54 @@ class PresentationViewModelTest {
 
             viewModel.onOptionalClaimCheckedChanged("address", isSelected = true)
             viewModel.onAccept()
-            assertEquals(PresentationUiState.EnterPin, viewModel.uiState.value)
+            assertEquals(PresentationUiState.EnterPin(), viewModel.uiState.value)
 
             viewModel.sendData("123456")
+            assertEquals(PresentationUiState.Sharing, viewModel.uiState.value)
             advanceUntilIdle()
 
             assertEquals(listOf("pid", "address"), service.presentedItems?.map { it.id })
             assertEquals("123456", (service.presentedSigner as? FakeProofKeyManager)?.pin)
-            assertEquals(PresentationUiState.ShareSuccess, viewModel.uiState.value)
+            assertEquals(
+                PresentationUiState.ShareSuccess(
+                    verifierName = "Verifier",
+                    sharedCredentials = listOf(
+                        credential("pid"),
+                        credential("address", isChecked = true),
+                    ),
+                ),
+                viewModel.uiState.value,
+            )
         }
+
+    @Test
+    fun `credential without a display name is titled by its issuer`() = runTest(dispatcher) {
+        val issuer = IssuerDisplay(
+            name = "Issuer",
+            logo = IssuerDisplay.Logo(uri = java.net.URI.create("https://issuer.example/logo.png")),
+        )
+        service.request = service.request.copy(
+            requiredItems = listOf(
+                item("pid", isRequired = true, credentialName = null, issuer = issuer),
+            ),
+        )
+        val viewModel = PresentationViewModel(service, managerFactory)
+
+        viewModel.init("openid4vp://request")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as PresentationUiState.PresentClaims
+        assertEquals(
+            CredentialUiModel(
+                id = "pid",
+                name = "Issuer",
+                issuerName = "Issuer",
+                logoUrl = "https://issuer.example/logo.png",
+                claims = emptyList(),
+            ),
+            state.requiredCredentials.single(),
+        )
+    }
 
     @Test
     fun `redirect result emits OpenUrl effect`() = runTest(dispatcher) {
@@ -226,5 +286,25 @@ class PresentationViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is PresentationUiState.Error)
+    }
+
+    @Test
+    fun `wrong pin returns to pin entry marked wrong without presenting`() = runTest(dispatcher) {
+        val wrongPinFactory = ProofKeyManagerFactory { pin ->
+            FakeProofKeyManager(
+                pin = pin,
+                authenticateError = OpaqueException.CryptoException("Native login finish failed"),
+            )
+        }
+        val viewModel = PresentationViewModel(service, wrongPinFactory)
+        viewModel.init("openid4vp://request")
+        advanceUntilIdle()
+        viewModel.onAccept()
+
+        viewModel.sendData("000000")
+        advanceUntilIdle()
+
+        assertEquals(PresentationUiState.EnterPin(isWrongPin = true), viewModel.uiState.value)
+        assertNull(service.presentedItems)
     }
 }
