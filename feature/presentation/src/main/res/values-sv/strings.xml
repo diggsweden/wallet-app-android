@@ -1,7 +1,4 @@
 <resources>
-    <string name="presentation_share_successful_info">Du kan nu gå tillbaka till appen eller hemsidan som du kom ifrån.</string>
-    <string name="presentation_share_successful_title">Nu är det klart</string>
-    <string name="presentation_share_title">Dela uppgifter med %1$s</string>
     <string name="presentation_app_bar_title">Begäran om uppgifter</string>
     <string name="presentation_pin_title">Godkänn och identifiera</string>
     <string name="presentation_pin_description">Genom att fylla i din pinkod och identifiera dig, godkänner du delning av dina uppgifter.</string>
@@ -60,5 +57,4 @@
     <string name="presentation_done_description">Fortsätt på enheten där du skannade QR-koden.</string>
     <string name="presentation_done_show_shared">Visa vad som delades</string>
     <string name="presentation_done_button">Klar</string>
-    <string name="presentation_selective_disclosure_title">Valfria uppgifter:</string>
 </resources>
