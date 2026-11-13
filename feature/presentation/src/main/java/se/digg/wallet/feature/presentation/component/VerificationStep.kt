@@ -46,9 +46,9 @@ private val PopEasing = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
 
 @Composable
 internal fun VerificationStep(
-    eyebrow: String,
-    title: String,
-    description: String,
+    overline: String,
+    headline: String,
+    supportingText: String,
     modifier: Modifier = Modifier,
     showConnector: Boolean = true,
     revealDelayMillis: Int? = null,
@@ -143,15 +143,15 @@ internal fun VerificationStep(
                 .padding(top = 4.dp, bottom = if (showConnector) 24.dp else 0.dp),
         ) {
             Text(
-                text = eyebrow,
+                text = overline,
                 style = MaterialTheme.typography.labelMedium,
                 color = colors.tertiary,
             )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
+            Text(text = headline, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = description,
+                text = supportingText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.onSurfaceVariant,
             )
@@ -165,19 +165,19 @@ private fun VerificationStepPreview() {
     ApprovalPreview {
         Column(modifier = Modifier.padding(24.dp)) {
             VerificationStep(
-                eyebrow = "Tillitsregister",
-                title = "Tillitsregistret för plånböcker",
-                description = "Den officiella listan som alla parter nedan kontrolleras mot.",
+                overline = "Tillitsregister",
+                headline = "Tillitsregistret för plånböcker",
+                supportingText = "Den officiella listan som alla parter nedan kontrolleras mot.",
             )
             VerificationStep(
-                eyebrow = "Mottagare",
-                title = "Nordbil Hyrbilar AB",
-                description = "Registrerad och får be om de här uppgifterna.",
+                overline = "Mottagare",
+                headline = "Nordbil Hyrbilar AB",
+                supportingText = "Registrerad och får be om de här uppgifterna.",
             )
             VerificationStep(
-                eyebrow = "Den här telefonen",
-                title = "Din plånbok",
-                description = "Appen och dina nycklar är äkta och oförändrade.",
+                overline = "Den här telefonen",
+                headline = "Din plånbok",
+                supportingText = "Appen och dina nycklar är äkta och oförändrade.",
                 showConnector = false,
             )
         }
