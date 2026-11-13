@@ -1,9 +1,60 @@
 <resources>
-    <string name="presentation_share_successful_info">You can now go back to the app or website you came from.</string>
-    <string name="presentation_share_successful_title">Done</string>
-    <string name="presentation_share_title">Share attributes with %1$s</string>
-    <string name="presentation_app_bar_title">Share attributes</string>
+    <string name="presentation_app_bar_title">Data request</string>
     <string name="presentation_pin_title">Approve and identify</string>
     <string name="presentation_pin_description">By entering your PIN code and identifying yourself, you approve the sharing of your data.</string>
-    <string name="presentation_selective_disclosure_title">Optional data:</string>
+    <string name="presentation_pin_progress">%1$d of %2$d digits entered</string>
+    <string name="presentation_pin_delete">Delete last digit</string>
+    <string name="presentation_pin_wrong">Wrong PIN code. Try again.</string>
+    <string name="presentation_recipient_registered">Registered recipient</string>
+    <string name="presentation_recipient_purpose_label">Why they are asking</string>
+    <string name="presentation_recipient_show_verification">Show verification</string>
+    <string name="presentation_credential_more_claims">+ %1$d more</string>
+    <string name="presentation_optional_title">Optional data</string>
+    <string name="presentation_optional_none_selected">None selected</string>
+    <string name="presentation_optional_count">%1$d of %2$d</string>
+    <string name="presentation_a11y_expanded">Expanded</string>
+    <string name="presentation_a11y_collapsed">Collapsed</string>
+    <string name="presentation_checking_title">Checking the request</string>
+    <string name="presentation_checking_description">The wallet is checking the recipient against the trust list.</string>
+    <string name="presentation_shared_title">What will be shared</string>
+    <plurals name="presentation_shared_count">
+        <item quantity="one">%1$d detail will be shared</item>
+        <item quantity="other">%1$d details will be shared</item>
+    </plurals>
+    <plurals name="presentation_shared_with">
+        <item quantity="one">%1$d detail will be shared with %2$s</item>
+        <item quantity="other">%1$d details will be shared with %2$s</item>
+    </plurals>
+    <string name="presentation_verification_title">Verification</string>
+    <string name="presentation_verification_description">The wallet checked the recipient before showing you the request.</string>
+    <string name="presentation_verification_trust_list_label">Trust list</string>
+    <string name="presentation_trust_list_name">The wallet trust list</string>
+    <string name="presentation_verification_trust_list_description">The official list that every party below is checked against.</string>
+    <string name="presentation_verification_recipient_label">Recipient</string>
+    <string name="presentation_verification_recipient_description">Registered and allowed to ask for this data.</string>
+    <string name="presentation_verification_recipient_purpose">Registered and allowed to ask for this data, for the purpose: %1$s</string>
+    <string name="presentation_verification_encrypted">Encrypted all the way · only %1$s can read what you share</string>
+    <string name="presentation_technical_details_title">Technical details</string>
+    <string name="presentation_technical_details_description">For support, or if you want to check for yourself.</string>
+    <string name="presentation_certificate_title">%1$s · certificate</string>
+    <string name="presentation_certificate_valid">Valid</string>
+    <string name="presentation_certificate_subject">Subject</string>
+    <string name="presentation_certificate_issuer">Issued by</string>
+    <string name="presentation_certificate_validity">Validity</string>
+    <string name="presentation_certificate_validity_range">%1$s to %2$s</string>
+    <string name="presentation_certificate_serial">Serial number</string>
+    <string name="presentation_certificate_fingerprint">SHA-256 fingerprint</string>
+    <string name="presentation_registration_title">Registration</string>
+    <string name="presentation_registration_matches">Matches the request</string>
+    <string name="presentation_registration_register">Register</string>
+    <string name="presentation_copy_details">Copy details</string>
+    <string name="presentation_shared_past_title">What was shared</string>
+    <plurals name="presentation_shared_with_past">
+        <item quantity="one">%1$d detail was shared with %2$s</item>
+        <item quantity="other">%1$d details were shared with %2$s</item>
+    </plurals>
+    <string name="presentation_done_shared_with">Shared with</string>
+    <string name="presentation_done_description">Continue on the device where you scanned the QR code.</string>
+    <string name="presentation_done_show_shared">Show what was shared</string>
+    <string name="presentation_done_button">Done</string>
 </resources>
