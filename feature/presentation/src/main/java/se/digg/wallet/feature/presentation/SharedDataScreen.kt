@@ -22,7 +22,6 @@ import se.digg.wallet.core.designsystem.component.claims.ClaimDetailRow
 import se.digg.wallet.core.designsystem.theme.ApprovalTheme
 import se.digg.wallet.core.designsystem.utils.ApprovalPreview
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
-import se.digg.wallet.feature.presentation.R
 import se.digg.wallet.feature.presentation.component.DetailScaffold
 import se.digg.wallet.feature.presentation.component.LogoTile
 
