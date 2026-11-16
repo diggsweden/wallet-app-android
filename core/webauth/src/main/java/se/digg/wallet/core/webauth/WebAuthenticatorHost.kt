@@ -56,12 +56,14 @@ private fun Activity.launchBrowser(
     when (request) {
         is BrowserRequest.AuthTab -> {
             AuthTabIntent.Builder()
+                .setEphemeralBrowsingEnabled(true)
                 .build()
                 .launch(authTabLauncher, request.url, request.callbackScheme)
         }
 
         is BrowserRequest.CustomTab -> {
             CustomTabsIntent.Builder()
+                .setEphemeralBrowsingEnabled(true)
                 .setShowTitle(false)
                 .setUrlBarHidingEnabled(true)
                 .build()

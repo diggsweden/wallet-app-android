@@ -56,18 +56,21 @@ class BrowserWebAuthenticator @Inject constructor(
 
     private fun browserRequestFor(url: Uri, callbackScheme: String): BrowserRequest {
         val provider = getCustomTabsProvider(context)
-        return when {
-            provider == null -> {
-                BrowserRequest.External(url)
-            }
+        if (provider == null) {
+            return BrowserRequest.External(url)
+        }
 
-            CustomTabsClient.isAuthTabSupported(context, provider) -> {
-                BrowserRequest.AuthTab(url, callbackScheme)
-            }
+        val ephemeralSupported = CustomTabsClient.isEphemeralBrowsingSupported(context, provider)
+        Timber.d(
+            "BrowserWebAuthenticator - ephemeralBrowsingSupported=%s (%s)",
+            ephemeralSupported,
+            provider,
+        )
 
-            else -> {
-                BrowserRequest.CustomTab(url)
-            }
+        return if (CustomTabsClient.isAuthTabSupported(context, provider)) {
+            BrowserRequest.AuthTab(url, callbackScheme)
+        } else {
+            BrowserRequest.CustomTab(url)
         }
     }
 
