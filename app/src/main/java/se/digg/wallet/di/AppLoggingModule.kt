@@ -21,10 +21,6 @@ object AppLoggingModule {
     @Singleton
     fun provideRemoteLoggingConfig(): RemoteLoggingConfig = RemoteLoggingConfig(
         enabled = true,
-        minPriority = when {
-            BuildConfig.FLAVOR == "local" -> Log.DEBUG
-            BuildConfig.DEBUG -> Log.INFO
-            else -> Log.WARN
-        },
+        minPriority = if (BuildConfig.DEBUG) Log.DEBUG else Log.WARN,
     )
 }

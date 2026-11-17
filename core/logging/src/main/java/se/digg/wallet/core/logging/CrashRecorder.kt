@@ -36,7 +36,7 @@ class CrashRecorder @Inject constructor(
     }
 
     private fun record(thread: Thread, throwable: Throwable) {
-        dir.mkdirs()
+        directory.mkdirs()
         crashFiles().dropLast(MAX_FILES - 1).forEach { it.delete() }
         val event = factory.create(
             priority = Log.ERROR,
@@ -46,11 +46,11 @@ class CrashRecorder @Inject constructor(
             thread = thread,
             fatal = true,
         )
-        File(dir, "crash-${System.currentTimeMillis()}-${UUID.randomUUID()}.txt")
+        File(directory, "crash-${System.currentTimeMillis()}-${UUID.randomUUID()}.txt")
             .writeText(event.message)
     }
 
-    private fun crashFiles(): List<File> = dir.listFiles().orEmpty().sortedBy { it.name }
+    private fun crashFiles(): List<File> = directory.listFiles().orEmpty().sortedBy { it.name }
 
     private companion object {
         const val DIRECTORY = "remote-log"
