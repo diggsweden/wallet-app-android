@@ -84,7 +84,8 @@ object NetworkModule {
             os = "Android",
             osVersion = Build.VERSION.RELEASE ?: "?",
             model = Build.MODEL,
-            appVersion = "${appVersion.versionName} (${appVersion.versionCode})",
+            appVersion = appVersion.versionName,
+            appBuild = appVersion.versionCode.toString(),
         )
     }
 

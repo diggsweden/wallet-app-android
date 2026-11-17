@@ -11,6 +11,7 @@ data class DeviceInfo(
     val osVersion: String,
     val model: String,
     val appVersion: String,
+    val appBuild: String,
 )
 
 class DeviceInfoPluginConfig {
@@ -25,5 +26,6 @@ val deviceInfoPlugin =
             request.headers.append("Wallet-Device-OS-Version", deviceInfo.osVersion)
             request.headers.append("Wallet-Device-Model", deviceInfo.model)
             request.headers.append("Wallet-App-Version", deviceInfo.appVersion)
+            request.headers.append("Wallet-App-Build", deviceInfo.appBuild)
         }
     }
