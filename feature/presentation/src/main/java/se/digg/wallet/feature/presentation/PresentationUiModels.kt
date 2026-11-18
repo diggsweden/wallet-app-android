@@ -4,20 +4,40 @@
 
 package se.digg.wallet.feature.presentation
 
-import se.digg.wallet.core.data.model.PresentationItem
+import se.digg.wallet.core.data.model.VerifierUiModel
+import se.digg.wallet.core.model.ClaimUiModel
 
 sealed interface PresentationUiState {
     object Loading : PresentationUiState
     data class PresentClaims(
+        val verifier: VerifierUiModel,
+        val certificate: CertificateDetails,
+        val requiredCredentials: List<CredentialUiModel>,
+        val optionalCredentials: List<CredentialUiModel>,
+        val isEncrypted: Boolean,
+    ) : PresentationUiState {
+        val sharedCredentials: List<CredentialUiModel>
+            get() = requiredCredentials + optionalCredentials.filter { it.isChecked }
+    }
+
+    data class EnterPin(val isWrongPin: Boolean = false) : PresentationUiState
+    object Sharing : PresentationUiState
+    data class ShareSuccess(
         val verifierName: String,
-        val requiredClaims: List<PresentationItem>,
-        val optionalClaims: List<PresentationItem>,
+        val sharedCredentials: List<CredentialUiModel>,
     ) : PresentationUiState
 
-    object EnterPin : PresentationUiState
-    object ShareSuccess : PresentationUiState
     data class Error(val message: String?) : PresentationUiState
 }
+
+data class CredentialUiModel(
+    val id: String,
+    val name: String,
+    val issuerName: String?,
+    val logoUrl: String?,
+    val claims: List<ClaimUiModel>,
+    val isChecked: Boolean = false,
+)
 
 sealed interface PresentationUiEffect {
     data class OpenUrl(val url: String) : PresentationUiEffect
