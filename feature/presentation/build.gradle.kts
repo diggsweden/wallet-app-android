@@ -4,6 +4,7 @@
 
 plugins {
     id("wallet.android.feature")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -19,6 +20,7 @@ dependencies {
     implementation(libs.bundles.images)
     implementation(libs.eudi.openid4vp)
     implementation(libs.eudi.sdjwt)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.nimbus)
     implementation(libs.accessMechanism)
     implementation(libs.bundles.ktor)
