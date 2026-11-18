@@ -8,11 +8,14 @@ import eu.europa.ec.eudi.sdjwt.JwtAndClaims
 import eu.europa.ec.eudi.sdjwt.SdJwt
 import se.digg.wallet.core.crypto.ProofKeyId
 import se.digg.wallet.core.model.ClaimUiModel
+import se.digg.wallet.core.model.IssuerDisplay
 
 data class PresentationItem(
     val id: String,
     val isChecked: Boolean,
     val isRequired: Boolean,
+    val credentialName: String?,
+    val issuer: IssuerDisplay?,
     val claims: List<ClaimUiModel>,
     val disclosedSdJwt: SdJwt<JwtAndClaims>,
     val bindingKeyId: ProofKeyId,

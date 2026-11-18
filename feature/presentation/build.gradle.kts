@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.eudi.sdjwt)
     implementation(libs.nimbus)
     implementation(libs.bundles.ktor)
+    implementation(libs.bouncycastle.pkix)
 
     testImplementation(libs.androidx.junit)
     testImplementation(libs.turbine)

@@ -6,6 +6,7 @@ package se.digg.wallet.feature.presentation
 
 import eu.europa.ec.eudi.sdjwt.JwtAndClaims
 import eu.europa.ec.eudi.sdjwt.SdJwt
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -29,20 +30,28 @@ import se.digg.wallet.core.crypto.ProofKeyManagerFactory
 import se.digg.wallet.core.crypto.ProofSigner
 import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.data.model.VerifierUiModel
+import se.digg.wallet.core.model.IssuerDisplay
 import se.digg.wallet.core.network.PresentationResult
 
-private fun item(id: String, isRequired: Boolean, isChecked: Boolean = false): PresentationItem =
-    PresentationItem(
-        id = id,
-        isChecked = isChecked,
-        isRequired = isRequired,
-        claims = emptyList(),
-        disclosedSdJwt = SdJwt<JwtAndClaims>(
-            jwt = "" to JsonObject(emptyMap()),
-            disclosures = emptyList(),
-        ),
-        bindingKeyId = ProofKeyId("key-$id"),
-    )
+private fun item(
+    id: String,
+    isRequired: Boolean,
+    isChecked: Boolean = false,
+    credentialName: String? = "Credential $id",
+    issuer: IssuerDisplay? = null,
+): PresentationItem = PresentationItem(
+    id = id,
+    isChecked = isChecked,
+    isRequired = isRequired,
+    credentialName = credentialName,
+    issuer = issuer,
+    claims = emptyList(),
+    disclosedSdJwt = SdJwt<JwtAndClaims>(
+        jwt = "" to JsonObject(emptyMap()),
+        disclosures = emptyList(),
+    ),
+    bindingKeyId = ProofKeyId("key-$id"),
+)
 
 private class FakePresentationService : PresentationService {
     var resolveError: Exception? = null
@@ -62,6 +71,14 @@ private class FakePresentationService : PresentationService {
             country = "SE",
             descriptions = emptyMap(),
             purpose = emptyMap(),
+        ),
+        accessCertificate = CertificateDetails(
+            subject = "Verifier, 559123-4567",
+            issuer = "Access CA",
+            validFrom = Instant.parse("2026-01-15T00:00:00Z"),
+            validTo = Instant.parse("2027-01-15T00:00:00Z"),
+            serialNumber = "01",
+            sha256Fingerprint = "AB:CD",
         ),
         requiredItems = listOf(item("pid", isRequired = true)),
         optionalItems = listOf(
