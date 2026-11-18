@@ -195,7 +195,6 @@ class IssuanceViewModel @AssistedInject constructor(
 
         is IssuanceStep.SavingCredential -> {
             credentialStore.addCredentials(listOf(step.issued.credential))
-            Timber.w("IssuanceViewModel: Credential issued, type=${step.issued.credential.type}")
             IssuanceStep.Issued(step.issued)
         }
     }
