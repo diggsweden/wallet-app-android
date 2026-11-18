@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:trust"))
 
+    implementation(libs.bundles.images)
     implementation(libs.eudi.openid4vp)
     implementation(libs.eudi.sdjwt)
     implementation(libs.nimbus)
