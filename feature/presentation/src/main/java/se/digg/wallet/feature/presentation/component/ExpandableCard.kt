@@ -5,7 +5,6 @@
 package se.digg.wallet.feature.presentation.component
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +45,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.feature.presentation.R
+import se.digg.wallet.feature.presentation.animateChevronRotation
 
 @Composable
 internal fun ExpandableCard(
@@ -69,10 +69,7 @@ internal fun ExpandableCard(
     val expandedState = stringResource(
         if (expanded) R.string.presentation_a11y_expanded else R.string.presentation_a11y_collapsed,
     )
-    val chevronRotation by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        label = "chevronRotation",
-    )
+    val chevronRotation by animateChevronRotation(expanded)
 
     Column(
         modifier = modifier
@@ -116,7 +113,7 @@ internal fun ExpandableCard(
                 )
             }
             Icon(
-                painter = painterResource(R.drawable.chevron_down),
+                painter = painterResource(ChevronState.Down.icon),
                 contentDescription = null,
                 tint = colors.onSurfaceVariant,
                 modifier = Modifier

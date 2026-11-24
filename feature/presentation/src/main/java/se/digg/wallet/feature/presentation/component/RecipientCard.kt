@@ -36,8 +36,8 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.isLargeFontScale
 import se.digg.wallet.feature.presentation.R
 
@@ -100,7 +100,7 @@ internal fun RecipientCard(
                 }
             }
             Icon(
-                painter = painterResource(R.drawable.chevron_right),
+                painter = painterResource(ChevronState.Right.icon),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
             )
@@ -158,7 +158,7 @@ private fun RecipientCardSample(logoUrl: String? = null) {
 @PreviewsWallet
 @Composable
 private fun RecipientCardPreview() {
-    ApprovalPreview {
+    WalletPreview {
         RecipientCardSample()
     }
 }
@@ -172,7 +172,7 @@ private fun RecipientCardOptionalLogoPreview() {
         checkNotNull(ContextCompat.getDrawable(context, R.drawable.handshake)).asImage()
     }
     CompositionLocalProvider(LocalAsyncImagePreviewHandler provides previewLogo) {
-        ApprovalPreview {
+        WalletPreview {
             Column {
                 RecipientCardSample(logoUrl = "https://example.com/logo.png")
                 RecipientCardSample()
@@ -184,7 +184,7 @@ private fun RecipientCardOptionalLogoPreview() {
 @Preview(name = "Font scale 2.0", fontScale = 2f, showBackground = true)
 @Composable
 private fun RecipientCardLargeFontPreview() {
-    ApprovalPreview {
+    WalletPreview {
         RecipientCardSample()
     }
 }
