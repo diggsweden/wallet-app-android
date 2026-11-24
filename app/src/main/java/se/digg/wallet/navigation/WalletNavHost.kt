@@ -4,9 +4,6 @@
 
 package se.digg.wallet.navigation
 
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +28,9 @@ import se.digg.wallet.core.navigation.QrScannerKey
 import se.digg.wallet.core.navigation.SettingsKey
 import se.digg.wallet.core.navigation.ThemeKey
 import se.digg.wallet.core.navigation.WalletNavigator
+import se.digg.wallet.core.navigation.slidePopTransitionSpec
+import se.digg.wallet.core.navigation.slidePredictivePopTransitionSpec
+import se.digg.wallet.core.navigation.slideTransitionSpec
 import se.digg.wallet.feature.appsetup.AppSetupRoute
 import se.digg.wallet.feature.credentialdetails.CredentialDetailsRoute
 import se.digg.wallet.feature.dashboard.DashboardRoute
@@ -60,15 +60,9 @@ fun WalletNavDisplay(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
-        transitionSpec = {
-            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-        },
-        popTransitionSpec = {
-            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
-        predictivePopTransitionSpec = {
-            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
+        transitionSpec = slideTransitionSpec(),
+        popTransitionSpec = slidePopTransitionSpec(),
+        predictivePopTransitionSpec = slidePredictivePopTransitionSpec(),
         entryProvider = entryProvider {
             entry<AppSetupKey> {
                 AppSetupRoute(
