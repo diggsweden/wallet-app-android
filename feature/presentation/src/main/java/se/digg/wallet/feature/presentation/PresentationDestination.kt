@@ -10,10 +10,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal sealed interface PresentationDestination : NavKey {
     @Serializable
-    data object Request : PresentationDestination
+    data object Review : PresentationDestination
 
     @Serializable
-    data object SharedData : PresentationDestination
+    data object SharedClaims : PresentationDestination
 
     @Serializable
     data object Verification : PresentationDestination
