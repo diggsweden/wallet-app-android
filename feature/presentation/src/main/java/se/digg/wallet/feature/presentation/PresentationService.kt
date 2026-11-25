@@ -83,8 +83,8 @@ internal class DefaultPresentationService @Inject constructor(
         issuer = SelfIssued,
         signedRequestConfiguration = SignedRequestConfiguration.Default,
         responseEncryptionConfiguration = ResponseEncryptionConfiguration.Supported(
-            supportedMethods = listOf(EncryptionMethod.A128GCM),
-            supportedAlgorithms = listOf(JWEAlgorithm.RSA_OAEP_256, JWEAlgorithm.ECDH_ES),
+            supportedMethods = listOf(EncryptionMethod.A256GCM, EncryptionMethod.A128GCM),
+            supportedAlgorithms = JWEAlgorithm.Family.ECDH_ES.toList(),
         ),
         knownDCQLQueriesPerScope = emptyMap(),
         vpFormatsSupported = VpFormatsSupported(
