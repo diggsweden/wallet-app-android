@@ -5,8 +5,6 @@
 package se.digg.wallet.feature.presentation
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,13 +43,39 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import se.digg.wallet.core.designsystem.component.BottomActionBar
+import se.digg.wallet.core.designsystem.component.BottomBarAction
 import se.digg.wallet.core.designsystem.component.LinkButton
-import se.digg.wallet.feature.presentation.R
 
 @Composable
-internal fun ShareSuccessContent(
+internal fun PresentationSuccessScreen(
     verifierName: String,
-    onShowSharedClick: () -> Unit,
+    onFinishClick: () -> Unit,
+    onShowSharedClaimsClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    PresentationStepScaffold(
+        modifier = modifier,
+        bottomBar = {
+            BottomActionBar(
+                primaryAction = BottomBarAction(
+                    text = stringResource(R.string.presentation_done_button),
+                    onClick = onFinishClick,
+                ),
+            )
+        },
+    ) {
+        PresentationSuccessContent(
+            verifierName = verifierName,
+            onShowSharedClaimsClick = onShowSharedClaimsClick,
+        )
+    }
+}
+
+@Composable
+internal fun PresentationSuccessContent(
+    verifierName: String,
+    onShowSharedClaimsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -64,13 +88,7 @@ internal fun ShareSuccessContent(
         if (!hasConfirmed) {
             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
             hasConfirmed = true
-            checkScale.animateTo(
-                targetValue = 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-            )
+            checkScale.animateTo(targetValue = 1f, animationSpec = checkPopSpec())
         }
     }
 
@@ -131,7 +149,7 @@ internal fun ShareSuccessContent(
         Spacer(Modifier.height(24.dp))
         LinkButton(
             text = stringResource(R.string.presentation_done_show_shared),
-            onClick = onShowSharedClick,
+            onClick = onShowSharedClaimsClick,
         )
     }
 }

@@ -5,8 +5,6 @@
 package se.digg.wallet.feature.presentation.component
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,11 +36,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.presentation.R
-
-private val PopEasing = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
+import se.digg.wallet.feature.presentation.verificationCheckSpec
+import se.digg.wallet.feature.presentation.verificationConnectorSpec
 
 @Composable
 internal fun VerificationStep(
@@ -61,16 +59,12 @@ internal fun VerificationStep(
             launch {
                 check.animateTo(
                     targetValue = 1f,
-                    animationSpec = tween(
-                        durationMillis = 350,
-                        delayMillis = revealDelayMillis,
-                        easing = PopEasing,
-                    ),
+                    animationSpec = verificationCheckSpec(revealDelayMillis),
                 )
             }
             connector.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = 300, delayMillis = revealDelayMillis + 200),
+                animationSpec = verificationConnectorSpec(revealDelayMillis),
             )
         }
     }
@@ -162,7 +156,7 @@ internal fun VerificationStep(
 @PreviewsWallet
 @Composable
 private fun VerificationStepPreview() {
-    ApprovalPreview {
+    WalletPreview {
         Column(modifier = Modifier.padding(24.dp)) {
             VerificationStep(
                 overline = "Tillitsregister",

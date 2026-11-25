@@ -19,45 +19,42 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.component.DetailList
 import se.digg.wallet.core.designsystem.component.claims.ClaimDetailRow
-import se.digg.wallet.core.designsystem.theme.ApprovalTheme
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
-import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.PreviewsWalletScreen
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.presentation.component.DetailScaffold
 import se.digg.wallet.feature.presentation.component.LogoTile
 
 @Composable
-internal fun SharedDataRoute(uiState: PresentationUiState, onBackClick: () -> Unit) {
-    ApprovalTheme {
-        when (uiState) {
-            is PresentationUiState.PresentClaims -> {
-                SharedDataScreen(
-                    verifierName = uiState.verifier.name,
-                    credentials = uiState.sharedCredentials,
-                    onBackClick = onBackClick,
-                )
-            }
+internal fun PresentationSharedClaimsRoute(uiState: PresentationUiState, onBackClick: () -> Unit) {
+    when (uiState) {
+        is PresentationUiState.PresentClaims -> {
+            PresentationSharedClaimsScreen(
+                verifierName = uiState.verifier.name,
+                credentials = uiState.sharedCredentials,
+                onBackClick = onBackClick,
+            )
+        }
 
-            is PresentationUiState.ShareSuccess -> {
-                SharedDataScreen(
-                    verifierName = uiState.verifierName,
-                    credentials = uiState.sharedCredentials,
-                    onBackClick = onBackClick,
-                    isShared = true,
-                )
-            }
+        is PresentationUiState.ShareSuccess -> {
+            PresentationSharedClaimsScreen(
+                verifierName = uiState.verifierName,
+                credentials = uiState.sharedCredentials,
+                onBackClick = onBackClick,
+                isShared = true,
+            )
+        }
 
-            PresentationUiState.Loading,
-            is PresentationUiState.EnterPin,
-            PresentationUiState.Sharing,
-            is PresentationUiState.Error,
-            -> {
-            }
+        PresentationUiState.Loading,
+        is PresentationUiState.EnterPin,
+        PresentationUiState.Sharing,
+        is PresentationUiState.Error,
+        -> {
         }
     }
 }
 
 @Composable
-internal fun SharedDataScreen(
+internal fun PresentationSharedClaimsScreen(
     verifierName: String,
     credentials: List<CredentialUiModel>,
     onBackClick: () -> Unit,
@@ -105,11 +102,11 @@ internal fun SharedDataScreen(
     }
 }
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
-private fun SharedDataScreenPreview() {
-    ApprovalPreview {
-        SharedDataScreen(
+private fun PresentationSharedClaimsScreenPreview() {
+    WalletPreview {
+        PresentationSharedClaimsScreen(
             verifierName = previewRequest.verifier.name,
             credentials = previewRequest.sharedCredentials,
             onBackClick = {},

@@ -20,33 +20,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.component.InfoNote
 import se.digg.wallet.core.designsystem.component.LinkButton
-import se.digg.wallet.core.designsystem.theme.ApprovalTheme
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
-import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.PreviewsWalletScreen
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.presentation.component.DetailScaffold
 import se.digg.wallet.feature.presentation.component.VerificationStep
 
 @Composable
-internal fun VerificationRoute(
+internal fun PresentationVerificationRoute(
     uiState: PresentationUiState,
     onTechnicalDetailsClick: () -> Unit,
     onBackClick: () -> Unit,
 ) {
-    ApprovalTheme {
-        (uiState as? PresentationUiState.PresentClaims)?.let { claims ->
-            VerificationScreen(
-                verifierName = claims.verifier.name,
-                purpose = claims.verifier.purpose.localized(),
-                isEncrypted = claims.isEncrypted,
-                onTechnicalDetailsClick = onTechnicalDetailsClick,
-                onBackClick = onBackClick,
-            )
-        }
+    (uiState as? PresentationUiState.PresentClaims)?.let { claims ->
+        PresentationVerificationScreen(
+            verifierName = claims.verifier.name,
+            purpose = claims.verifier.purpose.localized(),
+            isEncrypted = claims.isEncrypted,
+            onTechnicalDetailsClick = onTechnicalDetailsClick,
+            onBackClick = onBackClick,
+        )
     }
 }
 
 @Composable
-internal fun VerificationScreen(
+internal fun PresentationVerificationScreen(
     verifierName: String,
     purpose: String?,
     isEncrypted: Boolean,
@@ -103,11 +100,11 @@ internal fun VerificationScreen(
     }
 }
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
-private fun VerificationScreenPreview() {
-    ApprovalPreview {
-        VerificationScreen(
+private fun PresentationVerificationScreenPreview() {
+    WalletPreview {
+        PresentationVerificationScreen(
             verifierName = previewRequest.verifier.name,
             purpose = previewRequest.verifier.purpose.localized(),
             isEncrypted = previewRequest.isEncrypted,

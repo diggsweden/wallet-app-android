@@ -29,27 +29,26 @@ import se.digg.wallet.core.designsystem.component.DetailList
 import se.digg.wallet.core.designsystem.component.DetailRow
 import se.digg.wallet.core.designsystem.component.LinkButton
 import se.digg.wallet.core.designsystem.component.StatusBadge
-import se.digg.wallet.core.designsystem.theme.ApprovalTheme
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
-import se.digg.wallet.core.designsystem.utils.PreviewsWallet
-import se.digg.wallet.feature.presentation.R
+import se.digg.wallet.core.designsystem.utils.PreviewsWalletScreen
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.presentation.component.DetailScaffold
 
 @Composable
-internal fun TechnicalDetailsRoute(uiState: PresentationUiState, onBackClick: () -> Unit) {
-    ApprovalTheme {
-        (uiState as? PresentationUiState.PresentClaims)?.let { claims ->
-            TechnicalDetailsScreen(
-                verifierName = claims.verifier.name,
-                certificate = claims.certificate,
-                onBackClick = onBackClick,
-            )
-        }
+internal fun PresentationTechnicalDetailsRoute(
+    uiState: PresentationUiState,
+    onBackClick: () -> Unit,
+) {
+    (uiState as? PresentationUiState.PresentClaims)?.let { claims ->
+        PresentationTechnicalDetailsScreen(
+            verifierName = claims.verifier.name,
+            certificate = claims.certificate,
+            onBackClick = onBackClick,
+        )
     }
 }
 
 @Composable
-internal fun TechnicalDetailsScreen(
+internal fun PresentationTechnicalDetailsScreen(
     verifierName: String,
     certificate: CertificateDetails,
     onBackClick: () -> Unit,
@@ -143,11 +142,11 @@ private fun SectionHeader(title: String, status: String, modifier: Modifier = Mo
 private fun Instant.toIsoDate(): String =
     DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(this)
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
-private fun TechnicalDetailsScreenPreview() {
-    ApprovalPreview {
-        TechnicalDetailsScreen(
+private fun PresentationTechnicalDetailsScreenPreview() {
+    WalletPreview {
+        PresentationTechnicalDetailsScreen(
             verifierName = previewRequest.verifier.name,
             certificate = previewRequest.certificate,
             onBackClick = {},

@@ -4,64 +4,27 @@
 
 package se.digg.wallet.feature.presentation
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
-import java.util.Locale
-import se.digg.wallet.core.designsystem.component.BottomActionBar
-import se.digg.wallet.core.designsystem.component.BottomBarAction
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
-import se.digg.wallet.core.designsystem.component.LinkButton
-import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
-import se.digg.wallet.core.designsystem.theme.ApprovalTheme
-import se.digg.wallet.core.designsystem.theme.WalletTextStyle
-import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.PreviewsWalletScreen
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.feature.presentation.component.pin.ApprovalPinContent
-
-private const val USE_PIN_POC = true
+import se.digg.wallet.feature.presentation.component.pin.PresentationPinContent
 
 @Composable
 fun PresentationRoute(
@@ -75,7 +38,6 @@ fun PresentationRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val currentOnPopBack by rememberUpdatedState(onPopBack)
-    val backStack = rememberNavBackStack(PresentationDestination.Request)
 
     LaunchedEffect(Unit) {
         viewModel.init(fullUri)
@@ -89,92 +51,19 @@ fun PresentationRoute(
             }
         }
     }
-    NavDisplay(
-        backStack = backStack,
+    PresentationNavDisplay(
+        uiState = uiState,
+        onBack = onBack,
+        onFinish = onFinish,
+        onShareClick = viewModel::onAccept,
+        onSubmitPin = viewModel::sendData,
+        onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
         modifier = modifier,
-        transitionSpec = {
-            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-        },
-        popTransitionSpec = {
-            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
-        predictivePopTransitionSpec = {
-            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
-        entryProvider = entryProvider {
-            entry<PresentationDestination.Request> {
-                AnimatedContent(
-                    targetState = uiState,
-                    transitionSpec = {
-                        fadeIn(tween(durationMillis = 220)) togetherWith
-                            fadeOut(snap(delayMillis = 220))
-                    },
-                    contentKey = { it::class },
-                    label = "presentationStep",
-                ) { state ->
-                    PresentationTheme(uiState = state) {
-                        PresentationScreen(
-                            uiState = state,
-                            onBackClick = onBack,
-                            onShareClick = viewModel::onAccept,
-                            onFinishClick = onFinish,
-                            onSubmitPin = viewModel::sendData,
-                            onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
-                            onRecipientClick = {
-                                backStack.add(PresentationDestination.Verification)
-                            },
-                            onSharedSummaryClick = {
-                                backStack.add(PresentationDestination.SharedData)
-                            },
-                        )
-                    }
-                }
-            }
-            entry<PresentationDestination.SharedData> {
-                SharedDataRoute(
-                    uiState = uiState,
-                    onBackClick = { backStack.removeLastOrNull() },
-                )
-            }
-            entry<PresentationDestination.Verification> {
-                VerificationRoute(
-                    uiState = uiState,
-                    onTechnicalDetailsClick = {
-                        backStack.add(PresentationDestination.TechnicalDetails)
-                    },
-                    onBackClick = { backStack.removeLastOrNull() },
-                )
-            }
-            entry<PresentationDestination.TechnicalDetails> {
-                TechnicalDetailsRoute(
-                    uiState = uiState,
-                    onBackClick = { backStack.removeLastOrNull() },
-                )
-            }
-        },
     )
 }
 
 @Composable
-private fun PresentationTheme(uiState: PresentationUiState, content: @Composable () -> Unit) {
-    val isDesigned = when (uiState) {
-        PresentationUiState.Loading,
-        is PresentationUiState.PresentClaims,
-        is PresentationUiState.ShareSuccess,
-        -> true
-
-        is PresentationUiState.EnterPin -> USE_PIN_POC
-
-        PresentationUiState.Sharing,
-        is PresentationUiState.Error,
-        -> false
-    }
-    if (isDesigned) ApprovalTheme(content = content) else content()
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PresentationScreen(
+internal fun PresentationScreen(
     uiState: PresentationUiState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -182,305 +71,128 @@ private fun PresentationScreen(
     onSubmitPin: (String) -> Unit,
     onOptionalClaimClick: (String, Boolean) -> Unit,
     onRecipientClick: () -> Unit,
-    onSharedSummaryClick: () -> Unit,
+    onSharedClaimsClick: () -> Unit,
     modifier: Modifier = Modifier,
-) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            PresentationTopBar(uiState = uiState, onBackClick = onBackClick)
-        },
-        bottomBar = {
-            PresentationBottomBar(
-                uiState = uiState,
-                onBackClick = onBackClick,
-                onShareClick = onShareClick,
-                onFinishClick = onFinishClick,
-                onSharedSummaryClick = onSharedSummaryClick,
-            )
-        },
-    ) { innerPadding ->
-        PresentationContent(
-            uiState = uiState,
-            onSubmitPin = onSubmitPin,
-            onOptionalClaimClick = onOptionalClaimClick,
-            onRecipientClick = onRecipientClick,
-            onSharedSummaryClick = onSharedSummaryClick,
-            modifier = Modifier.padding(innerPadding),
-        )
-    }
-}
-
-@Composable
-private fun PresentationTopBar(uiState: PresentationUiState, onBackClick: () -> Unit) {
-    when (uiState) {
-        PresentationUiState.Loading,
-        is PresentationUiState.PresentClaims,
-        -> {
-            RequestTopAppBar(onCloseClick = onBackClick)
-        }
-
-        is PresentationUiState.EnterPin,
-        PresentationUiState.Sharing,
-        is PresentationUiState.Error,
-        -> {
-            WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
-        }
-
-        is PresentationUiState.ShareSuccess -> {}
-    }
-}
-
-@Composable
-private fun PresentationBottomBar(
-    uiState: PresentationUiState,
-    onBackClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onFinishClick: () -> Unit,
-    onSharedSummaryClick: () -> Unit,
 ) {
     when (uiState) {
         PresentationUiState.Loading -> {
-            BottomActionBar(
-                secondaryAction = BottomBarAction(
-                    text = stringResource(R.string.generic_cancel),
-                    onClick = onBackClick,
-                ),
-            )
+            PresentationLoadingScreen(onCloseClick = onBackClick, modifier = modifier)
         }
 
         is PresentationUiState.PresentClaims -> {
-            RequestBottomBar(
-                sharedClaimCount = uiState.sharedCredentials.sumOf { it.claims.size },
-                onSharedSummaryClick = onSharedSummaryClick,
-                onCancelClick = onBackClick,
+            PresentationReviewScreen(
+                uiState = uiState,
+                onCloseClick = onBackClick,
                 onShareClick = onShareClick,
+                onRecipientClick = onRecipientClick,
+                onSharedClaimsClick = onSharedClaimsClick,
+                onOptionalClaimClick = onOptionalClaimClick,
+                modifier = modifier,
             )
+        }
+
+        is PresentationUiState.EnterPin -> {
+            PresentationStepScaffold(
+                modifier = modifier,
+                topBar = { BackTopAppBar(onBackClick = onBackClick) },
+            ) {
+                PresentationPinContent(isWrongPin = uiState.isWrongPin, onSubmit = onSubmitPin)
+            }
+        }
+
+        PresentationUiState.Sharing -> {
+            PresentationStepScaffold(
+                modifier = modifier,
+                topBar = { BackTopAppBar(onBackClick = onBackClick) },
+            ) {
+                GenericLoading()
+            }
+        }
+
+        is PresentationUiState.Error -> {
+            PresentationStepScaffold(
+                modifier = modifier,
+                topBar = { BackTopAppBar(onBackClick = onBackClick) },
+            ) {
+                GenericErrorScreen(errorMessage = uiState.message)
+            }
         }
 
         is PresentationUiState.ShareSuccess -> {
-            BottomActionBar(
-                primaryAction = BottomBarAction(
-                    text = stringResource(R.string.presentation_done_button),
-                    onClick = onFinishClick,
-                ),
+            PresentationSuccessScreen(
+                verifierName = uiState.verifierName,
+                onFinishClick = onFinishClick,
+                onShowSharedClaimsClick = onSharedClaimsClick,
+                modifier = modifier,
             )
-        }
-
-        is PresentationUiState.EnterPin,
-        PresentationUiState.Sharing,
-        is PresentationUiState.Error,
-        -> {
         }
     }
 }
 
 @Composable
-private fun PresentationContent(
-    uiState: PresentationUiState,
-    onSubmitPin: (String) -> Unit,
-    onOptionalClaimClick: (String, Boolean) -> Unit,
-    onRecipientClick: () -> Unit,
-    onSharedSummaryClick: () -> Unit,
+internal fun PresentationStepScaffold(
     modifier: Modifier = Modifier,
+    topBar: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-    ) {
-        when (uiState) {
-            is PresentationUiState.Error -> {
-                GenericErrorScreen(errorMessage = uiState.message)
-            }
-
-            PresentationUiState.Loading -> {
-                CheckingRequestContent()
-            }
-
-            PresentationUiState.Sharing -> {
-                GenericLoading()
-            }
-
-            is PresentationUiState.EnterPin -> {
-                if (USE_PIN_POC) {
-                    ApprovalPinContent(isWrongPin = uiState.isWrongPin, onSubmit = onSubmitPin)
-                } else {
-                    EnterPinContent(onSubmitPin = onSubmitPin)
-                }
-            }
-
-            is PresentationUiState.PresentClaims -> {
-                RequestContent(
-                    uiState = uiState,
-                    onRecipientClick = onRecipientClick,
-                    onOptionalClaimClick = onOptionalClaimClick,
-                )
-            }
-
-            is PresentationUiState.ShareSuccess -> {
-                ShareSuccessContent(
-                    verifierName = uiState.verifierName,
-                    onShowSharedClick = onSharedSummaryClick,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RequestTopAppBar(onCloseClick: () -> Unit, modifier: Modifier = Modifier) {
-    WalletTopAppBar(
-        modifier = modifier,
-        title = {
-            Text(
-                text = stringResource(R.string.presentation_app_bar_title),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onCloseClick) {
-                Icon(
-                    painter = painterResource(R.drawable.close_x),
-                    contentDescription = stringResource(R.string.generic_close),
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun RequestBottomBar(
-    sharedClaimCount: Int,
-    onSharedSummaryClick: () -> Unit,
-    onCancelClick: () -> Unit,
-    onShareClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    BottomActionBar(
-        modifier = modifier,
-        primaryAction = BottomBarAction(
-            text = stringResource(R.string.generic_share),
-            onClick = onShareClick,
-        ),
-        secondaryAction = BottomBarAction(
-            text = stringResource(R.string.generic_cancel),
-            onClick = onCancelClick,
-        ),
-        header = {
-            LinkButton(
-                text = pluralStringResource(
-                    R.plurals.presentation_shared_count,
-                    sharedClaimCount,
-                    sharedClaimCount,
-                ),
-                onClick = onSharedSummaryClick,
-                trailingIconRes = R.drawable.chevron_up,
-                textStyle = MaterialTheme.typography.titleSmall,
-            )
-        },
-    )
-}
-
-@Composable
-private fun EnterPinContent(onSubmitPin: (String) -> Unit) {
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Spacer(Modifier.height(64.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.presentation_pin_title),
-            style = WalletTextStyle.H1,
-        )
-        Spacer(Modifier.height(32.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.presentation_pin_description),
-            style = WalletTextStyle.BodyLG,
-        )
-        Spacer(Modifier.height(64.dp))
-        PinInput(
-            buttonLabel = stringResource(R.string.generic_share),
-            onSubmit = onSubmitPin,
-            modifier = Modifier.fillMaxWidth(),
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = topBar,
+        bottomBar = bottomBar,
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
+            content = content,
         )
     }
 }
 
 @Composable
-@ReadOnlyComposable
-internal fun Map<String, String>.localized(): String? {
-    val language = LocalConfiguration.current.locales[0].language
-    return entries.firstOrNull { Locale.forLanguageTag(it.key).language == language }?.value
-        ?: values.firstOrNull()
+private fun BackTopAppBar(onBackClick: () -> Unit) {
+    WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
 }
 
 @Composable
 private fun PresentationScreenPreview(uiState: PresentationUiState) {
     WalletPreview {
-        PresentationTheme(uiState = uiState) {
-            PresentationScreen(
-                uiState = uiState,
-                onBackClick = { },
-                onShareClick = { },
-                onFinishClick = { },
-                onOptionalClaimClick = { _, _ -> },
-                onRecipientClick = { },
-                onSharedSummaryClick = { },
-                onSubmitPin = {},
-            )
-        }
+        PresentationScreen(
+            uiState = uiState,
+            onBackClick = { },
+            onShareClick = { },
+            onFinishClick = { },
+            onOptionalClaimClick = { _, _ -> },
+            onRecipientClick = { },
+            onSharedClaimsClick = { },
+            onSubmitPin = {},
+        )
     }
 }
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
 private fun PresentationPreview() {
     PresentationScreenPreview(uiState = PresentationUiState.EnterPin())
 }
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
 private fun PresentationCheckingPreview() {
     PresentationScreenPreview(uiState = PresentationUiState.Loading)
 }
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
-private fun PresentationRequestPreview() {
+private fun PresentationReviewPreview() {
     PresentationScreenPreview(uiState = previewRequest)
 }
 
-@PreviewsWallet
+@PreviewsWalletScreen
 @Composable
 private fun PresentationDonePreview() {
-    PresentationScreenPreview(uiState = previewDone)
-}
-
-@Preview(
-    name = "Font scale 2.0",
-    fontScale = 2f,
-    device = "spec:parent=pixel_9,orientation=portrait",
-    showBackground = true,
-)
-@Composable
-private fun PresentationRequestLargeFontPreview() {
-    PresentationScreenPreview(uiState = previewRequest)
-}
-
-@Preview(
-    name = "Font scale 2.0",
-    fontScale = 2f,
-    device = "spec:parent=pixel_9,orientation=portrait",
-    showBackground = true,
-)
-@Composable
-private fun PresentationDoneLargeFontPreview() {
     PresentationScreenPreview(uiState = previewDone)
 }
