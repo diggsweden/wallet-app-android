@@ -108,7 +108,11 @@ internal object CredentialMatcher {
             unverifiedIssuanceFrom(savedCredential.compactSerialized).getOrThrow()
         }
 
-        val matchedSdJwt = sdJwt.present(query.claimPaths) ?: return null
+        val matchedSdJwt = if (query.claimPaths.isEmpty()) {
+            sdJwt.copy(disclosures = emptyList())
+        } else {
+            sdJwt.present(query.claimPaths) ?: return null
+        }
         val claims = matchedSdJwt.toClaimUiModels(savedCredential.claimDisplayNames)
 
         return PresentationItem(

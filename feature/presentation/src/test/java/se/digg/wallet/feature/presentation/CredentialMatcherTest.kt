@@ -9,6 +9,7 @@ import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import eu.europa.ec.eudi.openid4vp.dcql.DCQL
+import eu.europa.ec.eudi.sdjwt.DefaultSdJwtOps.serialize
 import eu.europa.ec.eudi.sdjwt.NimbusSdJwtOps
 import eu.europa.ec.eudi.sdjwt.dsl.values.sdJwt
 import eu.europa.ec.eudi.sdjwt.vc.ClaimPath
@@ -106,6 +107,34 @@ class CredentialMatcherTest {
             items[0].claims.map { it.id },
         )
         assertEquals(listOf("age_over_18"), items[1].claims.map { it.id })
+    }
+
+    @Test
+    fun `match without claim paths preserves only plaintext claims`() {
+        val credential = savedCredential(
+            type = "urn:eudi:pid:1",
+            claims = mapOf("given_name" to JsonPrimitive("Alice")),
+            plainClaims = mapOf("age_over_18" to JsonPrimitive(true)),
+        )
+
+        for (claims in listOf("", """, "claims": null""")) {
+            val request = json.decodeFromString<DCQL>(
+                """
+                {"credentials": [{
+                    "id": "pid",
+                    "format": "dc+sd-jwt",
+                    "meta": {"vct_values": ["urn:eudi:pid:1"]}$claims
+                }]}
+                """.trimIndent(),
+            )
+            val item = match(request, listOf(credential)).single()
+
+            assertEquals(
+                credential.compactSerialized.substringBefore('~') + "~",
+                item.disclosedSdJwt.serialize(),
+            )
+            assertEquals(listOf("age_over_18"), item.claims.map { it.id })
+        }
     }
 
     @Test
@@ -210,11 +239,11 @@ class CredentialMatcherTest {
         ),
     )
 
-    /**
-     * Issues a real SD-JWT where every claim is selectively disclosable, so that
-     * [CredentialMatcher] has disclosures to narrow down.
-     */
-    private fun savedCredential(type: String, claims: Map<String, JsonElement>): SavedCredential {
+    private fun savedCredential(
+        type: String,
+        claims: Map<String, JsonElement>,
+        plainClaims: Map<String, JsonElement> = emptyMap(),
+    ): SavedCredential {
         val key = ECKeyGenerator(Curve.P_256).generate()
         val issuer = NimbusSdJwtOps.issuer(
             signer = ECDSASigner(key),
@@ -222,6 +251,9 @@ class CredentialMatcherTest {
         )
         val spec = sdJwt {
             claim("vct", JsonPrimitive(type))
+            plainClaims.forEach { (name, value) ->
+                claim(name, value)
+            }
             claims.forEach { (name, value) ->
                 sdClaim(name, value)
             }
