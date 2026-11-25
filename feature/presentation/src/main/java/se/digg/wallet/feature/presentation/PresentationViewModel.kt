@@ -31,6 +31,7 @@ class PresentationViewModel @Inject constructor(
     private var request: PresentationRequest? = null
     private var itemsToDisclose: List<PresentationItem> = emptyList()
     private var sharedCredentials: List<CredentialUiModel> = emptyList()
+    private var reviewState: PresentationUiState.PresentClaims? = null
 
     private val _uiState = MutableStateFlow<PresentationUiState>(PresentationUiState.Loading)
     val uiState: StateFlow<PresentationUiState> = _uiState.asStateFlow()
@@ -84,7 +85,13 @@ class PresentationViewModel @Inject constructor(
         val sharedIds = sharedCredentials.map { it.id }.toSet()
         itemsToDisclose = (request.requiredItems + request.optionalItems)
             .filter { it.id in sharedIds }
+        reviewState = claims
         _uiState.value = PresentationUiState.EnterPin()
+    }
+
+    fun onBackToReview() {
+        val claims = reviewState ?: return
+        _uiState.value = claims
     }
 
     fun sendData(pin: String) {

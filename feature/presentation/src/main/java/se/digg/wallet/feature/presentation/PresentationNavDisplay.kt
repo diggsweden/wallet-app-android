@@ -21,6 +21,7 @@ internal fun PresentationNavDisplay(
     onFinish: () -> Unit,
     onShareClick: () -> Unit,
     onSubmitPin: (String) -> Unit,
+    onBackToReview: () -> Unit,
     onOptionalClaimClick: (String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -46,6 +47,7 @@ internal fun PresentationNavDisplay(
                         onShareClick = onShareClick,
                         onFinishClick = onFinish,
                         onSubmitPin = onSubmitPin,
+                        onBackToReview = onBackToReview,
                         onOptionalClaimClick = onOptionalClaimClick,
                         onRecipientClick = {
                             backStack.add(PresentationDestination.Verification)

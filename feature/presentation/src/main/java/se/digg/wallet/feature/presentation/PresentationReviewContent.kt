@@ -177,7 +177,7 @@ private fun ReviewBottomBar(
                     sharedClaimCount,
                 ),
                 onClick = onSharedClaimsClick,
-                trailingIconRes = ChevronState.Up.icon,
+                trailingIconRes = ChevronState.Right.icon,
                 textStyle = MaterialTheme.typography.titleSmall,
             )
         },

@@ -4,6 +4,7 @@
 
 package se.digg.wallet.feature.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,6 +58,7 @@ fun PresentationRoute(
         onFinish = onFinish,
         onShareClick = viewModel::onAccept,
         onSubmitPin = viewModel::sendData,
+        onBackToReview = viewModel::onBackToReview,
         onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
         modifier = modifier,
     )
@@ -69,6 +71,7 @@ internal fun PresentationScreen(
     onShareClick: () -> Unit,
     onFinishClick: () -> Unit,
     onSubmitPin: (String) -> Unit,
+    onBackToReview: () -> Unit,
     onOptionalClaimClick: (String, Boolean) -> Unit,
     onRecipientClick: () -> Unit,
     onSharedClaimsClick: () -> Unit,
@@ -92,9 +95,10 @@ internal fun PresentationScreen(
         }
 
         is PresentationUiState.EnterPin -> {
+            BackHandler(onBack = onBackToReview)
             PresentationStepScaffold(
                 modifier = modifier,
-                topBar = { BackTopAppBar(onBackClick = onBackClick) },
+                topBar = { BackTopAppBar(onBackClick = onBackToReview) },
             ) {
                 PresentationPinContent(isWrongPin = uiState.isWrongPin, onSubmit = onSubmitPin)
             }
@@ -169,6 +173,7 @@ private fun PresentationScreenPreview(uiState: PresentationUiState) {
             onRecipientClick = { },
             onSharedClaimsClick = { },
             onSubmitPin = {},
+            onBackToReview = {},
         )
     }
 }

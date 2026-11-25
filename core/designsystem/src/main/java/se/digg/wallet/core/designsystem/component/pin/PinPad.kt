@@ -167,7 +167,7 @@ private fun SubmitKey(size: Dp, label: String, enabled: Boolean, onClick: () -> 
         enabled = enabled,
         containerColor = if (darkTheme) ButtonContainerPrimaryDark else ButtonContainerPrimary,
         contentColor = if (darkTheme) ButtonContentPrimaryDark else ButtonContentPrimary,
-        hapticEnabled = false,
+        hapticType = HapticFeedbackType.Confirm,
     ) {
         Icon(
             painter = painterResource(R.drawable.arrow_right),
@@ -185,7 +185,7 @@ private fun PadKey(
     enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    hapticEnabled: Boolean = true,
+    hapticType: HapticFeedbackType = HapticFeedbackType.KeyboardTap,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -201,7 +201,7 @@ private fun PadKey(
             .clip(CircleShape)
             .background(containerColor)
             .clickable(enabled = enabled, role = Role.Button) {
-                if (hapticEnabled) haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+                haptic.performHapticFeedback(hapticType)
                 scope.launch {
                     scale.snapTo(0.88f)
                     scale.animateTo(
