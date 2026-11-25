@@ -26,10 +26,29 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.feature.presentation.R
+import se.digg.wallet.core.designsystem.component.BottomActionBar
+import se.digg.wallet.core.designsystem.component.BottomBarAction
 
 @Composable
-internal fun CheckingRequestContent(modifier: Modifier = Modifier) {
+internal fun PresentationLoadingScreen(onCloseClick: () -> Unit, modifier: Modifier = Modifier) {
+    PresentationStepScaffold(
+        modifier = modifier,
+        topBar = { ReviewTopAppBar(onCloseClick = onCloseClick) },
+        bottomBar = {
+            BottomActionBar(
+                secondaryAction = BottomBarAction(
+                    text = stringResource(R.string.generic_cancel),
+                    onClick = onCloseClick,
+                ),
+            )
+        },
+    ) {
+        PresentationLoadingContent()
+    }
+}
+
+@Composable
+internal fun PresentationLoadingContent(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()

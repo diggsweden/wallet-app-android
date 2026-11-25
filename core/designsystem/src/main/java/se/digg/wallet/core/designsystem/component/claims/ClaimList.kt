@@ -11,22 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import se.digg.wallet.core.designsystem.R
-import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.model.ClaimUiModel
 
 @Composable
-fun ClaimList(
-    claims: List<ClaimUiModel>,
-    modifier: Modifier = Modifier,
-    showShare: Boolean = false,
-) {
+fun ClaimList(claims: List<ClaimUiModel>, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(10.dp),
@@ -42,15 +34,6 @@ fun ClaimList(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
         ) {
-            if (showShare) {
-                Text(
-                    text = stringResource(R.string.presentation_required_claims_title),
-                    style = WalletTextStyle.H3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 20.dp),
-                )
-            }
             claims.forEach { claim ->
                 ClaimItem(
                     claim = claim,

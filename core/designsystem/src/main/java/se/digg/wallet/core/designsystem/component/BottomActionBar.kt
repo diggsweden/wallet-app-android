@@ -4,7 +4,6 @@
 
 package se.digg.wallet.core.designsystem.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,25 +11,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.R
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.PreviewsWalletScreen
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.designsystem.utils.isLargeFontScale
 
@@ -83,71 +76,46 @@ fun BottomActionBar(
 
 @Composable
 private fun PrimaryBarButton(action: BottomBarAction, modifier: Modifier = Modifier) {
-    Button(
+    PrimaryButton(
+        text = action.text,
         onClick = action.onClick,
-        modifier = modifier.heightIn(min = 56.dp),
+        modifier = modifier,
         enabled = action.enabled,
-    ) {
-        Text(
-            text = action.text,
-            textAlign = TextAlign.Center,
-        )
-    }
+    )
 }
 
 @Composable
 private fun SecondaryBarButton(action: BottomBarAction, modifier: Modifier = Modifier) {
-    OutlinedButton(
+    SecondaryButton(
+        text = action.text,
         onClick = action.onClick,
-        modifier = modifier.heightIn(min = 56.dp),
+        modifier = modifier,
         enabled = action.enabled,
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-        ),
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
-    ) {
-        Text(
-            text = action.text,
-            textAlign = TextAlign.Center,
+    )
+}
+
+@PreviewsWalletScreen
+@Composable
+private fun BottomActionBarPreview() {
+    WalletPreview {
+        BottomActionBar(
+            primaryAction = BottomBarAction(text = "Dela", onClick = {}),
+            secondaryAction = BottomBarAction(text = "Avbryt", onClick = {}),
+            header = {
+                LinkButton(
+                    text = "13 uppgifter delas",
+                    onClick = {},
+                    trailingIconRes = R.drawable.chevron_up,
+                    textStyle = MaterialTheme.typography.titleSmall,
+                )
+            },
         )
     }
 }
 
-@Composable
-private fun BottomActionBarSample() {
-    BottomActionBar(
-        primaryAction = BottomBarAction(text = "Dela", onClick = {}),
-        secondaryAction = BottomBarAction(text = "Avbryt", onClick = {}),
-        header = {
-            LinkButton(
-                text = "13 uppgifter delas",
-                onClick = {},
-                trailingIconRes = R.drawable.chevron_up,
-                textStyle = MaterialTheme.typography.titleSmall,
-            )
-        },
-    )
-}
-
 @PreviewsWallet
 @Composable
-private fun BottomActionBarPreview() {
-    WalletPreview {
-        BottomActionBarSample()
-    }
-}
-
-@Preview(name = "Font scale 2.0", fontScale = 2f, showBackground = true)
-@Composable
-private fun BottomActionBarLargeFontPreview() {
-    WalletPreview {
-        BottomActionBarSample()
-    }
-}
-
-@PreviewsWallet
-@Composable
-private fun BottomActionBarPrimaryOnlyPreview() {
+private fun BottomActionBarPrimaryButtonOnlyPreview() {
     WalletPreview {
         BottomActionBar(primaryAction = BottomBarAction(text = "Klar", onClick = {}))
     }
