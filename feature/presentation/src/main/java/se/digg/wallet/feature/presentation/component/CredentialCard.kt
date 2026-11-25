@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.core.designsystem.component.claims.ClaimDetailRow
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.model.ClaimUiModel
 import se.digg.wallet.core.model.ClaimValue
 import se.digg.wallet.feature.presentation.R
@@ -74,7 +74,7 @@ private fun CredentialCardPreview() {
         ClaimUiModel("birth_place", "Födelseort", ClaimValue.TextValue("Stockholm")),
         ClaimUiModel("nationality", "Födelseland", ClaimValue.TextValue("Sverige")),
     )
-    ApprovalPreview {
+    WalletPreview {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import se.digg.wallet.core.designsystem.theme.DiggBlack
-import se.digg.wallet.core.designsystem.utils.ApprovalPreview
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.feature.presentation.R
 
 @Composable
@@ -112,7 +112,7 @@ private fun CheckBadge(modifier: Modifier = Modifier) {
 @PreviewsWallet
 @Composable
 private fun LogoTilePreview() {
-    ApprovalPreview {
+    WalletPreview {
         Row(
             modifier = Modifier.padding(24.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp),
