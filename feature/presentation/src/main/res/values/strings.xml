@@ -2,9 +2,6 @@
     <string name="presentation_app_bar_title">Data request</string>
     <string name="presentation_pin_title">Approve and identify</string>
     <string name="presentation_pin_description">By entering your PIN code and identifying yourself, you approve the sharing of your data.</string>
-    <string name="presentation_pin_progress">%1$d of %2$d digits entered</string>
-    <string name="presentation_pin_delete">Delete last digit</string>
-    <string name="presentation_pin_wrong">Wrong PIN code. Try again.</string>
     <string name="presentation_recipient_registered">Registered recipient</string>
     <string name="presentation_recipient_purpose_label">Why they are asking</string>
     <string name="presentation_recipient_show_verification">Show verification</string>

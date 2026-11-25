@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-package se.digg.wallet.feature.presentation.component.pin
+package se.digg.wallet.core.designsystem.component.pin
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -45,7 +44,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import se.digg.wallet.feature.presentation.R
+import se.digg.wallet.core.designsystem.R
+import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimary
+import se.digg.wallet.core.designsystem.theme.ButtonContainerPrimaryDark
+import se.digg.wallet.core.designsystem.theme.ButtonContentPrimary
+import se.digg.wallet.core.designsystem.theme.ButtonContentPrimaryDark
+import se.digg.wallet.core.designsystem.theme.isWalletInDarkTheme
 
 private data class PadDigit(val number: String, val letters: String)
 
@@ -58,11 +62,14 @@ private val digitRows = listOf(
 private val zeroDigit = PadDigit("0", "")
 
 @Composable
-internal fun PinPad(
+fun PinPad(
     keySize: Dp,
     canDelete: Boolean,
+    canSubmit: Boolean,
+    submitLabel: String,
     onDigit: (String) -> Unit,
     onDelete: () -> Unit,
+    onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val rowSpacing = Arrangement.spacedBy(keySize * 0.3f)
@@ -80,7 +87,12 @@ internal fun PinPad(
         Row(horizontalArrangement = rowSpacing) {
             DeleteKey(size = keySize, enabled = canDelete, onClick = onDelete)
             DigitKey(digit = zeroDigit, size = keySize, onClick = { onDigit(zeroDigit.number) })
-            Spacer(Modifier.size(keySize))
+            SubmitKey(
+                size = keySize,
+                label = submitLabel,
+                enabled = canSubmit,
+                onClick = onSubmit,
+            )
         }
     }
 }
@@ -117,7 +129,7 @@ private fun DigitKey(digit: PadDigit, size: Dp, onClick: () -> Unit) {
 
 @Composable
 private fun DeleteKey(size: Dp, enabled: Boolean, onClick: () -> Unit) {
-    val description = stringResource(R.string.presentation_pin_delete)
+    val description = stringResource(R.string.pin_delete)
     val alpha by animateFloatAsState(
         targetValue = if (enabled) 1f else 0.38f,
         label = "deleteKeyAlpha",
@@ -129,10 +141,36 @@ private fun DeleteKey(size: Dp, enabled: Boolean, onClick: () -> Unit) {
             .graphicsLayer { this.alpha = alpha }
             .semantics { contentDescription = description },
         enabled = enabled,
-        filled = false,
+        containerColor = Color.Transparent,
     ) {
         Icon(
             painter = painterResource(R.drawable.backspace_24px),
+            contentDescription = null,
+            modifier = Modifier.size(size * 0.36f),
+        )
+    }
+}
+
+@Composable
+private fun SubmitKey(size: Dp, label: String, enabled: Boolean, onClick: () -> Unit) {
+    val darkTheme = isWalletInDarkTheme()
+    val alpha by animateFloatAsState(
+        targetValue = if (enabled) 1f else 0.5f,
+        label = "submitKeyAlpha",
+    )
+    PadKey(
+        size = size,
+        onClick = onClick,
+        modifier = Modifier
+            .graphicsLayer { this.alpha = alpha }
+            .semantics { contentDescription = label },
+        enabled = enabled,
+        containerColor = if (darkTheme) ButtonContainerPrimaryDark else ButtonContainerPrimary,
+        contentColor = if (darkTheme) ButtonContentPrimaryDark else ButtonContentPrimary,
+        hapticEnabled = false,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.arrow_right),
             contentDescription = null,
             modifier = Modifier.size(size * 0.36f),
         )
@@ -145,13 +183,14 @@ private fun PadKey(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    filled: Boolean = true,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    hapticEnabled: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val scale = remember { Animatable(1f) }
-    val colors = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .size(size)
@@ -160,9 +199,9 @@ private fun PadKey(
                 scaleY = scale.value
             }
             .clip(CircleShape)
-            .background(if (filled) colors.primaryContainer else Color.Transparent)
+            .background(containerColor)
             .clickable(enabled = enabled, role = Role.Button) {
-                haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+                if (hapticEnabled) haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
                 scope.launch {
                     scale.snapTo(0.88f)
                     scale.animateTo(
@@ -177,7 +216,7 @@ private fun PadKey(
             },
         contentAlignment = Alignment.Center,
     ) {
-        CompositionLocalProvider(LocalContentColor provides colors.onPrimaryContainer) {
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
             content()
         }
     }

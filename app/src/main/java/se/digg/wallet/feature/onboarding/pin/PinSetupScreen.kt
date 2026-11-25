@@ -19,7 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.digg.wallet.R
 import se.digg.wallet.core.designsystem.component.OnboardingHeader
-import se.digg.wallet.core.designsystem.component.PinInput
+import se.digg.wallet.core.designsystem.component.pin.PinInput
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
@@ -69,6 +69,7 @@ private fun PinSetupScreen(verifyPin: Boolean, onSubmit: (String) -> Unit) {
         PinInput(
             buttonLabel = stringResource(R.string.generic_next),
             onSubmit = onSubmit,
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
