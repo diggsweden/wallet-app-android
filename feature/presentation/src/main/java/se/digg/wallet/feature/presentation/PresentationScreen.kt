@@ -4,46 +4,28 @@
 
 package se.digg.wallet.feature.presentation
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import se.digg.wallet.core.data.model.PresentationItem
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
-import se.digg.wallet.core.designsystem.component.PinInput
-import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.WalletBackButton
 import se.digg.wallet.core.designsystem.component.WalletTopAppBar
-import se.digg.wallet.core.designsystem.component.claims.ClaimList
-import se.digg.wallet.core.designsystem.theme.WalletTextStyle
-import se.digg.wallet.core.designsystem.utils.PreviewsWallet
+import se.digg.wallet.core.designsystem.utils.PreviewsWalletScreen
 import se.digg.wallet.core.designsystem.utils.WalletPreview
-import se.digg.wallet.feature.presentation.R
-import se.digg.wallet.feature.presentation.component.SelectiveDisclosureList
+import se.digg.wallet.feature.presentation.component.pin.PresentationPinContent
 
 @Composable
 fun PresentationRoute(
@@ -70,190 +52,152 @@ fun PresentationRoute(
             }
         }
     }
-    PresentationScreen(
-        onBackClick = onBack,
-        onShareClick = viewModel::onAccept,
-        onFinishClick = onFinish,
-        onSubmitPin = viewModel::sendData,
-        onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
+    PresentationNavDisplay(
         uiState = uiState,
+        onBack = onBack,
+        onFinish = onFinish,
+        onShareClick = viewModel::onAccept,
+        onSubmitPin = viewModel::sendData,
+        onBackToReview = viewModel::onBackToReview,
+        onOptionalClaimClick = viewModel::onOptionalClaimCheckedChanged,
         modifier = modifier,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PresentationScreen(
+internal fun PresentationScreen(
+    uiState: PresentationUiState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
     onFinishClick: () -> Unit,
     onSubmitPin: (String) -> Unit,
+    onBackToReview: () -> Unit,
     onOptionalClaimClick: (String, Boolean) -> Unit,
-    uiState: PresentationUiState,
+    onRecipientClick: () -> Unit,
+    onSharedClaimsClick: () -> Unit,
     modifier: Modifier = Modifier,
+) {
+    when (uiState) {
+        PresentationUiState.Loading -> {
+            PresentationLoadingScreen(onCloseClick = onBackClick, modifier = modifier)
+        }
+
+        is PresentationUiState.PresentClaims -> {
+            PresentationReviewScreen(
+                uiState = uiState,
+                onCloseClick = onBackClick,
+                onShareClick = onShareClick,
+                onRecipientClick = onRecipientClick,
+                onSharedClaimsClick = onSharedClaimsClick,
+                onOptionalClaimClick = onOptionalClaimClick,
+                modifier = modifier,
+            )
+        }
+
+        is PresentationUiState.EnterPin -> {
+            BackHandler(onBack = onBackToReview)
+            PresentationStepScaffold(
+                modifier = modifier,
+                topBar = { BackTopAppBar(onBackClick = onBackToReview) },
+            ) {
+                PresentationPinContent(isWrongPin = uiState.isWrongPin, onSubmit = onSubmitPin)
+            }
+        }
+
+        PresentationUiState.Sharing -> {
+            PresentationStepScaffold(
+                modifier = modifier,
+                topBar = { BackTopAppBar(onBackClick = onBackClick) },
+            ) {
+                GenericLoading()
+            }
+        }
+
+        is PresentationUiState.Error -> {
+            PresentationStepScaffold(
+                modifier = modifier,
+                topBar = { BackTopAppBar(onBackClick = onBackClick) },
+            ) {
+                GenericErrorScreen(errorMessage = uiState.message)
+            }
+        }
+
+        is PresentationUiState.ShareSuccess -> {
+            PresentationSuccessScreen(
+                verifierName = uiState.verifierName,
+                onFinishClick = onFinishClick,
+                onShowSharedClaimsClick = onSharedClaimsClick,
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun PresentationStepScaffold(
+    modifier: Modifier = Modifier,
+    topBar: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = {
-            WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
-        },
+        topBar = topBar,
+        bottomBar = bottomBar,
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
+                .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp),
-        ) {
-            when (uiState) {
-                is PresentationUiState.Error -> {
-                    GenericErrorScreen(errorMessage = uiState.message)
-                }
-
-                PresentationUiState.Loading -> {
-                    GenericLoading()
-                }
-
-                is PresentationUiState.EnterPin -> {
-                    EnterPinContent(onSubmitPin = onSubmitPin)
-                }
-
-                is PresentationUiState.PresentClaims -> {
-                    PresentClaimsContent(
-                        verifierName = uiState.verifierName,
-                        requiredClaims = uiState.requiredClaims,
-                        optionalClaims = uiState.optionalClaims,
-                        onOptionalClaimClick = onOptionalClaimClick,
-                        onShareClick = onShareClick,
-                    )
-                }
-
-                is PresentationUiState.ShareSuccess -> {
-                    ShareSuccess(onFinishClick = onFinishClick)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EnterPinContent(onSubmitPin: (String) -> Unit) {
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Spacer(Modifier.height(64.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.presentation_pin_title),
-            style = WalletTextStyle.H1,
-        )
-        Spacer(Modifier.height(32.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.presentation_pin_description),
-            style = WalletTextStyle.BodyLG,
-        )
-        Spacer(Modifier.height(64.dp))
-        PinInput(
-            buttonLabel = stringResource(R.string.generic_share),
-            onSubmit = onSubmitPin,
-            modifier = Modifier.fillMaxWidth(),
+            content = content,
         )
     }
 }
 
 @Composable
-private fun PresentClaimsContent(
-    verifierName: String,
-    requiredClaims: List<PresentationItem>,
-    optionalClaims: List<PresentationItem>,
-    onOptionalClaimClick: (String, Boolean) -> Unit,
-    onShareClick: () -> Unit,
-) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp),
-        ) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                text = stringResource(R.string.presentation_share_title, verifierName),
-                style = WalletTextStyle.H2,
-            )
-            Spacer(Modifier.height(8.dp))
-            requiredClaims.forEach { item ->
-                ClaimList(claims = item.claims, showShare = true)
-            }
-            if (optionalClaims.isNotEmpty()) {
-                SelectiveDisclosureList(
-                    onClaimClick = onOptionalClaimClick,
-                    presentationItems = optionalClaims,
-                )
-            }
-        }
-        PrimaryButton(
-            text = stringResource(R.string.generic_share),
-            onClick = onShareClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter),
-        )
-    }
+private fun BackTopAppBar(onBackClick: () -> Unit) {
+    WalletTopAppBar(navigationIcon = { WalletBackButton(onClick = onBackClick) })
 }
 
 @Composable
-private fun ShareSuccess(onFinishClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            text = stringResource(R.string.presentation_share_successful_title),
-            style = WalletTextStyle.H1,
-        )
-        Spacer(Modifier.height(50.dp))
-        Image(
-            painter = painterResource(id = R.drawable.presentation_successful),
-            contentDescription = null,
-        )
-        Spacer(Modifier.height(32.dp))
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            textAlign = TextAlign.Center,
-            text = stringResource(R.string.presentation_share_successful_info),
-            style = WalletTextStyle.BodyMD,
-        )
-        Spacer(Modifier.weight(1f))
-        PrimaryButton(
-            text = stringResource(R.string.generic_close),
-            onClick = onFinishClick,
-        )
-    }
-}
-
-@PreviewsWallet
-@Composable
-private fun PresentationPreview() {
+private fun PresentationScreenPreview(uiState: PresentationUiState) {
     WalletPreview {
         PresentationScreen(
+            uiState = uiState,
             onBackClick = { },
             onShareClick = { },
             onFinishClick = { },
             onOptionalClaimClick = { _, _ -> },
+            onRecipientClick = { },
+            onSharedClaimsClick = { },
             onSubmitPin = {},
-            uiState = PresentationUiState.EnterPin,
+            onBackToReview = {},
         )
     }
+}
+
+@PreviewsWalletScreen
+@Composable
+private fun PresentationPreview() {
+    PresentationScreenPreview(uiState = PresentationUiState.EnterPin())
+}
+
+@PreviewsWalletScreen
+@Composable
+private fun PresentationCheckingPreview() {
+    PresentationScreenPreview(uiState = PresentationUiState.Loading)
+}
+
+@PreviewsWalletScreen
+@Composable
+private fun PresentationReviewPreview() {
+    PresentationScreenPreview(uiState = previewRequest)
+}
+
+@PreviewsWalletScreen
+@Composable
+private fun PresentationDonePreview() {
+    PresentationScreenPreview(uiState = previewDone)
 }

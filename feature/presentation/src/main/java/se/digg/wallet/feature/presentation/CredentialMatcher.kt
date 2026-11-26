@@ -115,6 +115,8 @@ internal object CredentialMatcher {
             id = query.id,
             isChecked = false,
             isRequired = false,
+            credentialName = savedCredential.displayData?.name,
+            issuer = savedCredential.issuer,
             claims = claims,
             disclosedSdJwt = matchedSdJwt,
             bindingKeyId = ProofKeyId(savedCredential.keyId),

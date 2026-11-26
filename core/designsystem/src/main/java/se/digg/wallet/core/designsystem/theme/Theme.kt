@@ -17,16 +17,22 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = DarkPrimary,
+    primary = PrimaryDarkMode,
     onPrimary = DarkOnPrimary,
     secondary = Orange50,
-    tertiary = Pink80,
+    tertiary = DarkTertiary,
     surface = ContainerDarkMode,
     background = DefaultBackgroundDarkMode,
     onSurface = TextColorDarkMode,
     errorContainer = ErrorContainerDarkMode,
-    primaryContainer = ButtonContainerPrimaryDark,
-    onPrimaryContainer = TextColor,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
+    onBackground = TextColorDarkMode,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    surfaceContainer = DarkSurfaceContainer,
+    surfaceContainerHighest = DarkSurfaceContainerHighest,
+    outline = DarkOutline,
+    outlineVariant = DarkOutlineVariant,
 
 )
 
@@ -34,13 +40,19 @@ private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
     onPrimary = LightOnPrimary,
     secondary = Orange50,
-    tertiary = Pink40,
+    tertiary = LightTertiary,
     surface = Container,
     background = DefaultBackground,
     onSurface = TextColor,
     errorContainer = ErrorContainer,
-    primaryContainer = ButtonContainerPrimary,
-    onPrimaryContainer = TextColorDarkMode,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
+    onBackground = TextColor,
+    onSurfaceVariant = LightOnSurfaceVariant,
+    surfaceContainer = LightSurfaceContainer,
+    surfaceContainerHighest = LightSurfaceContainerHighest,
+    outline = LightOutline,
+    outlineVariant = LightOutlineVariant,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

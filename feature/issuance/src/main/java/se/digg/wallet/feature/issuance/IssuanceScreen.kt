@@ -27,14 +27,13 @@ import se.digg.wallet.core.designsystem.component.BaseScreen
 import se.digg.wallet.core.designsystem.component.CredentialOfferHeader
 import se.digg.wallet.core.designsystem.component.GenericErrorScreen
 import se.digg.wallet.core.designsystem.component.GenericLoading
-import se.digg.wallet.core.designsystem.component.PinInput
 import se.digg.wallet.core.designsystem.component.PrimaryButton
 import se.digg.wallet.core.designsystem.component.claims.ClaimList
+import se.digg.wallet.core.designsystem.component.pin.PinInput
 import se.digg.wallet.core.designsystem.theme.WalletTextStyle
 import se.digg.wallet.core.designsystem.utils.PreviewsWallet
 import se.digg.wallet.core.designsystem.utils.WalletPreview
 import se.digg.wallet.core.model.IssuerDisplay
-import se.digg.wallet.feature.issuance.R
 
 @Composable
 fun IssuanceRoute(
@@ -153,12 +152,13 @@ private fun IssuanceSteps(
                         ),
                     style = WalletTextStyle.BodyLG,
                 )
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(16.dp))
                 PinInput(
                     buttonLabel = stringResource(
                         R.string.onboarding_issuance_ready_to_sign_confirm_button,
                     ),
                     onSubmit = onPinEnter,
+                    modifier = Modifier.padding(16.dp),
                 )
             }
 

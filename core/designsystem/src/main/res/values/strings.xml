@@ -48,5 +48,7 @@
     <string name="dashboard_main_pid_title">My ID document</string>
     <string name="dashboard_main_pid_description">Updated: %1$s</string>
     <string name="claim_item_missing_value">No data</string>
-    <string name="presentation_required_claims_title">"Data to share:"</string>
+    <string name="pin_progress">%1$d of %2$d digits entered</string>
+    <string name="pin_delete">Delete last digit</string>
+    <string name="pin_wrong">Wrong PIN code. Try again.</string>
 </resources>

@@ -47,5 +47,7 @@
     <string name="dashboard_main_pid_title">Min ID-handling</string>
     <string name="dashboard_main_pid_description">Uppdaterad: %1$s</string>
     <string name="claim_item_missing_value">Ingen uppgift</string>
-    <string name="presentation_required_claims_title">Uppgifter som delas:</string>
+    <string name="pin_progress">%1$d av %2$d siffror angivna</string>
+    <string name="pin_delete">Radera senaste siffran</string>
+    <string name="pin_wrong">Fel pinkod. Försök igen.</string>
 </resources>
