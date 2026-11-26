@@ -17,12 +17,18 @@ object CertificateValidator {
         require(value = certChain.isNotEmpty()) { "Certificate chain is empty" }
         require(value = trustAnchors.isNotEmpty()) { "Trust anchors are empty" }
 
+        val certChainToValidate = certChain.filter { !trustAnchors.contains(it) }
+
+        if (certChainToValidate.isEmpty()) {
+            return certChain.first().publicKey;
+        }
+
         val anchors = trustAnchors
             .map { TrustAnchor(it, null) }
             .toSet()
 
         val path = CertificateFactory.getInstance("X.509")
-            .generateCertPath(chainFromLeaf(certChain))
+            .generateCertPath(chainFromLeaf(certChainToValidate))
 
         val parameters = PKIXParameters(anchors).apply {
             isRevocationEnabled = false
