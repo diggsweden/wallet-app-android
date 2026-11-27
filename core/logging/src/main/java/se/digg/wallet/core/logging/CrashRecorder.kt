@@ -37,7 +37,7 @@ class CrashRecorder @Inject constructor(
 
     private fun record(thread: Thread, throwable: Throwable) {
         directory.mkdirs()
-        crashFiles().dropLast(MAX_FILES - 1).forEach { it.delete() }
+        crashFiles().forEach { it.delete() }
         val event = factory.create(
             priority = Log.ERROR,
             tag = null,
@@ -54,7 +54,6 @@ class CrashRecorder @Inject constructor(
 
     private companion object {
         const val DIRECTORY = "remote-log"
-        const val MAX_FILES = 3
         const val MESSAGE = "Uncaught exception"
     }
 }
