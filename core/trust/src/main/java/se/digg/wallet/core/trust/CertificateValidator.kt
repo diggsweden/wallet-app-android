@@ -6,6 +6,8 @@ package se.digg.wallet.core.trust
 
 import java.security.PublicKey
 import java.security.cert.CertPathValidator
+import java.security.cert.CertPathValidatorException
+import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.PKIXCertPathValidatorResult
 import java.security.cert.PKIXParameters
@@ -17,12 +19,28 @@ object CertificateValidator {
         require(value = certChain.isNotEmpty()) { "Certificate chain is empty" }
         require(value = trustAnchors.isNotEmpty()) { "Trust anchors are empty" }
 
+        val trusted = trustAnchors.toSet()
+        val chain = chainFromLeaf(certChain)
+        val leaf = chain.first()
+
+        if (leaf in trusted) {
+            try {
+                leaf.checkValidity()
+            } catch (e: CertificateException) {
+                throw CertPathValidatorException("Directly trusted certificate is not valid", e)
+            }
+            return leaf.publicKey
+        }
+
+        val firstTrusted = chain.indexOfFirst { it in trusted }
+        val pathCerts = if (firstTrusted > 0) chain.take(firstTrusted) else chain
+
         val anchors = trustAnchors
             .map { TrustAnchor(it, null) }
             .toSet()
 
         val path = CertificateFactory.getInstance("X.509")
-            .generateCertPath(chainFromLeaf(certChain))
+            .generateCertPath(pathCerts)
 
         val parameters = PKIXParameters(anchors).apply {
             isRevocationEnabled = false

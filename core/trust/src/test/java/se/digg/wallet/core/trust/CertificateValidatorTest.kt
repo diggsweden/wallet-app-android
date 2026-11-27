@@ -131,6 +131,56 @@ class CertificateValidatorTest {
     }
 
     @Test
+    fun `a non-CA leaf that is itself a trust anchor is valid`() {
+        val leaf = anchor.issueSigningLeaf("CN=Directly Trusted Signer")
+
+        val publicKey = CertificateValidator.validate(
+            certChain = listOf(leaf.certificate),
+            trustAnchors = listOf(leaf.certificate),
+        )
+
+        assertEquals(leaf.keyPair.public, publicKey)
+    }
+
+    @Test
+    fun `a directly trusted leaf is valid when the chain includes its issuers`() {
+        val intermediate = anchor.issueCa("CN=Intermediate")
+        val leaf = intermediate.issueLeaf("CN=Directly Trusted Signer")
+
+        CertificateValidator.validate(
+            certChain = listOf(leaf, intermediate.certificate, anchor.certificate),
+            trustAnchors = listOf(leaf),
+        )
+    }
+
+    @Test
+    fun `an expired directly trusted leaf is rejected`() {
+        val leaf = anchor.issueLeaf(
+            subject = "CN=Directly Trusted Signer",
+            notBefore = Instant.now().minus(Duration.ofDays(10)),
+            notAfter = Instant.now().minus(Duration.ofDays(1)),
+        )
+
+        assertThrows(CertPathValidatorException::class.java) {
+            CertificateValidator.validate(
+                certChain = listOf(leaf),
+                trustAnchors = listOf(leaf),
+            )
+        }
+    }
+
+    @Test
+    fun `a chain that includes a trusted intermediate is valid`() {
+        val intermediate = anchor.issueCa("CN=Intermediate")
+        val leaf = intermediate.issueLeaf("CN=Relying Party")
+
+        CertificateValidator.validate(
+            certChain = listOf(leaf, intermediate.certificate, anchor.certificate),
+            trustAnchors = listOf(intermediate.certificate),
+        )
+    }
+
+    @Test
     fun `an empty chain is rejected`() {
         assertThrows(IllegalArgumentException::class.java) {
             CertificateValidator.validate(

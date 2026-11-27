@@ -127,12 +127,12 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"10.0.2.2/wallet-client-gateway\"",
+                "\"localhost/wallet-client-gateway\"",
             )
             buildConfigField(
                 "String",
                 "PID_ISSUER_URL",
-                "\"10.0.2.2/pid-issuer\"",
+                "\"localhost/pid-issuer\"",
             )
         }
     }
