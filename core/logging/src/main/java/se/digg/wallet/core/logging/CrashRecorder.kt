@@ -17,7 +17,7 @@ import se.wallet.client.gateway.models.ClientLogRequestLevel
 @Singleton
 class CrashRecorder @Inject constructor(
     @ApplicationContext context: Context,
-    private val factory: LogEventFactory,
+    private val factory: ClientLogFactory,
 ) {
     private val directory = File(context.noBackupFilesDir, DIRECTORY)
 
@@ -38,7 +38,7 @@ class CrashRecorder @Inject constructor(
     private fun record(thread: Thread, throwable: Throwable) {
         directory.mkdirs()
         crashFiles().forEach { it.delete() }
-        val event = factory.create(
+        val log = factory.create(
             priority = Log.ERROR,
             tag = null,
             message = MESSAGE,
@@ -47,7 +47,7 @@ class CrashRecorder @Inject constructor(
             fatal = true,
         )
         File(directory, "crash-${System.currentTimeMillis()}-${UUID.randomUUID()}.txt")
-            .writeText(event.message)
+            .writeText(log.message)
     }
 
     private fun crashFiles(): List<File> = directory.listFiles().orEmpty().sortedBy { it.name }

@@ -11,7 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import se.digg.wallet.BuildConfig
-import se.digg.wallet.core.logging.RemoteLoggingConfig
+import se.digg.wallet.core.logging.RemoteLogConfig
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -19,7 +19,7 @@ object AppLoggingModule {
 
     @Provides
     @Singleton
-    fun provideRemoteLoggingConfig(): RemoteLoggingConfig = RemoteLoggingConfig(
+    fun provideRemoteLogConfig(): RemoteLogConfig = RemoteLogConfig(
         enabled = true,
         minPriority = if (BuildConfig.DEBUG) Log.DEBUG else Log.WARN,
     )

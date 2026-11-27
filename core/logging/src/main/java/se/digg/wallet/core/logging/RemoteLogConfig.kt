@@ -4,8 +4,7 @@
 
 package se.digg.wallet.core.logging
 
-data class RemoteLoggingConfig(
-    val enabled: Boolean,
+data class RemoteLogConfig(val enabled: Boolean,
     val minPriority: Int,
     val maxQueued: Int = 200,
 )

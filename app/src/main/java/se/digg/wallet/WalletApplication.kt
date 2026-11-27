@@ -10,12 +10,12 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import se.digg.wallet.core.common.locale.LocaleOverride
 import se.digg.wallet.core.common.theme.ThemePreference
-import se.digg.wallet.core.logging.LoggingInitializer
+import se.digg.wallet.core.logging.LoggingSetup
 
 @HiltAndroidApp
 class WalletApplication : Application() {
     @Inject
-    lateinit var loggingInitializer: LoggingInitializer
+    lateinit var loggingSetup: LoggingSetup
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(LocaleOverride.wrap(base))
@@ -23,7 +23,7 @@ class WalletApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        loggingInitializer.init(isDebug = BuildConfig.DEBUG)
+        loggingSetup.init(isDebug = BuildConfig.DEBUG)
         ThemePreference.init(this)
     }
 }

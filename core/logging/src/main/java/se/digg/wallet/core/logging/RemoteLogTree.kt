@@ -10,14 +10,14 @@ import timber.log.Timber
 
 @Singleton
 class RemoteLogTree @Inject constructor(
-    private val config: RemoteLoggingConfig,
-    private val factory: LogEventFactory,
-    private val uploader: LogUploader,
+    private val config: RemoteLogConfig,
+    private val factory: ClientLogFactory,
+    private val logQueue: LogQueue,
 ) : Timber.Tree() {
 
     override fun isLoggable(tag: String?, priority: Int) = priority >= config.minPriority
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        runCatching { uploader.enqueue(PendingLog(factory.create(priority, tag, message, t))) }
+        runCatching { logQueue.enqueue(PendingLog(factory.create(priority, tag, message, t))) }
     }
 }

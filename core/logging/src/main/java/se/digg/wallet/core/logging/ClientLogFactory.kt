@@ -15,7 +15,7 @@ import se.wallet.client.gateway.models.ClientLogRequest
 import se.wallet.client.gateway.models.ClientLogRequestLevel
 
 @Singleton
-class LogEventFactory @Inject constructor(
+class ClientLogFactory @Inject constructor(
     private val clock: Clock,
     private val formatter: StackTraceFormatter,
 ) {

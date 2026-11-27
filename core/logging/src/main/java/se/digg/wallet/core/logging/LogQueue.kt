@@ -23,9 +23,9 @@ import se.wallet.client.gateway.models.ClientLogRequest
 data class PendingLog(val request: ClientLogRequest, val file: File? = null)
 
 @Singleton
-class LogUploader @Inject constructor(
+class LogQueue @Inject constructor(
     private val sender: LogSender,
-    private val config: RemoteLoggingConfig,
+    private val config: RemoteLogConfig,
     @ApplicationScope scope: CoroutineScope,
 ) {
     private val queue = ArrayDeque<PendingLog>()
